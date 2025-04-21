@@ -27,12 +27,11 @@
           <div v-for="(section, index) in navigationSections" :key="index" class="nav-section">
             <h4 class="section-title">{{ section.title }}</h4>
             <ul class="nav-links">
-              <li v-for="route in section.routes" :key="route.path">
+              <li v-for="route in getFilteredRoutes(section.routes)" :key="route.path">
                 <router-link 
                   :to="route.path" 
                   class="nav-link"
                   :class="{ 'active': currentRoute === route.path }"
-                  v-if="shouldShowRoute(route)"
                 >
                   <svg v-if="getIconForRoute(route)" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="getIconForRoute(route)"></svg>
                   <span>{{ route.name }}</span>
@@ -42,7 +41,7 @@
           </div>
         </nav>
         
-        <div class="sidebar-footer sticky-footer">
+        <div class="sidebar-footer">
           <router-link to="/profile-display" class="sidebar-action">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             <span>View Profile</span>
@@ -74,54 +73,132 @@
 
       <!-- Dashboard Card -->
       <div class="dashboard-card">
+        <!-- Header with gradient overlay and stats -->
         <div class="card-header">
-          <div class="logo-container">
-            <img src="/placeholder.svg" alt="Procurement System Logo" class="logo" />
+          <div class="header-content">
+            <div class="logo-container">
+              <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+            </div>
+            <div class="header-text">
+              <h1 class="title">User Dashboard</h1>
+              <p class="subtitle">Manage your account and procurement activities</p>
+            </div>
           </div>
-          <h1 class="title">Dashboard</h1>
-          <p class="subtitle">Manage your account and activities</p>
+          
+          <!-- Stats Overview -->
+          <div class="stats-overview">
+            <div class="stat-item">
+              <div class="stat-value">{{ loginCount }}</div>
+              <div class="stat-label">Total Logins</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ daysActive }}</div>
+              <div class="stat-label">Days Active</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ profileCompletion }}%</div>
+              <div class="stat-label">Profile Complete</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ pendingRequests }}</div>
+              <div class="stat-label">Pending Requests</div>
+            </div>
+          </div>
         </div>
 
         <div class="card-content">
           <!-- Loading State -->
           <div v-if="loading" class="loading-state">
-            <div class="spinner"></div>
+            <div class="loading-spinner">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+            </div>
             <p>Loading dashboard...</p>
           </div>
 
           <template v-else>
             <!-- User Welcome Section -->
             <div class="welcome-section">
-              <div class="user-avatar">
-                <img 
-                  :src="profileImage || defaultAvatar" 
-                  :alt="`${username}'s avatar`"
-                  @error="handleImageError"
-                />
-                <span class="role-badge" :class="role">
-                  {{ role }}
-                </span>
+              <div class="welcome-content">
+                <div class="welcome-text-container">
+                  <h2 class="welcome-text">Welcome back, {{ username }}!</h2>
+                  <p class="last-login">Last login: {{ formatDate(lastLogin) }}</p>
+                </div>
+                <div class="user-avatar">
+                  <img 
+                    :src="profileImage || defaultAvatar" 
+                    :alt="`${username}'s avatar`"
+                    @error="handleImageError"
+                  />
+                  <span class="role-badge" :class="role">
+                    {{ role }}
+                  </span>
+                </div>
               </div>
-              <h2 class="welcome-text">Welcome back, {{ username }}!</h2>
-              <p class="last-login">Last login: {{ formatDate(lastLogin) }}</p>
             </div>
 
-            <!-- Quick Stats -->
-            <div class="stats-grid">
-              <div class="stat-card">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="stat-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>
-                <span class="stat-value">{{ loginCount }}</span>
-                <span class="stat-label">Total Logins</span>
+            <!-- Quick Actions -->
+            <div class="quick-actions-section">
+              <h3 class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="section-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Quick Actions
+              </h3>
+              <div class="quick-actions-grid">
+                <div class="action-card" @click="navigateTo('purchase-requests')">
+                  <div class="action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  </div>
+                  <h4>Purchase Requests</h4>
+                  <p>Create and manage purchase requests</p>
+                </div>
+                <div class="action-card" @click="navigateTo('payment-tracking')">
+                  <div class="action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                  </div>
+                  <h4>Track Payments</h4>
+                  <p>View payment status and history</p>
+                </div>
+                <div class="action-card" @click="navigateTo('approved-purchases')">
+                  <div class="action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  </div>
+                  <h4>PR Lists</h4>
+                  <p>View approved purchase requests</p>
+                </div>
+                <div class="action-card" @click="navigateTo('profile-display')">
+                  <div class="action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  </div>
+                  <h4>My Profile</h4>
+                  <p>View and edit your profile</p>
+                </div>
               </div>
-              <div class="stat-card">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="stat-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                <span class="stat-value">{{ daysActive }}</span>
-                <span class="stat-label">Days Active</span>
-              </div>
-              <div class="stat-card">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="stat-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                <span class="stat-value">{{ profileCompletion }}%</span>
-                <span class="stat-label">Profile Complete</span>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity-section">
+              <h3 class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="section-icon"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                Recent Activity
+              </h3>
+              <div class="activity-timeline">
+                <div v-if="recentActivities.length === 0" class="empty-activity">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  <p>No recent activity found</p>
+                </div>
+                <div v-else class="activity-list">
+                  <div v-for="(activity, index) in recentActivities" :key="index" class="activity-item">
+                    <div class="activity-icon" :class="activity.type">
+                      <svg v-if="activity.type === 'login'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                      <svg v-else-if="activity.type === 'request'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                      <svg v-else-if="activity.type === 'profile'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                    <div class="activity-content">
+                      <p class="activity-text">{{ activity.description }}</p>
+                      <span class="activity-time">{{ formatDate(activity.timestamp) }}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -132,32 +209,34 @@
                 Admin Controls
               </h3>
               <div class="admin-actions">
-                <router-link to="/admin-dashboard" class="action-button primary">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-                  Admin Panel
+                <router-link to="/admin-dashboard" class="admin-action-card">
+                  <div class="admin-action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                  </div>
+                  <div class="admin-action-content">
+                    <h4>Admin Dashboard</h4>
+                    <p>Access system controls and analytics</p>
+                  </div>
                 </router-link>
-                <router-link to="/admin-management" class="action-button secondary">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                  Manage Users
+                <router-link to="/admin-management" class="admin-action-card">
+                  <div class="admin-action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  </div>
+                  <div class="admin-action-content">
+                    <h4>User Management</h4>
+                    <p>Manage system users and permissions</p>
+                  </div>
                 </router-link>
-                <router-link to="/system-logs" class="action-button secondary">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                  System Logs
+                <router-link to="/system-logs" class="admin-action-card">
+                  <div class="admin-action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                  </div>
+                  <div class="admin-action-content">
+                    <h4>System Logs</h4>
+                    <p>View system activity and audit logs</p>
+                  </div>
                 </router-link>
               </div>
-            </div>
-
-            <!-- User Actions -->
-            <div class="user-actions" :class="{ 'is-admin': role === 'admin' }">
-              <button class="action-btn" @click="navigateTo('track-payments')">Track Payments</button>
-              <button class="action-btn" @click="navigateTo('approved-purchases')">PR Lists</button>
-            </div>
-
-            <!-- Dashboard Actions -->
-            <div class="dashboard-actions">
-              <button @click="navigateToPurchaseRequest" class="action-button primary">
-                Go to Purchase Requests
-              </button>
             </div>
           </template>
         </div>
@@ -188,280 +267,396 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+<script>
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc, onSnapshot, Timestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, onSnapshot, Timestamp, collection, query, orderBy, limit, getDocs, addDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
-// State
-const username = ref("User");
-const role = ref("");
-const profileImage = ref("");
-const loading = ref(true);
-const lastLogin = ref(new Date());
-const loginCount = ref(0);
-const daysActive = ref(0);
-const profileCompletion = ref(0);
-const showLogoutModal = ref(false);
-const sidebarOpen = ref(false);
-const defaultAvatar = "https://ui-avatars.com/api/?background=0F2942&color=fff";
+export default {
+  setup() {
+    // State
+    const username = ref("User");
+    const role = ref("");
+    const profileImage = ref("");
+    const loading = ref(true);
+    const lastLogin = ref(new Date());
+    const loginCount = ref(0);
+    const daysActive = ref(0);
+    const profileCompletion = ref(0);
+    const pendingRequests = ref(0);
+    const showLogoutModal = ref(false);
+    const sidebarOpen = ref(false);
+    const defaultAvatar = "https://ui-avatars.com/api/?background=0F2942&color=fff";
+    const recentActivities = ref([]);
 
-const router = useRouter();
-const route = useRoute();
-const auth = getAuth();
-const currentRoute = computed(() => route.path);
+    const router = useRouter();
+    const route = useRoute();
+    const auth = getAuth();
+    const currentRoute = computed(() => route.path);
 
-// Routes configuration
-const routes = [
-  { path: '/', name: 'Home', icon: 'home' },
-  { path: '/register', name: 'Register', icon: 'user-plus' },
-  { path: '/login', name: 'Login', icon: 'log-in' },
-  { path: '/edit-profile', name: 'Edit Profile', icon: 'user-edit', meta: { requiresAuth: true, role: 'user' } },
-  { path: '/dashboard', name: 'Dashboard', icon: 'layout', meta: { requiresAuth: true } },
-  { path: '/profile-display', name: 'Profile', icon: 'user', meta: { requiresAuth: true, role: 'user' } },
-  { path: '/admin-dashboard', name: 'Admin Dashboard', icon: 'shield', meta: { requiresAuth: true, role: 'admin' } },
-  { path: '/reset-password', name: 'Reset Password', icon: 'key' },
-  { path: "/admin-management", name: "Admin Management", icon: 'users', meta: { requiresAuth: true, role: "admin" } },
-  { path: '/settings', name: 'Settings', icon: 'settings', meta: { requiresAuth: true } },
-];
+    // Routes configuration
+    const routes = [
+      { path: '/', name: 'Home', icon: 'home' },
+      { path: '/register', name: 'Register', icon: 'user-plus' },
+      { path: '/login', name: 'Login', icon: 'log-in' },
+      { path: '/edit-profile', name: 'Edit Profile', icon: 'user-edit', meta: { requiresAuth: true, role: 'user' } },
+      { path: '/dashboard', name: 'Dashboard', icon: 'layout', meta: { requiresAuth: true } },
+      { path: '/profile-display', name: 'Profile', icon: 'user', meta: { requiresAuth: true, role: 'user' } },
+      { path: '/admin-dashboard', name: 'Admin Dashboard', icon: 'shield', meta: { requiresAuth: true, role: 'admin' } },
+      { path: '/reset-password', name: 'Reset Password', icon: 'key' },
+      { path: "/admin-management", name: "Admin Management", icon: 'users', meta: { requiresAuth: true, role: "admin" } },
+      { path: '/settings', name: 'Settings', icon: 'settings', meta: { requiresAuth: true } },
+      { path: '/purchase-requests', name: 'Request Purchase', icon: 'file-text', meta: { requiresAuth: true } },
+      { path: '/track-payments', name: 'Track Payments', icon: 'dollar-sign', meta: { requiresAuth: true } },
+      { path: '/approved-purchases', name: 'PR Lists', icon: 'check-circle', meta: { requiresAuth: true } },
+    ];
 
-// Group routes by section
-const navigationSections = computed(() => {
-  return [
-    {
-      title: 'General',
-      routes: routes.filter(r => 
-        r.path === '/' || 
-        r.path === '/dashboard' || 
-        r.path === '/profile-display'
-      )
-    },
-    {
-      title: 'User Management',
-      routes: routes.filter(r => 
-        r.path === '/edit-profile' || 
-        r.path === '/reset-password'
-      )
-    },
-    {
-      title: 'Admin Controls',
-      routes: routes.filter(r => 
-        r.path === '/admin-dashboard' || 
-        r.path === '/admin-management'
-      )
-    }
-  ];
-});
-
-// Helper function to safely convert Firestore timestamp to Date
-const getDateFromTimestamp = (timestamp) => {
-  if (timestamp instanceof Timestamp) {
-    return timestamp.toDate();
-  }
-  if (timestamp && timestamp.seconds) {
-    return new Timestamp(timestamp.seconds, timestamp.nanoseconds).toDate();
-  }
-  return new Date();
-};
-
-// Calculate profile completion
-const calculateProfileCompletion = (userData) => {
-  const requiredFields = ['username', 'email', 'completeName', 'age', 'birthday', 'cellphone', 'gender', 'address'];
-  const completedFields = requiredFields.filter(field => userData[field]);
-  return Math.round((completedFields.length / requiredFields.length) * 100);
-};
-
-// Update user data
-const updateUserData = async (userDoc) => {
-  if (!userDoc) return;
-  
-  const userData = userDoc.data();
-  username.value = userData.username || auth.currentUser?.displayName || "User";
-  role.value = userData.role;
-  profileImage.value = userData.profileImageUrl;
-  lastLogin.value = getDateFromTimestamp(userData.lastLogin);
-  loginCount.value = userData.loginCount || 0;
-  
-  // Calculate days active
-  const createdAt = getDateFromTimestamp(userData.createdAt);
-  const diffTime = Math.abs(new Date() - createdAt);
-  daysActive.value = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  // Calculate profile completion
-  profileCompletion.value = calculateProfileCompletion(userData);
-};
-
-// Set up real-time listener for user data
-const setupUserListener = (userId) => {
-  const userRef = doc(db, "users", userId);
-  return onSnapshot(userRef, (doc) => {
-    if (doc.exists()) {
-      updateUserData(doc);
-    }
-  }, (error) => {
-    console.error("Error listening to user data:", error);
-  });
-};
-
-// Check if route should be shown based on user role
-const shouldShowRoute = (route) => {
-  if (route.path === '/login' || route.path === '/register') {
-    return false;
-  }
-  
-  if (route.meta?.requiresAuth) {
-    if (route.meta.role && route.meta.role !== role.value) {
-      return false;
-    }
-  }
-  
-  return true;
-};
-
-// Get icon for each route
-const getIconForRoute = (route) => {
-  const iconMap = {
-    '/': 'home',
-    '/dashboard': 'layout',
-    '/profile-display': 'user',
-    '/edit-profile': 'edit',
-    '/reset-password': 'key',
-    '/admin-dashboard': 'shield',
-    '/admin-management': 'users'
-  };
-  
-  return iconMap[route.path];
-};
-
-// Check if this is a new login session
-const isNewSession = () => {
-  const lastSessionTime = sessionStorage.getItem('lastSessionTime');
-  const currentTime = Date.now();
-  
-  if (!lastSessionTime) {
-    sessionStorage.setItem('lastSessionTime', currentTime.toString());
-    return true;
-  }
-  
-  return false;
-};
-
-// Toggle sidebar
-const toggleSidebar = () => {
-  sidebarOpen.value = !sidebarOpen.value;
-  
-  if (sidebarOpen.value) {
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = '';
-  }
-};
-
-// Image error handler
-const handleImageError = (e) => {
-  e.target.src = defaultAvatar;
-};
-
-const formatDate = (date) => {
-  return new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(date);
-};
-
-const confirmLogout = () => {
-  showLogoutModal.value = true;
-};
-
-const logout = async () => {
-  try {
-    sessionStorage.removeItem('lastSessionTime');
-    await signOut(auth);
-    router.push('/login');
-  } catch (error) {
-    console.error("Error logging out:", error);
-  }
-};
-
-const navigateTo = (route) => {
-  router.push(`/${route}`); // Use Vue Router to navigate
-};
-
-const navigateToPurchaseRequest = () => {
-  router.push('/purchase-requests');
-};
-
-// Watch for route changes to close sidebar on mobile
-watch(currentRoute, () => {
-  if (window.innerWidth < 768) {
-    sidebarOpen.value = false;
-    document.body.style.overflow = '';
-  }
-});
-
-// Initialize component
-let unsubscribeUser = null;
-onMounted(() => {
-  const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      try {
-        if (unsubscribeUser) {
-          unsubscribeUser();
+    // Group routes by section
+    const navigationSections = computed(() => {
+      return [
+        {
+          title: 'General',
+          routes: routes.filter(r => 
+            r.path === '/' || 
+            r.path === '/dashboard' || 
+            r.path === '/profile-display'
+          )
+        },
+        {
+          title: 'Procurement',
+          routes: routes.filter(r => 
+            r.path === '/purchase-requests' || 
+            r.path === '/track-payments' ||
+            r.path === '/approved-purchases'
+          )
+        },
+        {
+          title: 'User Management',
+          routes: routes.filter(r => 
+            r.path === '/edit-profile' || 
+            r.path === '/reset-password'
+          )
+        },
+        {
+          title: 'Admin Controls',
+          routes: routes.filter(r => 
+            r.path === '/admin-dashboard' || 
+            r.path === '/admin-management' ||
+            r.path === '/system-logs'
+          )
         }
-        
-        unsubscribeUser = setupUserListener(user.uid);
-        
-        if (isNewSession()) {
-          const userRef = doc(db, "users", user.uid);
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
-            await updateDoc(userRef, {
-              lastLogin: Timestamp.now(),
-              loginCount: (userData.loginCount || 0) + 1
-            });
-          }
-        }
+      ];
+    });
 
-        // Fetch user role and log admin status
-        const userRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          if (userData.role === "admin") {
-            console.log("Admin logged in");
-          } else {
-            console.log("Non-admin user logged in");
-          }
-        }
-      } catch (error) {
-        console.error("Error setting up dashboard:", error);
+    // Helper function to filter routes based on user role
+    const getFilteredRoutes = (routes) => {
+      return routes.filter(route => shouldShowRoute(route));
+    };
+
+    // Helper function to safely convert Firestore timestamp to Date
+    const getDateFromTimestamp = (timestamp) => {
+      if (timestamp instanceof Timestamp) {
+        return timestamp.toDate();
       }
-    } else {
-      router.push('/login');
-    }
-    loading.value = false;
-  });
+      if (timestamp && timestamp.seconds) {
+        return new Timestamp(timestamp.seconds, timestamp.nanoseconds).toDate();
+      }
+      return new Date();
+    };
 
-  // Check saved sidebar state
-  const savedSidebarState = localStorage.getItem('sidebarOpen');
-  sidebarOpen.value = savedSidebarState === 'true';
+    // Calculate profile completion
+    const calculateProfileCompletion = (userData) => {
+      const requiredFields = ['username', 'email', 'completeName', 'age', 'birthday', 'cellphone', 'gender', 'address'];
+      const completedFields = requiredFields.filter(field => userData[field]);
+      
+      return Math.round((completedFields.length / requiredFields.length) * 100);
+    };
 
-  // Cleanup on component unmount
-  return () => {
-    unsubscribeAuth();
-    if (unsubscribeUser) {
-      unsubscribeUser();
-    }
-  };
-});
+    // Update user data
+    const updateUserData = async (userDoc) => {
+      if (!userDoc) return;
+      
+      const userData = userDoc.data();
+      username.value = userData.username || auth.currentUser?.displayName || "User";
+      role.value = userData.role || "user";
+      profileImage.value = userData.profileImageUrl;
+      lastLogin.value = getDateFromTimestamp(userData.lastLogin);
+      loginCount.value = userData.loginCount || 0;
+      
+      // Calculate days active
+      const createdAt = getDateFromTimestamp(userData.createdAt);
+      const diffTime = Math.abs(new Date() - createdAt);
+      daysActive.value = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // Calculate profile completion
+      profileCompletion.value = calculateProfileCompletion(userData);
+      
+      // Fetch pending requests
+      fetchPendingRequests(userDoc.id);
+      
+      // Fetch recent activities
+      fetchRecentActivities(userDoc.id);
+    };
 
-// Save sidebar state when changed
-watch(sidebarOpen, (newValue) => {
-  localStorage.setItem('sidebarOpen', newValue);
-});
+    // Fetch pending requests
+    const fetchPendingRequests = async (userId) => {
+      try {
+        const requestsRef = collection(db, "purchaseRequests");
+        const q = query(
+          requestsRef, 
+          orderBy("createdAt", "desc")
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const requests = querySnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(req => req.userId === userId && req.status === "pending");
+        
+        pendingRequests.value = requests.length;
+      } catch (error) {
+        console.error("Error fetching pending requests:", error);
+        pendingRequests.value = 0;
+      }
+    };
+
+    // Fetch recent activities
+    const fetchRecentActivities = async (userId) => {
+      try {
+        const activitiesRef = collection(db, "userActivities");
+        const q = query(
+          activitiesRef,
+          orderBy("timestamp", "desc"),
+          limit(5)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        recentActivities.value = querySnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(activity => activity.userId === userId);
+      } catch (error) {
+        console.error("Error fetching recent activities:", error);
+        recentActivities.value = [];
+      }
+    };
+
+    // Set up real-time listener for user data
+    const setupUserListener = (userId) => {
+      const userRef = doc(db, "users", userId);
+      return onSnapshot(userRef, (doc) => {
+        if (doc.exists()) {
+          updateUserData(doc);
+        }
+      }, (error) => {
+        console.error("Error listening to user data:", error);
+      });
+    };
+
+    // Check if route should be shown based on user role
+    const shouldShowRoute = (route) => {
+      if (route.path === '/login' || route.path === '/register') {
+        return false;
+      }
+      
+      if (route.meta?.requiresAuth) {
+        if (route.meta.role && route.meta.role !== role.value) {
+          return false;
+        }
+      }
+      
+      return true;
+    };
+
+    // Get icon for each route
+    const getIconForRoute = (route) => {
+      const iconMap = {
+        '/': 'home',
+        '/dashboard': 'layout',
+        '/profile-display': 'user',
+        '/edit-profile': 'edit',
+        '/reset-password': 'key',
+        '/admin-dashboard': 'shield',
+        '/admin-management': 'users',
+        '/purchase-requests': 'file-text',
+        '/track-payments': 'dollar-sign',
+        '/approved-purchases': 'check-circle',
+        '/system-logs': 'list',
+        '/settings': 'settings'
+      };
+      
+      return iconMap[route.path];
+    };
+
+    // Check if this is a new login session
+    const isNewSession = () => {
+      const lastSessionTime = sessionStorage.getItem('lastSessionTime');
+      const currentTime = Date.now();
+      
+      if (!lastSessionTime) {
+        sessionStorage.setItem('lastSessionTime', currentTime.toString());
+        return true;
+      }
+      
+      return false;
+    };
+
+    // Toggle sidebar
+    const toggleSidebar = () => {
+      sidebarOpen.value = !sidebarOpen.value;
+      
+      if (sidebarOpen.value) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    };
+
+    // Image error handler
+    const handleImageError = (e) => {
+      e.target.src = defaultAvatar;
+    };
+
+    const formatDate = (date) => {
+      return new Intl.DateTimeFormat('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      }).format(date);
+    };
+
+    const confirmLogout = () => {
+      showLogoutModal.value = true;
+    };
+
+    const logout = async () => {
+      try {
+        sessionStorage.removeItem('lastSessionTime');
+        await signOut(auth);
+        router.push('/login');
+      } catch (error) {
+        console.error("Error logging out:", error);
+      }
+    };
+
+    const navigateTo = (route) => {
+      router.push(`/${route}`);
+    };
+
+    // Watch for route changes to close sidebar on mobile
+    watch(currentRoute, () => {
+      if (window.innerWidth < 768) {
+        sidebarOpen.value = false;
+        document.body.style.overflow = '';
+      }
+    });
+
+    // Initialize component
+    let unsubscribeUser = null;
+    let unsubscribeAuth = null; // Declare unsubscribeAuth here
+
+    onMounted(() => {
+      unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          try {
+            if (unsubscribeUser) {
+              unsubscribeUser();
+            }
+            
+            unsubscribeUser = setupUserListener(user.uid);
+            
+            if (isNewSession()) {
+              const userRef = doc(db, "users", user.uid);
+              const userSnap = await getDoc(userRef);
+              if (userSnap.exists()) {
+                const userData = userSnap.data();
+                await updateDoc(userRef, {
+                  lastLogin: Timestamp.now(),
+                  loginCount: (userData.loginCount || 0) + 1
+                });
+                
+                // Log this activity
+                try {
+                  const activityRef = collection(db, "userActivities");
+                  await addDoc(activityRef, {
+                    userId: user.uid,
+                    type: "login",
+                    description: "User logged in",
+                    timestamp: Timestamp.now()
+                  });
+                } catch (error) {
+                  console.error("Error logging activity:", error);
+                }
+              }
+            }
+
+            // Fetch user role and log admin status
+            const userRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userRef);
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              if (userData.role === "admin") {
+                console.log("Admin logged in");
+              } else {
+                console.log("Non-admin user logged in");
+              }
+            }
+          } catch (error) {
+            console.error("Error setting up dashboard:", error);
+          }
+        } else {
+          router.push('/login');
+        }
+        loading.value = false;
+      });
+
+      // Check saved sidebar state
+      const savedSidebarState = localStorage.getItem('sidebarOpen');
+      sidebarOpen.value = savedSidebarState === 'true';
+    });
+
+    // Cleanup on component unmount
+    onBeforeUnmount(() => {
+      if (unsubscribeAuth) {
+        unsubscribeAuth();
+      }
+      if (unsubscribeUser) {
+        unsubscribeUser();
+      }
+    });
+
+    // Save sidebar state when changed
+    watch(sidebarOpen, (newValue) => {
+      localStorage.setItem('sidebarOpen', newValue);
+    });
+
+    return {
+      username,
+      role,
+      profileImage,
+      loading,
+      lastLogin,
+      loginCount,
+      daysActive,
+      profileCompletion,
+      pendingRequests,
+      showLogoutModal,
+      sidebarOpen,
+      defaultAvatar,
+      recentActivities,
+      currentRoute,
+      navigationSections,
+      getFilteredRoutes,
+      getIconForRoute,
+      toggleSidebar,
+      handleImageError,
+      formatDate,
+      confirmLogout,
+      logout,
+      navigateTo,
+      shouldShowRoute
+    };
+  }
+};
 </script>
 
 <style scoped>
@@ -515,6 +710,7 @@ watch(sidebarOpen, (newValue) => {
   cursor: pointer;
   z-index: 101;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-toggle:hover {
@@ -634,25 +830,43 @@ watch(sidebarOpen, (newValue) => {
 .sidebar-footer {
   padding: 16px 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.sidebar-logout {
-  background: rgba(229, 62, 62, 0.1);
-  color: #e53e3e;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
-  width: 100%;
+.sidebar-action {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.05);
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  text-align: left;
 }
 
-.sidebar-logout:hover {
-  background: rgba(229, 62, 62, 0.2);
+.sidebar-action:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-action svg {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.sidebar-action.danger {
+  background-color: rgba(229, 62, 62, 0.1);
+  color: #e53e3e;
+}
+
+.sidebar-action.danger:hover {
+  background-color: rgba(229, 62, 62, 0.2);
 }
 
 .sidebar-overlay {
@@ -671,38 +885,6 @@ watch(sidebarOpen, (newValue) => {
 .sidebar-open .sidebar-overlay {
   opacity: 1;
   visibility: visible;
-}
-
-/* Sidebar Action Buttons */
-.sidebar-action {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #2d3748;
-  background-color: #f7fafc;
-  text-decoration: none;
-  transition: background-color 0.3s ease;
-}
-
-.sidebar-action:hover {
-  background-color: #edf2f7;
-}
-
-.sidebar-action svg {
-  color: #4a5568;
-}
-
-.sidebar-action.danger {
-  background-color: rgba(229, 62, 62, 0.1);
-  color: #e53e3e;
-}
-
-.sidebar-action.danger:hover {
-  background-color: rgba(229, 62, 62, 0.2);
 }
 
 /* Dashboard Styles */
@@ -753,7 +935,7 @@ watch(sidebarOpen, (newValue) => {
 /* Card Design */
 .dashboard-card {
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   background-color: #fff;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -761,21 +943,34 @@ watch(sidebarOpen, (newValue) => {
   position: relative;
 }
 
+/* Card Header with Stats */
 .card-header {
   background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
   padding: 30px;
-  text-align: center;
   color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .logo-container {
-  margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .logo {
   width: 70px;
   height: 70px;
   object-fit: contain;
+}
+
+.header-text {
+  flex: 1;
 }
 
 .title {
@@ -786,6 +981,39 @@ watch(sidebarOpen, (newValue) => {
 
 .subtitle {
   font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+/* Stats Overview */
+.stats-overview {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  flex: 1;
+  min-width: 120px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s;
+}
+
+.stat-item:hover {
+  transform: translateY(-5px);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
   opacity: 0.8;
 }
 
@@ -803,14 +1031,13 @@ watch(sidebarOpen, (newValue) => {
   color: #666;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(15, 41, 66, 0.1);
-  border-radius: 50%;
-  border-top-color: #0f2942;
-  animation: spin 1s linear infinite;
+.loading-spinner {
   margin-bottom: 16px;
+}
+
+.loading-icon {
+  animation: spin 2s linear infinite;
+  color: #2563eb;
 }
 
 @keyframes spin {
@@ -819,19 +1046,31 @@ watch(sidebarOpen, (newValue) => {
 
 /* Welcome Section */
 .welcome-section {
-  text-align: center;
   margin-bottom: 32px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+.welcome-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.welcome-text-container {
+  flex: 1;
 }
 
 .user-avatar {
   position: relative;
   display: inline-block;
-  margin-bottom: 16px;
 }
 
 .user-avatar img {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   border: 4px solid rgba(15, 41, 66, 0.1);
   object-fit: cover;
@@ -861,63 +1100,24 @@ watch(sidebarOpen, (newValue) => {
 }
 
 .welcome-text {
-  color: #333;
-  font-size: 2rem;
+  color: #0f2942;
+  font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 8px;
 }
 
 .last-login {
-  color: #666;
+  color: #64748b;
   font-size: 0.9rem;
 }
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+/* Quick Actions Section */
+.quick-actions-section {
   margin-bottom: 32px;
 }
 
-.stat-card {
-  background-color: #f8f9fa;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  padding: 20px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.stat-icon {
-  color: #0f2942;
-  margin: 0 auto;
-}
-
-.stat-value {
-  color: #333;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.stat-label {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-/* Admin Section */
-.admin-section {
-  background-color: #f8f9fa;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  padding: 24px;
-  margin-bottom: 24px;
-}
-
 .section-title {
-  color: #333;
+  color: #0f2942;
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 16px;
@@ -930,103 +1130,197 @@ watch(sidebarOpen, (newValue) => {
   color: #0f2942;
 }
 
-.admin-actions,
-.user-actions {
+.quick-actions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
 }
 
-.action-button {
+.action-card {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  background-color: #f1f5f9;
+}
+
+.action-icon {
+  background-color: rgba(15, 41, 66, 0.1);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: all 0.3s;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
+  margin: 0 auto 16px;
 }
 
-.action-button.primary {
-  background-color: #0f2942;
-  color: white;
+.action-icon svg {
+  color: #0f2942;
 }
 
-.action-button.secondary {
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  color: #333;
+.action-card h4 {
+  color: #0f2942;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
-.action-button.danger {
-  background-color: rgba(229, 62, 62, 0.1);
-  border: 1px solid rgba(229, 62, 62, 0.2);
-  color: #e53e3e;
+.action-card p {
+  color: #64748b;
+  font-size: 0.85rem;
 }
 
-.action-button:hover {
-  transform: translateY(-2px);
+/* Recent Activity Section */
+.recent-activity-section {
+  margin-bottom: 32px;
 }
 
-.action-button.primary:hover {
-  background-color: #1a4971;
+.activity-timeline {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
 }
 
-.action-button.secondary:hover {
-  background-color: #eee;
-}
-
-.action-button.danger:hover {
-  background-color: rgba(229, 62, 62, 0.15);
-}
-
-.user-actions {
-  margin-top: 20px;
+.empty-activity {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.action-btn {
-  background-color: #3b82f6;
-  color: white;
-  padding: 10px 15px;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 500;
-  text-align: center;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.action-btn:hover {
-  background-color: #2563eb;
-}
-
-/* Dashboard Actions */
-.dashboard-actions {
-  margin-top: 20px;
-  display: flex;
+  align-items: center;
   justify-content: center;
+  padding: 40px 0;
+  color: #64748b;
 }
 
-.action-button.primary {
-  background-color: #3b82f6;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 6px;
+.empty-activity svg {
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-item {
+  display: flex;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.activity-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.activity-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.activity-icon.login {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.activity-icon.request {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.activity-icon.profile {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-text {
+  color: #334155;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.activity-time {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+/* Admin Section */
+.admin-section {
+  margin-bottom: 32px;
+}
+
+.admin-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.admin-action-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.admin-action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  background-color: #f1f5f9;
+}
+
+.admin-action-icon {
+  background-color: rgba(15, 41, 66, 0.1);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-action-icon svg {
+  color: #0f2942;
+}
+
+.admin-action-content {
+  flex: 1;
+}
+
+.admin-action-content h4 {
+  color: #0f2942;
   font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
-.action-button.primary:hover {
-  background-color: #2563eb;
+.admin-action-content p {
+  color: #64748b;
+  font-size: 0.85rem;
 }
 
 /* Modal Styles */
@@ -1060,7 +1354,7 @@ watch(sidebarOpen, (newValue) => {
 }
 
 .modal-header h3 {
-  color: #333;
+  color: #0f2942;
   font-size: 1.25rem;
   font-weight: 600;
 }
@@ -1068,14 +1362,24 @@ watch(sidebarOpen, (newValue) => {
 .close-btn {
   background: none;
   border: none;
-  color: #666;
+  color: #64748b;
   cursor: pointer;
   padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.close-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f2942;
 }
 
 .modal-body {
   padding: 20px;
-  color: #666;
+  color: #334155;
 }
 
 .modal-footer {
@@ -1087,16 +1391,23 @@ watch(sidebarOpen, (newValue) => {
 }
 
 .cancel-btn {
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  color: #333;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background-color: #e2e8f0;
+  color: #334155;
 }
 
 .confirm-btn {
-  background-color: #e53e3e;
+  background-color: #ef4444;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -1105,6 +1416,12 @@ watch(sidebarOpen, (newValue) => {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.confirm-btn:hover {
+  background-color: #dc2626;
 }
 
 @keyframes fadeIn {
@@ -1129,17 +1446,39 @@ watch(sidebarOpen, (newValue) => {
     padding: 20px;
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .welcome-content {
+    flex-direction: column-reverse;
+    text-align: center;
+  }
+
+  .user-avatar {
+    margin-bottom: 16px;
   }
 
   .welcome-text {
     font-size: 1.5rem;
   }
 
-  .admin-actions,
-  .user-actions {
+  .stats-overview {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quick-actions-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-overview {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-item {
+    min-width: 100%;
   }
 }
 
@@ -1148,25 +1487,14 @@ watch(sidebarOpen, (newValue) => {
   .sidebar-toggle,
   .sidebar-overlay,
   .dashboard-wrapper,
-  .spinner,
+  .loading-icon,
   .modal-overlay,
-  .modal-content {
+  .modal-content,
+  .action-card:hover,
+  .admin-action-card:hover {
     transition: none;
     animation: none;
-  }
-
-  .action-button:hover {
     transform: none;
   }
-}
-
-/* Sticky Footer */
-.sticky-footer {
-  position: sticky;
-  bottom: 0;
-  background-color: rgba(15, 41, 66, 0.95);
-  padding-top: 10px;
-  padding-bottom: 10px;
-  z-index: 10;
 }
 </style>

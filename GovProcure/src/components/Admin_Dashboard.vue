@@ -1,201 +1,269 @@
 <template>
-  <div class="admin-wrapper">
-    <!-- Background Pattern -->
-    <div class="background-pattern">
-      <div class="pattern-overlay"></div>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="@/assets/proculogo.png" alt="GovProcure Logo" class="sidebar-logo-img" />
+          <span class="sidebar-logo-text">GovProcure</span>
+        </div>
+      </div>
+      
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">
+          <img :src="defaultAvatar" alt="Admin User" />
+        </div>
+        <div class="sidebar-user-info">
+          <span class="sidebar-user-name">Admin User</span>
+          <span class="sidebar-user-role">System Administrator</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <ul class="sidebar-menu">
+          <li class="sidebar-menu-item">
+            <router-link to="/dashboard" class="sidebar-menu-link" active-class="active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span>Dashboard</span>
+            </router-link>
+          </li>
+          <li class="sidebar-menu-item">
+            <router-link to="/admin-management" class="sidebar-menu-link" active-class="active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M20 8v6"></path><path d="M23 11h-6"></path></svg>
+              <span>Admin Management</span>
+            </router-link>
+          </li>
+          <li class="sidebar-menu-item">
+            <router-link to="/procurement-plan" class="sidebar-menu-link" active-class="active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <span>Purchase Requests</span>
+            </router-link>
+          </li>
+          <li class="sidebar-menu-item">
+            <router-link to="/invitation-to-bid" class="sidebar-menu-link" active-class="active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span>Invitation to Bid</span>
+            </router-link>
+          </li>
+          <li class="sidebar-menu-item">
+            <router-link to="/admin-bid-review" class="sidebar-menu-link" active-class="active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+              <span>Bid Review</span>
+            </router-link>
+          </li>
+          <li class="sidebar-menu-item">
+            <router-link to="/evaluate-bids" class="sidebar-menu-link" active-class="active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <span>Evaluate Bids</span>
+            </router-link>
+          </li>
+          <li class="sidebar-menu-item">
+            <router-link to="/post-qualification" class="sidebar-menu-link" active-class="active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <span>Post Qualification</span>
+            </router-link>
+          </li>
+          <li class="sidebar-menu-item">
+            <router-link to="/contract-management" class="sidebar-menu-link" active-class="active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.08V8l-6-6H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h6"></path><path d="M14 3v5h5M18 21v-6M15 18h6"></path></svg>
+              <span>Contract Management</span>
+            </router-link>
+          </li>
+          <li class="sidebar-menu-item">
+            <router-link to="/payment-processing" class="sidebar-menu-link" active-class="active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              <span>Payment Processing</span>
+            </router-link>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <button class="sidebar-logout-btn" @click="handleLogout">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          <span>Logout</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Admin Card -->
-    <div class="admin-card">
-      <div class="card-header">
-        <div class="logo-container">
-          <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
-        </div>
-        <h1 class="title">Admin Dashboard</h1>
-        <p class="subtitle">System Overview and Management</p>
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Background Pattern -->
+      <div class="background-pattern">
+        <div class="pattern-overlay"></div>
       </div>
 
-      <div class="card-content">
-        <!-- Loading State -->
-        <div v-if="loading" class="loading-state">
-          <div class="spinner"></div>
-          <p>Loading admin dashboard...</p>
+      <!-- Admin Card -->
+      <div class="admin-card">
+        <div class="card-header">
+          <div class="logo-container">
+            <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+          </div>
+          <h1 class="title">Admin Dashboard</h1>
+          <p class="subtitle">System Overview and Management</p>
         </div>
 
-        <template v-else>
-          <!-- Quick Actions Bar -->
-          <div class="quick-actions-bar">
-            <button @click="refreshStats" class="action-btn" :disabled="refreshing">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="{ 'rotating': refreshing }"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
-              Refresh
-            </button>
-            <router-link to="/dashboard" class="action-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
-              User Dashboard
-            </router-link>
+        <div class="card-content">
+          <!-- Loading State -->
+          <div v-if="loading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading admin dashboard...</p>
           </div>
 
-          <!-- Stats Overview -->
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon users">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+          <template v-else>
+            <!-- Quick Actions Bar -->
+            <div class="quick-actions-bar">
+              <button @click="refreshStats" class="action-btn" :disabled="refreshing">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="{ 'rotating': refreshing }"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                Refresh
+              </button>
+              <router-link to="/dashboard" class="action-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+                User Dashboard
+              </router-link>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon users">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value">{{ stats.totalUsers }}</span>
+                  <span class="stat-label">Total Users</span>
+                </div>
+                <div class="stat-change" :class="stats.userGrowth >= 0 ? 'positive' : 'negative'">
+                  <svg v-if="stats.userGrowth >= 0" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  {{ Math.abs(stats.userGrowth) }}%
+                </div>
               </div>
-              <div class="stat-info">
-                <span class="stat-value">{{ stats.totalUsers }}</span>
-                <span class="stat-label">Total Users</span>
+
+              <div class="stat-card">
+                <div class="stat-icon active">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value">{{ stats.activeUsers }}</span>
+                  <span class="stat-label">Active Users</span>
+                </div>
+                <div class="stat-percentage">
+                  {{ Math.round((stats.activeUsers / stats.totalUsers) * 100) || 0 }}%
+                </div>
               </div>
-              <div class="stat-change" :class="stats.userGrowth >= 0 ? 'positive' : 'negative'">
-                <svg v-if="stats.userGrowth >= 0" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                {{ Math.abs(stats.userGrowth) }}%
+
+              <div class="stat-card">
+                <div class="stat-icon new">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value">{{ stats.newUsers }}</span>
+                  <span class="stat-label">New Users (24h)</span>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon system">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value">{{ stats.systemHealth }}%</span>
+                  <span class="stat-label">System Health</span>
+                </div>
+                <div class="health-indicator" :class="getHealthStatus(stats.systemHealth)"></div>
               </div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-icon active">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-value">{{ stats.activeUsers }}</span>
-                <span class="stat-label">Active Users</span>
-              </div>
-              <div class="stat-percentage">
-                {{ Math.round((stats.activeUsers / stats.totalUsers) * 100) || 0 }}%
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon new">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-value">{{ stats.newUsers }}</span>
-                <span class="stat-label">New Users (24h)</span>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon system">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-value">{{ stats.systemHealth }}%</span>
-                <span class="stat-label">System Health</span>
-              </div>
-              <div class="health-indicator" :class="getHealthStatus(stats.systemHealth)"></div>
-            </div>
-          </div>
-
-          <!-- Management Sections -->
-          <div class="management-grid">
-            <!-- User Management -->
-            <div class="management-card">
-              <div class="card-header">
-                <h2>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                  User Management
-                </h2>
-                <router-link to="/admin-management" class="view-all">
-                  View All
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </router-link>
-              </div>
-              <div class="recent-users">
-                <div v-for="user in recentUsers" :key="user.id" class="user-item">
-                  <img :src="user.avatar || defaultAvatar" :alt="user.name">
-                  <div class="user-info">
-                    <span class="user-name">{{ user.name }}</span>
-                    <span class="user-email">{{ user.email }}</span>
+            <!-- Management Sections -->
+            <div class="management-grid">
+              <!-- User Management -->
+              <div class="management-card">
+                <div class="card-header">
+                  <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                    User Management
+                  </h2>
+                  <router-link to="/admin-management" class="view-all">
+                    View All
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </router-link>
+                </div>
+                <div class="recent-users">
+                  <div v-for="user in recentUsers" :key="user.id" class="user-item">
+                    <img :src="user.avatar || defaultAvatar" :alt="user.name">
+                    <div class="user-info">
+                      <span class="user-name">{{ user.name }}</span>
+                      <span class="user-email">{{ user.email }}</span>
+                    </div>
+                    <span class="user-status" :class="user.status">
+                      {{ user.status }}
+                    </span>
                   </div>
-                  <span class="user-status" :class="user.status">
-                    {{ user.status }}
-                  </span>
-                </div>
-                <div v-if="!recentUsers.length" class="empty-list">
-                  <p>No users found</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- System Logs -->
-            <div class="management-card">
-              <div class="card-header">
-                <h2>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                  Recent System Logs
-                </h2>
-                <router-link to="/system-logs" class="view-all">
-                  View All
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </router-link>
-              </div>
-              <div class="log-list">
-                <div v-for="log in recentLogs" :key="log.id" class="log-item">
-                  <span class="log-type" :class="log.type">
-                    <svg v-if="log.type === 'info'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    <svg v-else-if="log.type === 'warning'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-                    <svg v-else-if="log.type === 'error'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                    <svg v-else-if="log.type === 'success'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                  </span>
-                  <div class="log-info">
-                    <span class="log-message">{{ log.message }}</span>
-                    <span class="log-time">{{ formatTime(log.timestamp) }}</span>
+                  <div v-if="!recentUsers.length" class="empty-list">
+                    <p>No users found</p>
                   </div>
                 </div>
-                <div v-if="!recentLogs.length" class="empty-list">
-                  <p>No logs found</p>
+              </div>
+
+              <!-- System Logs -->
+              <div class="management-card">
+                <div class="card-header">
+                  <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Recent System Logs
+                  </h2>
+                  <router-link to="/system-logs" class="view-all">
+                    View All
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </router-link>
+                </div>
+                <div class="log-list">
+                  <div v-for="log in recentLogs" :key="log.id" class="log-item">
+                    <span class="log-type" :class="log.type">
+                      <svg v-if="log.type === 'info'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                      <svg v-else-if="log.type === 'warning'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                      <svg v-else-if="log.type === 'error'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                      <svg v-else-if="log.type === 'success'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </span>
+                    <div class="log-info">
+                      <span class="log-message">{{ log.message }}</span>
+                      <span class="log-time">{{ formatTime(log.timestamp) }}</span>
+                    </div>
+                  </div>
+                  <div v-if="!recentLogs.length" class="empty-list">
+                    <p>No logs found</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Quick Actions -->
-          <div class="quick-actions-grid">
-            <button class="quick-action-btn" @click="backupSystem">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-              Backup System
-            </button>
-            <button class="quick-action-btn" @click="clearCache">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              Clear Cache
-            </button>
-            <button class="quick-action-btn" @click="generateReport">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              Generate Report
-            </button>
-            <button class="quick-action-btn warning" @click="showMaintenanceModal">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-              Maintenance Mode
-            </button>
+            <!-- Quick Actions -->
+            <div class="quick-actions-grid">
+              <button class="quick-action-btn" @click="backupSystem">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                Backup System
+              </button>
+              <button class="quick-action-btn" @click="clearCache">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Clear Cache
+              </button>
+              <button class="quick-action-btn" @click="generateReport">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Generate Report
+              </button>
+              <button class="quick-action-btn warning" @click="showMaintenanceModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                Maintenance Mode
+              </button>
 
-            <!-- New buttons for admin-specific functionalities -->
-            <button class="quick-action-btn" @click="navigateTo('procurement-plan')">
-              Purchase Requests
-            </button>
-            <button class="quick-action-btn" @click="navigateTo('invitation-to-bid')">
-              Invitation to Bid
-            </button>
-            <button class="quick-action-btn" @click="navigateTo('admin-bid-review')">
-              View Bids
-            </button>
-            <button class="quick-action-btn" @click="navigateTo('evaluate-bids')">
-              Evaluate Bids
-            </button>
-            <button class="quick-action-btn" @click="navigateTo('post-qualification')">
-              Post Qualification
-            </button>
-            <button class="quick-action-btn" @click="navigateTo('contract-management')">
-              Contract Management
-            </button>
-            <button class="quick-action-btn" @click="navigateTo('payment-processing')">
-              Payment Processing
-            </button>
-            <button class="quick-action-btn" @click="navigateTo('admin-management')">
-              Admin Management
-            </button>
-          </div>
-        </template>
+              <!-- New buttons for admin-specific functionalities -->
+              <button class="quick-action-btn" @click="navigateTo('admin-management')">
+                Admin Management
+              </button>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
 
@@ -256,9 +324,21 @@
 import { ref, onMounted } from 'vue';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useRouter } from 'vue-router';
+import { getAuth, signOut } from 'firebase/auth';
 
-// We'll use auth in a real implementation for checking admin permissions
-// import { getAuth } from 'firebase/auth';
+// Router for navigation
+const router = useRouter();
+const auth = getAuth();
+
+const handleLogout = async () => {
+  try {
+    await signOut(auth);
+    router.push('/login'); // Redirect to login page after logout
+  } catch (error) {
+    console.error('Error during logout:', error);
+  }
+};
 
 // State
 const loading = ref(true);
@@ -426,21 +506,168 @@ const enableMaintenance = async () => {
 };
 
 const navigateTo = (route) => {
-  // Navigate to the specified route
-  window.location.href = `/${route}`;
+  // Use Vue Router for navigation instead of direct window.location
+  router.push(`/${route}`);
 };
 
 </script>
 
 <style scoped>
-.admin-wrapper {
-  min-height: 100vh;
+/* Admin Layout */
+.admin-layout {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  min-height: 100vh;
   position: relative;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #0f2942 0%, #102a42 100%);
+  color: white;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-logo-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.sidebar-logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+}
+
+.sidebar-user {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-user-avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-user-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.sidebar-user-role {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 0;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-menu-item {
+  margin-bottom: 5px;
+}
+
+.sidebar-menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-menu-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.sidebar-menu-link.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+  border-left: 3px solid #3b82f6;
+}
+
+.sidebar-menu-link svg {
+  opacity: 0.8;
+}
+
+.sidebar-menu-link.active svg {
+  opacity: 1;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebar-logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 20px;
+  min-height: 100vh;
+  position: relative;
 }
 
 /* Background Pattern */
@@ -450,6 +677,7 @@ const navigateTo = (route) => {
   background-color: #1a1a2e;
   z-index: -1;
   overflow: hidden;
+  margin-left: 280px; /* Match sidebar width */
 }
 
 .pattern-overlay {
@@ -693,17 +921,14 @@ const navigateTo = (route) => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
 .management-card .card-header {
   background: none;
   padding: 0;
   text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .management-card h2 {
@@ -1044,6 +1269,26 @@ const navigateTo = (route) => {
 
   .quick-actions-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 0;
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.active {
+    width: 280px;
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .background-pattern {
+    margin-left: 0;
   }
 }
 

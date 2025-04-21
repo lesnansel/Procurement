@@ -9,8 +9,8 @@
     <nav class="navbar">
       <div class="container">
         <div class="logo">
-          <img src="/placeholder.svg?height=40&width=40" alt="Logo" class="logo-img" />
-          <span class="logo-text">ProcureAI</span>
+          <img src="@/assets/proculogo.png" alt="GovProcure Logo" class="logo-img" />
+          <span class="logo-text">GovProcure</span>
         </div>
         <div class="nav-links">
           <a href="#features" class="nav-link">Features</a>
@@ -45,15 +45,29 @@
     <header class="hero">
       <div class="container hero-container">
         <div class="hero-content">
-          <h1 class="hero-title">Streamline Your Procurement Process</h1>
-          <p class="hero-subtitle">Empowering organizations with AI-driven procurement solutions for efficiency and compliance.</p>
+          <h1 class="hero-title">Streamline Your Government Procurement Process</h1>
+          <p class="hero-subtitle">Empowering public sector organizations with AI-driven procurement solutions for efficiency, transparency, and compliance.</p>
           <div class="hero-buttons">
             <button class="cta-button primary">Get Started</button>
-            <button class="cta-button secondary">Learn More</button>
+            <button class="cta-button secondary">Watch Demo</button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <span class="stat-number">98%</span>
+              <span class="stat-label">Compliance Rate</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">30%</span>
+              <span class="stat-label">Cost Reduction</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">5x</span>
+              <span class="stat-label">Process Speed</span>
+            </div>
           </div>
         </div>
         <div class="hero-image">
-          <img src="/placeholder.svg?height=400&width=600" alt="Dashboard Preview" class="dashboard-img" />
+          <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-DMhJ7yxRS27akpmujhIR7jjrwxMuiT.png" alt="Dashboard Preview" class="dashboard-img" />
         </div>
       </div>
     </header>
@@ -63,11 +77,21 @@
       <div class="container">
         <p class="trusted-text">Trusted by government agencies and organizations worldwide</p>
         <div class="logo-grid">
-          <img src="/placeholder.svg?height=40&width=120" alt="Client Logo" class="client-logo" />
-          <img src="/placeholder.svg?height=40&width=120" alt="Client Logo" class="client-logo" />
-          <img src="/placeholder.svg?height=40&width=120" alt="Client Logo" class="client-logo" />
-          <img src="/placeholder.svg?height=40&width=120" alt="Client Logo" class="client-logo" />
-          <img src="/placeholder.svg?height=40&width=120" alt="Client Logo" class="client-logo" />
+          <div class="client-logo-wrapper">
+            <img src="@/assets/proculogo.png" alt="Client Logo" class="client-logo" />
+          </div>
+          <div class="client-logo-wrapper">
+            <img src="@/assets/proculogo.png" alt="Client Logo" class="client-logo" />
+          </div>
+          <div class="client-logo-wrapper">
+            <img src="@/assets/proculogo.png" alt="Client Logo" class="client-logo" />
+          </div>
+          <div class="client-logo-wrapper">
+            <img src="@/assets/proculogo.png" alt="Client Logo" class="client-logo" />
+          </div>
+          <div class="client-logo-wrapper">
+            <img src="@/assets/proculogo.png" alt="Client Logo" class="client-logo" />
+          </div>
         </div>
       </div>
     </section>
@@ -77,8 +101,8 @@
       <div class="container">
         <div class="section-header">
           <span class="section-tag">Features</span>
-          <h2 class="section-title">Why Choose ProcureAI?</h2>
-          <p class="section-subtitle">Discover the powerful tools and features that make procurement seamless.</p>
+          <h2 class="section-title">Why Choose GovProcure?</h2>
+          <p class="section-subtitle">Discover the powerful tools and features that make government procurement seamless and transparent.</p>
         </div>
         
         <div class="feature-grid">
@@ -87,7 +111,11 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon"><path d="M12 4.5a2.5 2.5 0 0 0-4.96-.46 2.5 2.5 0 0 0-1.98 3 2.5 2.5 0 0 0-1.32 4.24 3 3 0 0 0 .34 5.58 2.5 2.5 0 0 0 2.96 3.08 2.5 2.5 0 0 0 4.91.05L12 20V4.5Z"/><path d="M16 8V5c0-1.1.9-2 2-2"/><path d="M12 13h4"/><path d="M12 18h6a2 2 0 0 1 2 2v1"/><path d="M12 8h8"/><path d="M20.5 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/><path d="M16.5 13a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/><path d="M20.5 21a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/><path d="M18.5 3a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/></svg>
             </div>
             <h3>AI-Powered Insights</h3>
-            <p>Leverage advanced analytics to identify procurement trends and optimize spending.</p>
+            <p>Leverage advanced analytics to identify procurement trends and optimize spending across departments.</p>
+            <a href="#" class="feature-link">
+              Learn more
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
           </div>
           
           <div class="feature-card">
@@ -95,7 +123,11 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
             </div>
             <h3>Real-Time Monitoring</h3>
-            <p>Track procurement activities in real-time with customizable dashboards and alerts.</p>
+            <p>Track procurement activities in real-time with customizable dashboards and automated alerts.</p>
+            <a href="#" class="feature-link">
+              Learn more
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
           </div>
           
           <div class="feature-card">
@@ -103,7 +135,11 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
             </div>
             <h3>Compliance Management</h3>
-            <p>Ensure adherence to procurement regulations with automated compliance checks.</p>
+            <p>Ensure adherence to procurement regulations with automated compliance checks and audit trails.</p>
+            <a href="#" class="feature-link">
+              Learn more
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
           </div>
         </div>
       </div>
@@ -115,7 +151,7 @@
         <div class="section-header">
           <span class="section-tag">Process</span>
           <h2 class="section-title">How It Works</h2>
-          <p class="section-subtitle">Our streamlined approach makes implementation and adoption simple</p>
+          <p class="section-subtitle">Our streamlined approach makes implementation and adoption simple for government agencies</p>
         </div>
         
         <div class="process-steps">
@@ -149,7 +185,7 @@
         <div class="section-header">
           <span class="section-tag">Benefits</span>
           <h2 class="section-title">Why Choose Our System</h2>
-          <p class="section-subtitle">Transforming procurement operations with measurable results</p>
+          <p class="section-subtitle">Transforming government procurement operations with measurable results</p>
         </div>
         
         <div class="benefits-grid">
@@ -202,17 +238,17 @@
         <div class="section-header">
           <span class="section-tag">Testimonials</span>
           <h2 class="section-title">What Our Clients Say</h2>
-          <p class="section-subtitle">Hear from organizations that have transformed their procurement processes</p>
+          <p class="section-subtitle">Hear from government organizations that have transformed their procurement processes</p>
         </div>
         
         <div class="testimonial-grid">
           <div class="testimonial-card">
             <div class="testimonial-content">
               <svg class="quote-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
-              <p>"The AI-powered procurement system has revolutionized how we manage public contracts. We've seen significant cost savings and improved compliance across all departments."</p>
+              <p>"The GovProcure system has revolutionized how we manage public contracts. We've seen significant cost savings and improved compliance across all departments."</p>
             </div>
             <div class="testimonial-author">
-              <img src="/placeholder.svg?height=50&width=50" alt="Sarah Johnson" class="author-image" />
+              <img src="/placeholder.svg?height=50&width=50&query=professional woman headshot" alt="Sarah Johnson" class="author-image" />
               <div class="author-info">
                 <h4>Sarah Johnson</h4>
                 <p>Chief Procurement Officer, City of Metropolis</p>
@@ -226,7 +262,7 @@
               <p>"Implementation was seamless, and the insights generated by the AI have helped us identify savings opportunities we never would have found manually."</p>
             </div>
             <div class="testimonial-author">
-              <img src="/placeholder.svg?height=50&width=50" alt="Michael Chen" class="author-image" />
+              <img src="/placeholder.svg?height=50&width=50&query=professional man headshot" alt="Michael Chen" class="author-image" />
               <div class="author-info">
                 <h4>Michael Chen</h4>
                 <p>Director of Procurement, State Department of Transportation</p>
@@ -242,12 +278,12 @@
       <div class="container">
         <div class="cta-content">
           <h2>Ready to Transform Your Procurement Process?</h2>
-          <p>Join hundreds of organizations already benefiting from ProcureAI.</p>
+          <p>Join hundreds of government organizations already benefiting from GovProcure.</p>
           <div class="cta-form">
-            <input type="email" placeholder="Enter your email" class="cta-input" />
+            <input type="email" placeholder="Enter your official email" class="cta-input" />
             <button class="cta-button primary">Request Demo</button>
           </div>
-          <p class="cta-note">No credit card required. Free 30-day trial available.</p>
+          <p class="cta-note">No credit card required. Free 30-day trial available for government agencies.</p>
         </div>
       </div>
     </section>
@@ -258,10 +294,10 @@
         <div class="footer-grid">
           <div class="footer-brand">
             <div class="logo">
-              <img src="/placeholder.svg?height=40&width=40" alt="Logo" class="logo-img" />
-              <span class="logo-text">ProcureAI</span>
+              <img src="@/assets/proculogo.png" alt="GovProcure Logo" class="logo-img" />
+              <span class="logo-text">GovProcure</span>
             </div>
-            <p>AI-Powered Procurement Solutions</p>
+            <p>AI-Powered Government Procurement Solutions</p>
             <div class="social-links">
               <a href="#" class="social-link">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
@@ -284,6 +320,7 @@
               <li><a href="#">Features</a></li>
               <li><a href="#">Pricing</a></li>
               <li><a href="#">Case Studies</a></li>
+              <li><a href="#">Security</a></li>
             </ul>
           </div>
           
@@ -293,6 +330,7 @@
               <li><a href="#">About Us</a></li>
               <li><a href="#">Careers</a></li>
               <li><a href="#">Contact</a></li>
+              <li><a href="#">Partners</a></li>
             </ul>
           </div>
           
@@ -308,7 +346,7 @@
         </div>
         
         <div class="footer-bottom">
-          <p>&copy; 2025 ProcureAI. All rights reserved.</p>
+          <p>&copy; 2025 GovProcure. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -316,33 +354,40 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 // Mobile menu state
 const mobileMenuOpen = ref(false);
 
-// Toggle mobile menu
-const toggleMobileMenu = () => {
-  mobileMenuOpen.value = !mobileMenuOpen.value;
-  
-  // Prevent scrolling when menu is open
-  if (mobileMenuOpen.value) {
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = '';
-  }
-};
-
+// Router instance
 const router = useRouter();
 
+// Function to navigate to login page
 const navigateToLogin = () => {
   router.push('/login');
 };
 
+// Function to navigate to register page
 const navigateToRegister = () => {
   router.push('/register');
 };
+
+// Function to toggle mobile menu
+const toggleMobileMenu = () => {
+  mobileMenuOpen.value = !mobileMenuOpen.value;
+  updateBodyOverflow();
+};
+
+// Function to update body overflow based on mobile menu state
+const updateBodyOverflow = () => {
+  document.body.style.overflow = mobileMenuOpen.value ? 'hidden' : '';
+};
+
+// Call updateBodyOverflow on component mount to ensure correct initial state
+onMounted(() => {
+  updateBodyOverflow();
+});
 </script>
 
 <style scoped>
@@ -427,7 +472,7 @@ img {
     linear-gradient(30deg, rgba(16, 42, 66, 0.5) 12%, transparent 12.5%, transparent 87%, rgba(16, 42, 66, 0.5) 87.5%, rgba(16, 42, 66, 0.5)),
     linear-gradient(150deg, rgba(16, 42, 66, 0.5) 12%, transparent 12.5%, transparent 87%, rgba(16, 42, 66, 0.5) 87.5%, rgba(16, 42, 66, 0.5)),
     linear-gradient(30deg, rgba(16, 42, 66, 0.5) 12%, transparent 12.5%, transparent 87%, rgba(16, 42, 66, 0.5) 87.5%, rgba(16, 42, 66, 0.5)),
-    linear-gradient(150deg, rgba(16, 42, 66, 0.5) 12%, transparent 12.5%, transparent 87%, rgba(16, 42, 66, 0.5) 87.5%, rgba(16, 42, 66, 0.5)),
+    linear-gradient(150deg, rgba(16, 42, 66, 0.5) 12%, transparent 12.5%, transparent 87%, rgba(16, 42, 66, 0.5)   rgba(16, 42, 66, 0.5) 12%, transparent 12.5%, transparent 87%, rgba(16, 42, 66, 0.5) 87.5%, rgba(16, 42, 66, 0.5)),
     linear-gradient(60deg, rgba(0, 0, 0, 0.1) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, 0.1) 75%, rgba(0, 0, 0, 0.1)),
     linear-gradient(60deg, rgba(0, 0, 0, 0.1) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, 0.1) 75%, rgba(0, 0, 0, 0.1));
   background-size: 80px 140px;
@@ -682,6 +727,7 @@ img {
 .hero-stats {
   display: flex;
   gap: 40px;
+  margin-top: 20px;
 }
 
 .stat-item {
@@ -692,7 +738,7 @@ img {
 .stat-number {
   font-size: 2rem;
   font-weight: 700;
-  color: var (--accent-light);
+  color: var(--accent-light);
 }
 
 .stat-label {
@@ -739,16 +785,33 @@ img {
   gap: 40px;
 }
 
+.client-logo-wrapper {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 80px;
+  transition: all 0.3s ease;
+}
+
+.client-logo-wrapper:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-5px);
+}
+
 .client-logo {
   height: 40px;
-  opacity: 0.7;
+  width: auto;
   filter: brightness(0) invert(1);
+  opacity: 0.8;
   transition: all 0.3s;
 }
 
-.client-logo:hover {
+.client-logo-wrapper:hover .client-logo {
   opacity: 1;
-  transform: scale(1.05);
 }
 
 /* Features Section */
@@ -771,6 +834,9 @@ img {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .feature-card:hover {
@@ -803,6 +869,7 @@ img {
 .feature-card p {
   color: rgba(255, 255, 255, 0.7);
   margin-bottom: 20px;
+  flex-grow: 1;
 }
 
 .feature-link {
@@ -812,6 +879,7 @@ img {
   align-items: center;
   gap: 5px;
   transition: gap 0.3s;
+  margin-top: auto;
 }
 
 .feature-link:hover {
@@ -839,6 +907,7 @@ img {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  height: 100%;
 }
 
 .step-number {
@@ -923,6 +992,7 @@ img {
   padding: 30px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  height: 100%;
 }
 
 .testimonial-content {
@@ -1136,6 +1206,10 @@ img {
   }
   
   .nav-links {
+    display: none;
+  }
+  
+  .auth-buttons {
     display: none;
   }
   

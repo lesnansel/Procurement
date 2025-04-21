@@ -27,6 +27,7 @@ import DashboardLayout from "@/components/DashboardLayout.vue";
 import PurchaseRequest from '@/components/PurchaseRequest.vue';
 import ApprovedPurchases from "@/components/Approved_Purchases.vue";
 import Settings from '@/components/Settings.vue';
+import PaymentTracking from '@/components/PaymentTracking.vue';
 
 const routes = [
   { path: '/', name: 'LandingPage', component: LandingPage },
@@ -51,7 +52,8 @@ const routes = [
   { path: '/contract-management', name: 'ContractManagement', component: ContractManagement, meta: { requiresAuth: true, role: 'admin' } },
   { path: '/payment-processing', name: 'PaymentProcessing', component: PaymentProcessing, meta: { requiresAuth: true, role: 'admin' } },
   { path: '/approved-purchases', name: 'ApprovedPurchases', component: ApprovedPurchases, meta: { requiresAuth: true, role: 'user' } },
-  { path: '/settings', name: 'Settings', component: Settings, meta: { requiresAuth: true } }
+  { path: '/settings', name: 'Settings', component: Settings, meta: { requiresAuth: true } },
+  { path: '/payment-tracking', name: 'PaymentTracking', component: PaymentTracking, meta: { requiresAuth: true, role: 'user' } }
 ];
 
 const router = createRouter({

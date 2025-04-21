@@ -7,88 +7,374 @@
 
     <!-- Admin Card -->
     <div class="admin-card">
+      <!-- Header with gradient overlay and stats -->
       <div class="card-header">
-        <div class="logo-container">
-          <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+        <div class="header-content">
+          <div class="logo-container">
+            <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+          </div>
+          <div class="header-text">
+            <h1 class="title">Contract Management</h1>
+            <p class="subtitle">Manage and track all procurement contracts</p>
+          </div>
         </div>
-        <h1 class="title">Contract Management</h1>
-        <p class="subtitle">Manage all contracts efficiently</p>
+        
+        <!-- Stats Overview -->
+        <div class="stats-overview">
+          <div class="stat-item">
+            <div class="stat-value">{{ contracts.length }}</div>
+            <div class="stat-label">Total Contracts</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ pendingContractsCount }}</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ activeContractsCount }}</div>
+            <div class="stat-label">Active</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ completedContractsCount }}</div>
+            <div class="stat-label">Completed</div>
+          </div>
+        </div>
       </div>
 
       <div class="card-content">
-        <!-- Add Contract Form -->
-        <form @submit.prevent="addContract" class="form">
-          <div class="form-group">
-            <label class="form-label">Supplier</label>
-            <input v-model="newContract.supplier" type="text" class="input-field" placeholder="Enter supplier name" required />
+        <!-- Search and Filter Bar -->
+        <div class="action-bar">
+          <div class="search-container">
+            <input 
+              type="text" 
+              v-model="searchQuery" 
+              placeholder="Search by supplier or PO number..." 
+              class="search-input"
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
-          <div class="form-group">
-            <label class="form-label">PO Number</label>
-            <input v-model="newContract.poNumber" type="text" class="input-field" placeholder="Enter PO number" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Status</label>
-            <select v-model="newContract.status" class="input-field" required>
+          <div class="filter-container">
+            <select v-model="statusFilter" class="filter-select">
+              <option value="all">All Statuses</option>
               <option value="Pending">Pending</option>
               <option value="Active">Active</option>
               <option value="Completed">Completed</option>
             </select>
           </div>
-          <button type="submit" class="btn-primary">Add Contract</button>
-        </form>
+          <button @click="showAddModal" class="btn-add">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Contract
+          </button>
+        </div>
 
         <!-- Contracts List -->
-        <div v-if="contracts.length" class="table-container">
-          <table class="contracts-table">
-            <thead>
-              <tr>
-                <th>Supplier</th>
-                <th>PO Number</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(contract, index) in contracts" :key="contract.id">
-                <td>{{ contract.supplier }}</td>
-                <td>{{ contract.poNumber }}</td>
-                <td class="capitalize">{{ contract.status }}</td>
-                <td>
-                  <button @click="editContract(index)" class="btn-link">Edit</button>
-                  <button @click="deleteContract(contract.id)" class="btn-danger">Delete</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-if="loading" class="loading-state">
+          <div class="loading-spinner">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+          </div>
+          <p>Loading contracts...</p>
         </div>
-        <p v-else class="loading-state">No contracts available.</p>
+        
+        <div v-else-if="filteredContracts.length === 0" class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          <p class="empty-text">No contracts available.</p>
+          <p class="empty-subtext">Add a new contract to get started.</p>
+        </div>
+        
+        <div v-else class="contracts-grid">
+          <div v-for="contract in filteredContracts" :key="contract.id" class="contract-card" :class="`contract-card-${contract.status.toLowerCase()}`">
+            <div class="contract-card-header">
+              <div class="contract-header-content">
+                <div class="contract-title">{{ contract.supplier }}</div>
+                <span class="status-badge" :class="`status-${contract.status.toLowerCase()}`">
+                  {{ contract.status }}
+                </span>
+              </div>
+              <div class="po-number-tag">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                <span>PO: {{ contract.poNumber }}</span>
+              </div>
+            </div>
+            
+            <div class="contract-card-body">
+              <div class="contract-details">
+                <div class="detail-item" v-if="contract.startDate">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>Start: {{ formatDate(contract.startDate) }}</span>
+                </div>
+                <div class="detail-item" v-if="contract.endDate">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>End: {{ formatDate(contract.endDate) }}</span>
+                </div>
+                <div class="detail-item" v-if="contract.value">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                  <span>Value: {{ formatCurrency(contract.value) }}</span>
+                </div>
+              </div>
+              
+              <div class="contract-description" v-if="contract.description">
+                {{ contract.description }}
+              </div>
+            </div>
+            
+            <div class="contract-card-actions">
+              <button @click="viewContract(contract)" class="card-action-btn view">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                View
+              </button>
+              <button @click="editContract(contract)" class="card-action-btn edit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                Edit
+              </button>
+              <button @click="confirmDelete(contract)" class="card-action-btn delete">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <!-- Edit Contract Modal -->
-        <div v-if="isEditing" class="modal-overlay">
-          <div class="modal">
-            <h3 class="modal-title">Edit Contract</h3>
-            <form @submit.prevent="updateContract">
-              <div class="form-group">
-                <label class="form-label">Supplier</label>
-                <input v-model="editContractData.supplier" type="text" class="input-field" placeholder="Enter supplier name" required />
+    <!-- Add/Edit Contract Modal -->
+    <div v-if="isModalOpen" class="modal-overlay" @click.self="closeModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            {{ editMode ? 'Edit Contract' : 'Add New Contract' }}
+          </h3>
+          <button @click="closeModal" class="close-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+          </button>
+        </div>
+        
+        <form @submit.prevent="submitContract" class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Supplier</label>
+              <input 
+                v-model="contractData.supplier" 
+                type="text" 
+                class="input-field" 
+                placeholder="Enter supplier name" 
+                required 
+              />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">PO Number</label>
+              <input 
+                v-model="contractData.poNumber" 
+                type="text" 
+                class="input-field" 
+                placeholder="Enter PO number" 
+                required 
+              />
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select v-model="contractData.status" class="input-field" required>
+                <option value="Pending">Pending</option>
+                <option value="Active">Active</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Contract Value</label>
+              <input 
+                v-model="contractData.value" 
+                type="number" 
+                step="0.01" 
+                class="input-field" 
+                placeholder="Enter contract value" 
+              />
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Start Date</label>
+              <input 
+                v-model="contractData.startDate" 
+                type="date" 
+                class="input-field" 
+              />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">End Date</label>
+              <input 
+                v-model="contractData.endDate" 
+                type="date" 
+                class="input-field" 
+              />
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea 
+              v-model="contractData.description" 
+              class="input-field textarea" 
+              placeholder="Enter contract description"
+            ></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Contract Document (Optional)</label>
+            <div class="file-upload">
+              <input 
+                type="file" 
+                id="file-upload" 
+                class="file-input" 
+                @change="handleFileUpload" 
+              />
+              <label for="file-upload" class="file-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
+                {{ fileName || 'Choose file' }}
+              </label>
+            </div>
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" @click="closeModal" class="btn-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+              Cancel
+            </button>
+            <button type="submit" class="btn-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+              {{ editMode ? 'Update Contract' : 'Add Contract' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- View Contract Modal -->
+    <div v-if="isViewingDetails" class="modal-overlay" @click.self="closeViewModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Contract Details
+          </h3>
+          <button @click="closeViewModal" class="close-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="contract-details-view">
+            <div class="detail-row">
+              <div class="detail-label">Supplier</div>
+              <div class="detail-value">{{ activeContract.supplier }}</div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="detail-label">PO Number</div>
+              <div class="detail-value">{{ activeContract.poNumber }}</div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="detail-label">Status</div>
+              <div class="detail-value">
+                <span class="status-badge" :class="`status-${activeContract.status?.toLowerCase()}`">
+                  {{ activeContract.status }}
+                </span>
               </div>
-              <div class="form-group">
-                <label class="form-label">PO Number</label>
-                <input v-model="editContractData.poNumber" type="text" class="input-field" placeholder="Enter PO number" required />
+            </div>
+            
+            <div class="detail-row" v-if="activeContract.value">
+              <div class="detail-label">Value</div>
+              <div class="detail-value">{{ formatCurrency(activeContract.value) }}</div>
+            </div>
+            
+            <div class="detail-row" v-if="activeContract.startDate">
+              <div class="detail-label">Start Date</div>
+              <div class="detail-value">{{ formatDate(activeContract.startDate) }}</div>
+            </div>
+            
+            <div class="detail-row" v-if="activeContract.endDate">
+              <div class="detail-label">End Date</div>
+              <div class="detail-value">{{ formatDate(activeContract.endDate) }}</div>
+            </div>
+            
+            <div class="detail-section" v-if="activeContract.description">
+              <h4 class="detail-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                Description
+              </h4>
+              <div class="detail-section-content">{{ activeContract.description }}</div>
+            </div>
+            
+            <div class="detail-section" v-if="activeContract.documentURL">
+              <h4 class="detail-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                Contract Document
+              </h4>
+              <div class="detail-section-content">
+                <a :href="activeContract.documentURL" target="_blank" class="document-link">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                  View Document
+                </a>
               </div>
-              <div class="form-group">
-                <label class="form-label">Status</label>
-                <select v-model="editContractData.status" class="input-field" required>
-                  <option value="Pending">Pending</option>
-                  <option value="Active">Active</option>
-                  <option value="Completed">Completed</option>
-                </select>
-              </div>
-              <div class="modal-actions">
-                <button type="button" @click="isEditing = false" class="btn-secondary">Cancel</button>
-                <button type="submit" class="btn-primary">Update</button>
-              </div>
-            </form>
+            </div>
+            
+            <div class="detail-row" v-if="activeContract.createdAt">
+              <div class="detail-label">Created On</div>
+              <div class="detail-value">{{ formatDate(activeContract.createdAt) }}</div>
+            </div>
+            
+            <div class="detail-row" v-if="activeContract.updatedAt">
+              <div class="detail-label">Last Updated</div>
+              <div class="detail-value">{{ formatDate(activeContract.updatedAt) }}</div>
+            </div>
+          </div>
+          
+          <div class="modal-actions">
+            <button @click="editContract(activeContract)" class="btn-edit">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              Edit
+            </button>
+            <button @click="confirmDelete(activeContract)" class="btn-delete">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              Delete
+            </button>
+            <button @click="closeViewModal" class="btn-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div v-if="isConfirmingDelete" class="modal-overlay" @click.self="cancelDelete">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            Confirm Deletion
+          </h3>
+        </div>
+        
+        <div class="modal-body">
+          <p class="confirm-message">Are you sure you want to delete this contract? This action cannot be undone.</p>
+          
+          <div class="modal-actions">
+            <button @click="cancelDelete" class="btn-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+              Cancel
+            </button>
+            <button @click="deleteContract" class="btn-delete">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              Delete
+            </button>
           </div>
         </div>
       </div>
@@ -97,82 +383,267 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebase";
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "firebase/firestore";
 
 export default {
   setup() {
     const contracts = ref([]);
-    const newContract = ref({ supplier: "", poNumber: "", status: "Pending" });
-    const isEditing = ref(false);
-    const editContractData = ref({});
-    const editContractIndex = ref(null);
+    const loading = ref(true);
+    const isModalOpen = ref(false);
+    const isViewingDetails = ref(false);
+    const isConfirmingDelete = ref(false);
+    const editMode = ref(false);
+    const searchQuery = ref("");
+    const statusFilter = ref("all");
+    const fileName = ref("");
+    const selectedFile = ref(null);
+    
+    const activeContract = ref({});
+    const contractData = ref({
+      supplier: "",
+      poNumber: "",
+      status: "Pending",
+      value: "",
+      startDate: "",
+      endDate: "",
+      description: ""
+    });
+
+    // Computed values for stats
+    const pendingContractsCount = computed(() => 
+      contracts.value.filter(contract => contract.status === "Pending").length
+    );
+    
+    const activeContractsCount = computed(() => 
+      contracts.value.filter(contract => contract.status === "Active").length
+    );
+    
+    const completedContractsCount = computed(() => 
+      contracts.value.filter(contract => contract.status === "Completed").length
+    );
+
+    const filteredContracts = computed(() => {
+      let result = [...contracts.value];
+      
+      // Apply status filter
+      if (statusFilter.value !== "all") {
+        result = result.filter(contract => contract.status === statusFilter.value);
+      }
+      
+      // Apply search query
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase();
+        result = result.filter(contract => 
+          contract.supplier.toLowerCase().includes(query) ||
+          contract.poNumber.toLowerCase().includes(query) ||
+          (contract.description && contract.description.toLowerCase().includes(query))
+        );
+      }
+      
+      return result;
+    });
 
     const fetchContracts = async () => {
-      const querySnapshot = await getDocs(collection(db, "contracts"));
-      contracts.value = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    };
-
-    const addContract = async () => {
       try {
-        await addDoc(collection(db, "contracts"), newContract.value);
-        alert("Contract added successfully");
-        newContract.value = { supplier: "", poNumber: "", status: "Pending" };
-        fetchContracts();
-      } catch (error) {
-        console.error("Error adding contract:", error);
-        alert("Failed to add contract. Please try again.");
-      }
-    };
-
-    const editContract = (index) => {
-      editContractIndex.value = index;
-      editContractData.value = { ...contracts.value[index] };
-      isEditing.value = true;
-    };
-
-    const updateContract = async () => {
-      try {
-        const contractRef = doc(db, "contracts", editContractData.value.id);
-        await updateDoc(contractRef, {
-          supplier: editContractData.value.supplier,
-          poNumber: editContractData.value.poNumber,
-          status: editContractData.value.status,
+        loading.value = true;
+        
+        // Set up real-time listener for contracts collection
+        const unsubscribe = onSnapshot(collection(db, "contracts"), (snapshot) => {
+          contracts.value = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          loading.value = false;
         });
-        alert("Contract updated successfully");
-        isEditing.value = false;
-        fetchContracts();
+
+        // Return unsubscribe function for cleanup
+        return unsubscribe;
       } catch (error) {
-        console.error("Error updating contract:", error);
-        alert("Failed to update contract. Please try again.");
+        console.error("Error fetching contracts:", error);
+        showNotification("Failed to fetch contracts. Please try again.", "error");
+        loading.value = false;
       }
     };
 
-    const deleteContract = async (id) => {
-      if (confirm("Are you sure you want to delete this contract?")) {
-        try {
-          await deleteDoc(doc(db, "contracts", id));
-          alert("Contract deleted successfully");
-          fetchContracts();
-        } catch (error) {
-          console.error("Error deleting contract:", error);
-          alert("Failed to delete contract. Please try again.");
-        }
+    const showAddModal = () => {
+      editMode.value = false;
+      resetForm();
+      isModalOpen.value = true;
+    };
+
+    const closeModal = () => {
+      isModalOpen.value = false;
+    };
+
+    const viewContract = (contract) => {
+      activeContract.value = { ...contract };
+      isViewingDetails.value = true;
+    };
+
+    const closeViewModal = () => {
+      isViewingDetails.value = false;
+    };
+
+    const resetForm = () => {
+      contractData.value = {
+        supplier: "",
+        poNumber: "",
+        status: "Pending",
+        value: "",
+        startDate: "",
+        endDate: "",
+        description: ""
+      };
+      fileName.value = "";
+      selectedFile.value = null;
+    };
+
+    const editContract = (contract) => {
+      editMode.value = true;
+      contractData.value = { ...contract };
+      
+      // Close view modal if open
+      if (isViewingDetails.value) {
+        isViewingDetails.value = false;
       }
+      
+      isModalOpen.value = true;
+    };
+
+    const submitContract = async () => {
+      try {
+        if (editMode.value) {
+          // Update existing contract
+          const contractRef = doc(db, "contracts", contractData.value.id);
+          await updateDoc(contractRef, {
+            ...contractData.value,
+            updatedAt: serverTimestamp()
+          });
+          showNotification("Contract updated successfully!");
+        } else {
+          // Add new contract
+          await addDoc(collection(db, "contracts"), {
+            ...contractData.value,
+            createdAt: serverTimestamp()
+          });
+          showNotification("Contract added successfully!");
+        }
+        
+        closeModal();
+      } catch (error) {
+        console.error("Error saving contract:", error);
+        showNotification("Failed to save contract. Please try again.", "error");
+      }
+    };
+
+    const confirmDelete = (contract) => {
+      activeContract.value = contract;
+      isConfirmingDelete.value = true;
+      
+      // Close view modal if open
+      if (isViewingDetails.value) {
+        isViewingDetails.value = false;
+      }
+    };
+
+    const cancelDelete = () => {
+      isConfirmingDelete.value = false;
+    };
+
+    const deleteContract = async () => {
+      try {
+        const contractRef = doc(db, "contracts", activeContract.value.id);
+        await deleteDoc(contractRef);
+        showNotification("Contract deleted successfully!");
+        isConfirmingDelete.value = false;
+      } catch (error) {
+        console.error("Error deleting contract:", error);
+        showNotification("Failed to delete contract. Please try again.", "error");
+      }
+    };
+
+    const handleFileUpload = (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        selectedFile.value = file;
+        fileName.value = file.name;
+      }
+    };
+
+    const formatDate = (timestamp) => {
+      if (!timestamp) return "N/A";
+      
+      // If timestamp is a Firestore Timestamp, convert to JS Date
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      });
+    };
+
+    const formatCurrency = (amount) => {
+      if (!amount) return "$0.00";
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(amount);
+    };
+
+    const showNotification = (message, type = "success") => {
+      // Create notification element
+      const notification = document.createElement("div");
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      // Add animation class after a short delay
+      setTimeout(() => {
+        notification.classList.add("show");
+      }, 10);
+      
+      // Remove notification after timeout
+      setTimeout(() => {
+        notification.classList.remove("show");
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
     };
 
     onMounted(fetchContracts);
 
     return {
       contracts,
-      newContract,
-      isEditing,
-      editContractData,
-      addContract,
+      loading,
+      isModalOpen,
+      isViewingDetails,
+      isConfirmingDelete,
+      editMode,
+      searchQuery,
+      statusFilter,
+      contractData,
+      activeContract,
+      fileName,
+      pendingContractsCount,
+      activeContractsCount,
+      completedContractsCount,
+      filteredContracts,
+      showAddModal,
+      closeModal,
+      viewContract,
+      closeViewModal,
       editContract,
-      updateContract,
+      submitContract,
+      confirmDelete,
+      cancelDelete,
       deleteContract,
+      handleFileUpload,
+      formatDate,
+      formatCurrency
     };
   },
 };
@@ -224,21 +695,34 @@ export default {
   position: relative;
 }
 
+/* Card Header with Stats */
 .card-header {
   background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
   padding: 30px;
-  text-align: center;
   color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .logo-container {
-  margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .logo {
   width: 70px;
   height: 70px;
   object-fit: contain;
+}
+
+.header-text {
+  flex: 1;
 }
 
 .title {
@@ -252,147 +736,773 @@ export default {
   opacity: 0.8;
 }
 
+/* Stats Overview */
+.stats-overview {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  flex: 1;
+  min-width: 120px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s;
+}
+
+.stat-item:hover {
+  transform: translateY(-5px);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
 .card-content {
   padding: 30px;
 }
 
-/* Table Design */
-.table-container {
-  overflow-x: auto;
+/* Action Bar */
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
 }
 
-.contracts-table {
+.search-container {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-input {
   width: 100%;
-  border-collapse: collapse;
-}
-
-.contracts-table th,
-.contracts-table td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.contracts-table th {
-  background-color: #2c5282;
-  color: white;
-  font-weight: bold;
-  font-size: 15px;
-  text-transform: uppercase;
-}
-
-.contracts-table td {
-  color: #4a5568;
+  padding: 12px 15px 12px 45px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   font-size: 14px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
-.contracts-table tr:hover td {
-  background-color: #ebf8ff;
-}
-
-.loading-state {
-  text-align: center;
-  color: #1a202c;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-/* Enhanced Input Fields */
-.input-field {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #cbd5e0;
-  border-radius: 6px;
-  font-size: 14px;
-  color: #2d3748;
-  background-color: #f7fafc;
-  margin-top: 5px;
-}
-
-.input-field:focus {
-  border-color: #3182ce;
+.search-input:focus {
   outline: none;
-  background-color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
-/* Enhanced Buttons */
-.btn-primary {
-  background-color: #3182ce;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 6px;
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.filter-container {
+  width: auto;
+  min-width: 200px;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   font-size: 14px;
-  font-weight: bold;
-  border: none;
+  background-color: white;
+  color: #1e293b;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
 }
 
-.btn-primary:hover {
-  background-color: #2b6cb0;
+.filter-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
-.btn-danger {
-  background-color: #e53e3e;
+.btn-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: #0f2942;
   color: white;
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 12px;
   border: none;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.btn-danger:hover {
-  background-color: #c53030;
+.btn-add:hover {
+  background-color: #1a365d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.btn-link {
-  background: none;
-  color: #3182ce;
-  font-size: 12px;
-  text-decoration: underline;
+/* Contract Cards Grid */
+.contracts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.contract-card {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+}
+
+.contract-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Card color accents based on status */
+.contract-card-pending {
+  border-top: 3px solid #fbbf24;
+}
+
+.contract-card-active {
+  border-top: 3px solid #10b981;
+}
+
+.contract-card-completed {
+  border-top: 3px solid #3b82f6;
+}
+
+.contract-card-header {
+  padding: 15px;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.contract-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.contract-title {
+  font-weight: 600;
+  color: #0f2942;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.po-number-tag {
+  background-color: #f1f5f9;
+  color: #64748b;
+  padding: 5px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+}
+
+.contract-card-body {
+  padding: 15px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contract-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.contract-description {
+  font-size: 0.9rem;
+  color: #334155;
+  line-height: 1.5;
+  margin-top: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3; /* Added standard property */
+  -webkit-box-orient: vertical;
+}
+
+.contract-card-actions {
+  padding: 15px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.card-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
-.btn-link:hover {
-  color: #2b6cb0;
+.card-action-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
-/* Enhanced Modal */
+.card-action-btn.view {
+  background-color: #f1f5f9;
+  color: #0f2942;
+}
+
+.card-action-btn.view:hover {
+  background-color: #e2e8f0;
+}
+
+.card-action-btn.edit {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.card-action-btn.edit:hover {
+  background-color: #bae6fd;
+}
+
+.card-action-btn.delete {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.card-action-btn.delete:hover {
+  background-color: #fca5a5;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-active {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-completed {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+}
+
+.empty-icon {
+  color: #94a3b8;
+  margin-bottom: 20px;
+}
+
+.empty-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.empty-subtext {
+  font-size: 16px;
+  color: #64748b;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #1e293b;
+}
+
+.loading-spinner {
+  margin-bottom: 16px;
+}
+
+.loading-icon {
+  animation: spin 2s linear infinite;
+  color: #2563eb;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
 .modal {
   background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   width: 100%;
+  max-width: 700px;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-sm {
+  max-width: 500px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc;
 }
 
 .modal-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: #2d3748;
-  margin-bottom: 15px;
+  color: #0f2942;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.modal-actions button {
-  padding: 8px 16px;
+.close-button {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.close-button:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+/* Form Styling */
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  flex: 1;
+  margin-bottom: 20px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
   font-size: 14px;
+  transition: all 0.2s;
+  background-color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Form Label Styling */
+.input-field:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
 .form-label {
   font-size: 14px;
   font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 5px;
+  color: #334155;
+  margin-bottom: 8px;
   display: block;
 }
 
-/* Input Placeholder Styling */
-.input-field::placeholder {
-  color: #a0aec0;
-  font-size: 14px;
+/* File Upload */
+.file-upload {
+  position: relative;
+  margin-top: 8px;
+}
+
+.file-input {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 15px;
+  background-color: #f1f5f9;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.file-label:hover {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+/* Modal actions */
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Button Styles */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+.btn-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: #0ea5e9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit:hover {
+  background-color: #0284c7;
+  transform: translateY(-1px);
+}
+
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Contract Details View */
+.contract-details-view {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
+}
+
+.detail-label {
+  width: 120px;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.detail-value {
+  flex: 1;
+  color: #0f172a;
+}
+
+.detail-section {
+  margin-bottom: 15px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.detail-section-title {
+  background-color: #0f2942;
+  color: white;
+  padding: 10px 15px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.detail-section-content {
+  padding: 15px;
+  color: #334155;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.document-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.document-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.confirm-message {
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Notification */
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #0f2942;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.notification.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.notification.error {
+  background-color: #ef4444;
+}
+
+.notification.success {
+  background-color: #10b981;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .action-bar {
+    flex-direction: column;
+  }
+
+  .search-container,
+  .filter-container {
+    width: 100%;
+  }
+
+  .btn-add {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .contracts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal {
+    width: 95%;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+
+  .stats-overview {
+    flex-direction: column;
+  }
+
+  .stats-overview .stat-item {
+    width: 100%;
+  }
 }
 </style>
