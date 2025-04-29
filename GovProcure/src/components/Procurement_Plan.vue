@@ -203,223 +203,98 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebase";
-import { collection, getDocs, doc, updateDoc, getDoc, Timestamp } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 
 export default {
+  name: "ProcurementPlan",
   setup() {
+    // State variables
     const requests = ref([]);
-    const isViewing = ref(false);
-    const viewRequestData = ref({});
     const searchQuery = ref("");
     const statusFilter = ref("all");
+    const isViewing = ref(false);
+    const viewRequestData = ref({});
 
+    // Fetch purchase requests from Firestore
     const fetchRequests = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "purchaseRequests"));
-        requests.value = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return { 
-            id: doc.id, 
-            ...data,
-            // Ensure we have default values for required fields
-            itemName: data.itemName || "Unnamed Item",
-            quantity: data.quantity || 0,
-            description: data.description || "No description provided",
-            status: data.status || "Pending",
-            // Convert Firestore timestamps to JS Date objects
-            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt || Date.now()),
-            updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(data.updatedAt || Date.now()),
-            approvalDate: data.approvalDate instanceof Timestamp ? data.approvalDate.toDate() : 
-                         (data.approvalDate ? new Date(data.approvalDate) : null),
-            requiredDate: data.requiredDate instanceof Timestamp ? data.requiredDate.toDate() : 
-                         (data.requiredDate ? new Date(data.requiredDate) : null)
-          };
-        });
-        console.log("Fetched requests:", JSON.stringify(requests.value, null, 2)); // Improved logging
+        requests.value = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
       } catch (error) {
-        console.error("Error fetching purchase requests:", error);
-        alert("Failed to fetch purchase requests. Please try again.");
+        console.error("Error fetching requests:", error);
       }
     };
 
+    // Computed property for filtered requests
     const filteredRequests = computed(() => {
-      return requests.value
-        .filter(request => {
-          // Apply search filter
-          if (searchQuery.value) {
-            const query = searchQuery.value.toLowerCase();
-            return (
-              (request.itemName?.toLowerCase() || "").includes(query) ||
-              (request.description?.toLowerCase() || "").includes(query)
-            );
-          }
-          return true;
-        })
-        .filter(request => {
-          // Apply status filter
-          if (statusFilter.value !== "all") {
-            return (request.status?.toLowerCase() || "").includes(statusFilter.value);
-          }
-          return true;
-        });
+      let filtered = [...requests.value];
+
+      // Apply search query
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase();
+        filtered = filtered.filter(
+          (request) =>
+            request.itemName.toLowerCase().includes(query) ||
+            request.description.toLowerCase().includes(query)
+        );
+      }
+
+      // Apply status filter
+      if (statusFilter.value !== "all") {
+        filtered = filtered.filter(
+          (request) => request.status.toLowerCase() === statusFilter.value
+        );
+      }
+
+      return filtered;
     });
 
-    // Fixed viewRequest function to directly fetch the request by ID
-    const viewRequest = async (requestId) => {
-      try {
-        console.log(`Fetching details for request ID: ${requestId}`);
-        
-        // Fetch the request from Firestore by ID
-        const requestDoc = await getDoc(doc(db, "purchaseRequests", requestId));
-        
-        if (requestDoc.exists()) {
-          const data = requestDoc.data();
-          viewRequestData.value = { 
-            id: requestId, 
-            ...data,
-            // Ensure default values and proper date conversions
-            itemName: data.itemName || "Unnamed Item",
-            quantity: data.quantity || 0,
-            description: data.description || "No description provided",
-            status: data.status || "Pending",
-            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt || Date.now()),
-            updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(data.updatedAt || Date.now()),
-            approvalDate: data.approvalDate instanceof Timestamp ? data.approvalDate.toDate() : 
-                         (data.approvalDate ? new Date(data.approvalDate) : null),
-            requiredDate: data.requiredDate instanceof Timestamp ? data.requiredDate.toDate() : 
-                         (data.requiredDate ? new Date(data.requiredDate) : null)
-          };
-          isViewing.value = true; // Open the modal
-          console.log("Request details loaded:", JSON.stringify(viewRequestData.value, null, 2)); // Log the fetched data
-        } else {
-          console.error("Request not found in the database.");
-          alert("Request not found.");
-        }
-      } catch (error) {
-        console.error("Error fetching request details:", error);
-        alert("Failed to load request details. Please try again.");
+    // View request details
+    const viewRequest = (id) => {
+      const request = requests.value.find((req) => req.id === id);
+      if (request) {
+        viewRequestData.value = { ...request };
+        isViewing.value = true;
       }
     };
 
-    const approveRequest = async (requestId) => {
-      try {
-        const requestRef = doc(db, "purchaseRequests", requestId);
-        const approvalDate = new Date().toISOString();
-        await updateDoc(requestRef, { status: "Approved", approvalDate });
-
-        // Update the local state
-        const request = requests.value.find((req) => req.id === requestId);
-        if (request) {
-          request.status = "Approved";
-          request.approvalDate = approvalDate;
-        }
-
-        // Update modal if open
-        if (isViewing.value && viewRequestData.value.id === requestId) {
-          viewRequestData.value.status = "Approved";
-          viewRequestData.value.approvalDate = approvalDate;
-        }
-
-        // Show success notification
-        showNotification("Purchase request approved successfully!");
-      } catch (error) {
-        console.error("Error approving purchase request:", error);
-        alert("Failed to approve the purchase request.");
-      }
-    };
-
-    const rejectRequest = async (requestId) => {
-      try {
-        const requestRef = doc(db, "purchaseRequests", requestId);
-        const rejectionDate = new Date().toISOString();
-        await updateDoc(requestRef, { status: "Rejected", rejectionDate });
-
-        // Update the local state
-        const request = requests.value.find((req) => req.id === requestId);
-        if (request) {
-          request.status = "Rejected";
-          request.rejectionDate = rejectionDate;
-        }
-
-        // Update modal if open
-        if (isViewing.value && viewRequestData.value.id === requestId) {
-          viewRequestData.value.status = "Rejected";
-          viewRequestData.value.rejectionDate = rejectionDate;
-        }
-
-        // Show success notification
-        showNotification("Purchase request rejected.");
-      } catch (error) {
-        console.error("Error rejecting purchase request:", error);
-        alert("Failed to reject the purchase request.");
-      }
-    };
-
+    // Close the modal
     const closeModal = () => {
       isViewing.value = false;
       viewRequestData.value = {};
     };
 
-    const formatDate = (dateString) => {
-      if (!dateString) return "N/A";
-      
-      try {
-        const date = dateString instanceof Date ? dateString : new Date(dateString);
-        
-        if (isNaN(date.getTime())) {
-          return "Invalid Date";
-        }
-        
-        return date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      } catch (error) {
-        console.error("Error formatting date:", error);
-        return "Date Error";
-      }
+    // Format date utility
+    const formatDate = (timestamp) => {
+      if (!timestamp) return "N/A";
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
     };
 
-    const showNotification = (message) => {
-      // Simple notification implementation
-      const notification = document.createElement("div");
-      notification.className = "notification";
-      notification.textContent = message;
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.classList.add("show");
-      }, 10);
-      
-      setTimeout(() => {
-        notification.classList.remove("show");
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 300);
-      }, 3000);
-    };
-
+    // Fetch data on component mount
     onMounted(fetchRequests);
 
     return {
       requests,
+      searchQuery,
+      statusFilter,
       filteredRequests,
       isViewing,
       viewRequestData,
-      searchQuery,
-      statusFilter,
       viewRequest,
-      approveRequest,
-      rejectRequest,
-      formatDate,
-      closeModal
+      closeModal,
+      formatDate, // Include formatDate in the return object
     };
-  }
+  },
 };
 </script>
 
@@ -451,7 +326,7 @@ export default {
     linear-gradient(150deg, rgba(16, 42, 66, 0.5) 12%, transparent 12.5%, transparent 87%, rgba(16, 42, 66, 0.5) 87.5%, rgba(16, 42, 66, 0.5)),
     linear-gradient(60deg, rgba(0, 0, 0, 0.1) 25%, transparent 25.5%, transparent 75%, rgba(0, 0, 0, 0.1) 75%, rgba(0, 0, 0, 0.1));
   background-size: 80px 140px;
-  background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+  background-position: 0 0, 0 0, 40px 70px;
   opacity: 0.2;
 }
 

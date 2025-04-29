@@ -94,6 +94,7 @@ import { db } from "@/firebase";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
 
 export default {
+  name: "ContractsView",
   setup() {
     const contracts = ref([]);
     const newContract = ref({ name: "", amount: "", description: "" });

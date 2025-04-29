@@ -1,7 +1,7 @@
 const functions = require("firebase-functions");
 const emailjs = require("emailjs-com");
 
-exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
+exports.sendInvitationEmail = functions.https.onCall(async (data) => {
   const { title, category, budget, deadline, description, recipients } = data;
 
   try {
