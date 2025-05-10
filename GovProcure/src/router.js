@@ -28,6 +28,12 @@ import PurchaseRequest from '@/components/PurchaseRequest.vue';
 import ApprovedPurchases from "@/components/Approved_Purchases.vue";
 import Settings from '@/components/Settings.vue';
 import PaymentTracking from '@/components/PaymentTracking.vue';
+import RequestDetail from '@/components/RequestDetail.vue';
+import BidDetail from '@/components/BidDetail.vue';
+import BidEvaluation from '@/components/BidEvaluation.vue';
+import AddQualification from '@/components/AddQualification.vue';
+import AddContract from '@/components/AddContract.vue';
+import AddPayment from '@/components/AddPayment.vue';
 
 const routes = [
   { path: '/', name: 'LandingPage', component: LandingPage },
@@ -53,7 +59,13 @@ const routes = [
   { path: '/payment-processing', name: 'PaymentProcessing', component: PaymentProcessing, meta: { requiresAuth: true, role: 'admin' } },
   { path: '/approved-purchases', name: 'ApprovedPurchases', component: ApprovedPurchases, meta: { requiresAuth: true, role: 'user' } },
   { path: '/settings', name: 'Settings', component: Settings, meta: { requiresAuth: true } },
-  { path: '/payment-tracking', name: 'PaymentTracking', component: PaymentTracking, meta: { requiresAuth: true, role: 'user' } }
+  { path: '/payment-tracking', name: 'PaymentTracking', component: PaymentTracking, meta: { requiresAuth: true, role: 'user' } },
+  { path: '/request-detail/:id', name: 'RequestDetail', component: RequestDetail, meta: { requiresAuth: true } },
+  { path: '/bid-detail/:id', name: 'BidDetail', component: BidDetail, meta: { requiresAuth: true } },
+  { path: '/bid-evaluation/:id', name: 'BidEvaluation', component: BidEvaluation, meta: { requiresAuth: true } },
+  { path: '/add-qualification', name: 'AddQualification', component: AddQualification, meta: { requiresAuth: true } },
+  { path: '/add-contract', name: 'AddContract', component: AddContract, meta: { requiresAuth: true } },
+  { path: '/add-payment', name: 'AddPayment', component: AddPayment, meta: { requiresAuth: true } }
 ];
 
 const router = createRouter({

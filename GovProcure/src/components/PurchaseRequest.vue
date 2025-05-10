@@ -171,7 +171,7 @@
 <script>
 import { ref, computed, reactive } from "vue";
 import { db, auth } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 
 export default {
   name: "PurchaseRequest",
@@ -291,7 +291,14 @@ export default {
         };
         
         // Add document to Firestore
-        await addDoc(collection(db, "purchaseRequests"), requestData);
+        const docRef = await addDoc(collection(db, "purchaseRequests"), requestData);
+        const generatedId = docRef.id; // Retrieve the generated document ID
+
+        // Update the document with the generated ID
+        await updateDoc(docRef, { requestId: generatedId });
+
+        // Optionally, you can log or use the generated ID
+        console.log("Generated Request ID:", generatedId);
         
         // Show success notification
         showNotification("success", "Purchase request submitted successfully!");

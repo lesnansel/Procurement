@@ -76,7 +76,7 @@
         </div>
         
         <div v-else class="bids-grid">
-          <div v-for="(bid, index) in filteredBids" :key="bid.id" class="bid-card" :class="`bid-card-${bid.status?.toLowerCase()}`">
+          <div v-for="bid in filteredBids" :key="bid.id" class="bid-card" :class="`bid-card-${bid.status?.toLowerCase()}`">
             <div class="bid-card-header">
               <div class="bid-header-content">
                 <div class="bid-title">{{ bid.bidderName || 'Anonymous Vendor' }}</div>
@@ -105,15 +105,15 @@
             </div>
             
             <div class="bid-card-actions">
-              <button @click="evaluateBid(index)" class="card-action-btn evaluate">
+              <button @click="navigateToBidEvaluation(bid.id)" class="card-action-btn evaluate">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                 Evaluate
               </button>
-              <button @click="approveBid(bid.id)" class="card-action-btn approve" :disabled="bid.status === 'approved'">
+              <button @click="approveBid(bid.id)" class="card-action-btn approve">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
                 Approve
               </button>
-              <button @click="rejectBid(bid.id)" class="card-action-btn reject" :disabled="bid.status === 'rejected'">
+              <button @click="rejectBid(bid.id)" class="card-action-btn reject">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
                 Reject
               </button>
@@ -250,20 +250,22 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from "vue";
-import { db } from "@/firebase";
-import { collection, updateDoc, doc, onSnapshot } from "firebase/firestore";
+import { ref, computed, onMounted } from "vue"; // Import Vue functions
+import { db } from "@/firebase"; // Import Firestore database instance
+import { collection, doc, updateDoc, onSnapshot } from "firebase/firestore"; // Import Firestore functions
+import { useRouter } from "vue-router";
 
 export default {
   setup() {
     const bids = ref([]);
-    const loading = ref(true);
+    const loading = ref(true); // Define 'loading' as a ref
     const isEvaluating = ref(false);
     const selectedBid = ref({});
     const evaluationScore = ref(50);
     const evaluationNotes = ref("");
     const searchQuery = ref("");
     const statusFilter = ref("all");
+    const router = useRouter();
 
     // Computed values for stats
     const pendingBidsCount = computed(() => 
@@ -327,10 +329,11 @@ export default {
     };
 
     const evaluateBid = (index) => {
+      // Ensure the selected bid is set correctly
       selectedBid.value = { ...bids.value[index] };
-      evaluationScore.value = selectedBid.value.score || 50;
-      evaluationNotes.value = selectedBid.value.evaluationNotes || "";
-      isEvaluating.value = true;
+      evaluationScore.value = selectedBid.value.score || 50; // Default score to 50 if not set
+      evaluationNotes.value = selectedBid.value.evaluationNotes || ""; // Default notes to empty if not set
+      isEvaluating.value = true; // Open the modal
     };
 
     const submitEvaluation = async () => {
@@ -428,6 +431,10 @@ export default {
       }, 3000);
     };
 
+    const navigateToBidEvaluation = (bidId) => {
+      router.push({ name: "BidEvaluation", params: { id: bidId } });
+    };
+
     onMounted(fetchBids);
 
     return {
@@ -449,7 +456,8 @@ export default {
       rejectBid,
       formatCurrency,
       formatDate,
-      truncateDescription
+      truncateDescription,
+      navigateToBidEvaluation
     };
   },
 };
@@ -808,7 +816,7 @@ export default {
   background-color: #fca5a5;
 }
 
-.card-action-btn:disabled {
+.card-action-btn:enable {
   opacity: 0.6;
   cursor: not-allowed;
 }

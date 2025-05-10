@@ -61,24 +61,8 @@
                   </span>
                 </td>
                 <td class="actions-cell">
-                  <button @click="viewRequest(request.id)" class="btn-icon" title="View Details">
+                  <button @click="navigateToDetails(request.id)" class="btn-icon" title="View Details">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                  </button>
-                  <button 
-                    v-if="request.status !== 'Approved'" 
-                    @click="approveRequest(request.id)" 
-                    class="btn-icon approve" 
-                    title="Approve Request"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-                  </button>
-                  <button 
-                    v-if="request.status !== 'Rejected' && request.status !== 'Approved'" 
-                    @click="rejectRequest(request.id)" 
-                    class="btn-icon reject" 
-                    title="Reject Request"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
                   </button>
                 </td>
               </tr>
@@ -182,14 +166,6 @@
               </div>
             </div>
             <div class="modal-actions">
-              <button v-if="viewRequestData.status !== 'Approved'" @click="approveRequest(viewRequestData.id)" class="btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-                Approve
-              </button>
-              <button v-if="viewRequestData.status !== 'Rejected' && viewRequestData.status !== 'Approved'" @click="rejectRequest(viewRequestData.id)" class="btn-danger">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                Reject
-              </button>
               <button type="button" @click="closeModal" class="btn-secondary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
                 Close
@@ -206,16 +182,33 @@
 import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebase";
 import { collection, getDocs } from "firebase/firestore";
+import { useRouter } from 'vue-router';
 
 export default {
   name: "ProcurementPlan",
   setup() {
+    const router = useRouter();
     // State variables
     const requests = ref([]);
     const searchQuery = ref("");
     const statusFilter = ref("all");
     const isViewing = ref(false);
     const viewRequestData = ref({});
+
+    // View request details
+    const viewRequest = (userId) => {
+      const request = requests.value.find((req) => req.userId === userId);
+      if (request) {
+        viewRequestData.value = { ...request };
+        isViewing.value = true;
+      } else {
+        console.warn("Request not found for userId:", userId);
+      }
+    };
+
+    const navigateToDetails = (id) => {
+      router.push({ name: 'RequestDetail', params: { id } });
+    };
 
     // Fetch purchase requests from Firestore
     const fetchRequests = async () => {
@@ -225,8 +218,12 @@ export default {
           id: doc.id,
           ...doc.data(),
         }));
+
+        if (requests.value.length === 0) {
+          console.warn("No purchase requests found in Firestore.");
+        }
       } catch (error) {
-        console.error("Error fetching requests:", error);
+        console.error("Error fetching requests from Firestore:", error);
       }
     };
 
@@ -253,15 +250,6 @@ export default {
 
       return filtered;
     });
-
-    // View request details
-    const viewRequest = (id) => {
-      const request = requests.value.find((req) => req.id === id);
-      if (request) {
-        viewRequestData.value = { ...request };
-        isViewing.value = true;
-      }
-    };
 
     // Close the modal
     const closeModal = () => {
@@ -293,6 +281,7 @@ export default {
       viewRequest,
       closeModal,
       formatDate, // Include formatDate in the return object
+      navigateToDetails
     };
   },
 };
@@ -569,24 +558,6 @@ export default {
 .btn-icon:hover {
   background-color: #e2e8f0;
   color: #1e293b;
-}
-
-.btn-icon.approve {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: #10b981;
-}
-
-.btn-icon.approve:hover {
-  background-color: rgba(16, 185, 129, 0.2);
-}
-
-.btn-icon.reject {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-}
-
-.btn-icon.reject:hover {
-  background-color: rgba(239, 68, 68, 0.2);
 }
 
 .btn-primary {

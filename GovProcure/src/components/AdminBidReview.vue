@@ -118,21 +118,17 @@
               </div>
 
               <div class="bid-card-actions">
-                <button @click="viewBidDetails(bid)" class="card-action-btn view" title="View Details">
+                <button @click="navigateToBidDetail(bid.id)" class="card-action-btn view" title="View Details">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   Details
                 </button>
-                <button @click="approveBid(bid.id)" class="card-action-btn approve" title="Approve Bid" :disabled="bid.status === 'Approved'">
+                <button @click="approveBid(bid.id)" class="card-action-btn approve" title="Approve Bid" :enable="bid.status === 'Approved'">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
                   Approve
                 </button>
-                <button @click="rejectBid(bid.id)" class="card-action-btn reject" title="Reject Bid" :disabled="bid.status === 'Rejected'">
+                <button @click="rejectBid(bid.id)" class="card-action-btn reject" title="Reject Bid" :enable="bid.status === 'Rejected'">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
                   Reject
-                </button>
-                <button @click="requestMoreInfo(bid.id)" class="card-action-btn more-info" title="Request More Info" :disabled="bid.status === 'More Info Requested'">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-                  Request Info
                 </button>
               </div>
             </div>
@@ -222,15 +218,15 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button @click="approveBid(activeBid.id)" class="btn-approve" :disabled="activeBid.status === 'Approved'">
+          <button @click="approveBid(activeBid.id)" class="btn-approve" :enable="activeBid.status === 'Approved'">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
             Approve Bid
           </button>
-          <button @click="rejectBid(activeBid.id)" class="btn-reject" :disabled="activeBid.status === 'Rejected'">
+          <button @click="rejectBid(activeBid.id)" class="btn-reject" :enable="activeBid.status === 'Rejected'">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
             Reject Bid
           </button>
-          <button @click="showRequestInfoModal" class="btn-info" :disabled="activeBid.status === 'More Info Requested'">
+          <button @click="showRequestInfoModal" class="btn-info" :enable="activeBid.status === 'More Info Requested'">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
             Request Information
           </button>
@@ -284,9 +280,11 @@
 import { ref, onMounted, computed } from "vue";
 import { db } from "@/firebase";
 import { collection, doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { useRouter } from "vue-router";
 
 export default {
   setup() {
+    const router = useRouter();
     const bids = ref([]);
     const loading = ref(true);
     const searchQuery = ref("");
@@ -510,6 +508,10 @@ export default {
       }, 3000);
     };
 
+    const navigateToBidDetail = (bidId) => {
+      router.push({ name: "BidDetail", params: { id: bidId } });
+    };
+
     onMounted(fetchBids);
 
     return {
@@ -535,7 +537,8 @@ export default {
       approveBid,
       rejectBid,
       requestMoreInfo,
-      submitInfoRequest
+      submitInfoRequest,
+      navigateToBidDetail
     };
   },
 };
@@ -930,7 +933,7 @@ export default {
   background-color: #bfdbfe;
 }
 
-.card-action-btn:disabled {
+.card-action-btn:enable {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -1270,7 +1273,7 @@ export default {
   transform: translateY(-1px);
 }
 
-.btn-approve:disabled {
+.btn-approve:enable {
   background-color: #d1fae5;
   color: #065f46;
   cursor: not-allowed;
@@ -1296,7 +1299,7 @@ export default {
   transform: translateY(-1px);
 }
 
-.btn-reject:disabled {
+.btn-reject:enable {
   background-color: #fee2e2;
   color: #b91c1c;
   cursor: not-allowed;
@@ -1322,7 +1325,7 @@ export default {
   transform: translateY(-1px);
 }
 
-.btn-info:disabled {
+.btn-info:enable {
   background-color: #e0f2fe;
   color: #0369a1;
   cursor: not-allowed;

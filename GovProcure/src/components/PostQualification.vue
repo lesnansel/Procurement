@@ -60,7 +60,7 @@
               <option value="low">Low (&lt;50)</option> <!-- Escaped '<' as '&lt;' -->
             </select>
           </div>
-          <button @click="showAddModal" class="btn-add">
+          <button @click="navigateToAddQualification" class="btn-add">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             Add New
           </button>
@@ -349,6 +349,7 @@
 import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { useRouter } from 'vue-router';
 
 export default {
   setup() {
@@ -421,9 +422,9 @@ export default {
     const fetchPostQualifications = async () => {
       try {
         loading.value = true;
-        
-        // Set up real-time listener for qualifications collection
-        const unsubscribe = onSnapshot(collection(db, "postQualifications"), (snapshot) => {
+
+        // Update collection name to match Firestore
+        const unsubscribe = onSnapshot(collection(db, "qualifications"), (snapshot) => {
           postQualifications.value = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data()
@@ -451,8 +452,9 @@ export default {
     };
 
     const viewDetails = (qualification) => {
-      activeQualification.value = { ...qualification };
-      isViewingDetails.value = true;
+      console.log("View Details clicked:", qualification); // Debugging log
+      activeQualification.value = { ...qualification }; // Set the active qualification
+      isViewingDetails.value = true; // Open the details modal
     };
 
     const closeViewModal = () => {
@@ -472,15 +474,10 @@ export default {
     };
 
     const editQualification = (qualification) => {
-      editMode.value = true;
-      postQualification.value = { ...qualification };
-      
-      // Close view modal if open
-      if (isViewingDetails.value) {
-        isViewingDetails.value = false;
-      }
-      
-      isModalOpen.value = true;
+      console.log("Edit clicked:", qualification); // Debugging log
+      editMode.value = true; // Set edit mode
+      postQualification.value = { ...qualification }; // Populate the form with the qualification data
+      isModalOpen.value = true; // Open the edit modal
     };
 
     const submitPostQualification = async () => {
@@ -510,13 +507,9 @@ export default {
     };
 
     const confirmDelete = (qualification) => {
-      activeQualification.value = qualification;
-      isConfirmingDelete.value = true;
-      
-      // Close view modal if open
-      if (isViewingDetails.value) {
-        isViewingDetails.value = false;
-      }
+      console.log("Delete clicked:", qualification); // Debugging log
+      activeQualification.value = qualification; // Set the qualification to be deleted
+      isConfirmingDelete.value = true; // Open the delete confirmation modal
     };
 
     const cancelDelete = () => {
@@ -525,10 +518,11 @@ export default {
 
     const deleteQualification = async () => {
       try {
-        const docRef = doc(db, "postQualifications", activeQualification.value.id);
-        await deleteDoc(docRef);
-        showNotification("Post-qualification deleted successfully!");
-        isConfirmingDelete.value = false;
+        console.log("Deleting qualification:", activeQualification.value); // Debugging log
+        const docRef = doc(db, "qualifications", activeQualification.value.id); // Target the correct collection
+        await deleteDoc(docRef); // Delete the document
+        showNotification("Post-qualification deleted successfully!", "success");
+        isConfirmingDelete.value = false; // Close the confirmation modal
       } catch (error) {
         console.error("Error deleting post-qualification:", error);
         showNotification("Failed to delete record. Please try again.", "error");
@@ -584,6 +578,12 @@ export default {
       }, 3000);
     };
 
+    const router = useRouter();
+
+    const navigateToAddQualification = () => {
+      router.push({ name: 'AddQualification' });
+    };
+
     onMounted(fetchPostQualifications);
 
     return {
@@ -613,7 +613,8 @@ export default {
       deleteQualification,
       handleFileUpload,
       formatDate,
-      getScoreClass
+      getScoreClass,
+      navigateToAddQualification
     };
   },
 };
