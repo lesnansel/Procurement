@@ -1,119 +1,342 @@
 <template>
-  <div class="admin-wrapper">
-    <!-- Background Pattern -->
-    <div class="background-pattern">
-      <div class="pattern-overlay"></div>
-    </div>
+  <div>
+    <AdminNavigationBar />
+    <div class="admin-wrapper">
+      <!-- Background Pattern -->
+      <div class="background-pattern">
+        <div class="pattern-overlay"></div>
+      </div>
 
-    <!-- Admin Card -->
-    <div class="admin-card">
-      <!-- Header with gradient overlay and stats -->
-      <div class="card-header">
-        <div class="header-content">
-          <div class="logo-container">
-            <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+      <!-- Admin Card -->
+      <div class="admin-card">
+        <!-- Header with gradient overlay and stats -->
+        <div class="card-header">
+          <div class="header-content">
+            <div class="logo-container">
+              <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+            </div>
+            <div class="header-text">
+              <h1 class="title">Post Qualification</h1>
+              <p class="subtitle">Evaluate and manage post-qualification processes</p>
+            </div>
           </div>
-          <div class="header-text">
-            <h1 class="title">Post Qualification</h1>
-            <p class="subtitle">Evaluate and manage post-qualification processes</p>
+          
+          <!-- Stats Overview -->
+          <div class="stats-overview">
+            <div class="stat-item">
+              <div class="stat-value">{{ postQualifications.length }}</div>
+              <div class="stat-label">Total Records</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ averageScore }}</div>
+              <div class="stat-label">Avg. Score</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ highestScore }}</div>
+              <div class="stat-label">Highest</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ lowestScore }}</div>
+              <div class="stat-label">Lowest</div>
+            </div>
           </div>
         </div>
-        
-        <!-- Stats Overview -->
-        <div class="stats-overview">
-          <div class="stat-item">
-            <div class="stat-value">{{ postQualifications.length }}</div>
-            <div class="stat-label">Total Records</div>
+
+        <div class="card-content">
+          <!-- Search and Filter Bar -->
+          <div class="action-bar">
+            <div class="search-container">
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                placeholder="Search by supplier name..." 
+                class="search-input"
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <div class="filter-container">
+              <select v-model="scoreFilter" class="filter-select">
+                <option value="all">All Scores</option>
+                <option value="high">High (&gt;80)</option> <!-- Escaped '>' as '&gt;' -->
+                <option value="medium">Medium (50-80)</option>
+                <option value="low">Low (&lt;50)</option> <!-- Escaped '<' as '&lt;' -->
+              </select>
+            </div>
+            <button @click="navigateToAddQualification" class="btn-add">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add New
+            </button>
           </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ averageScore }}</div>
-            <div class="stat-label">Avg. Score</div>
+
+          <!-- Post Qualification List -->
+          <div v-if="loading" class="loading-state">
+            <div class="loading-spinner">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+            </div>
+            <p>Loading post-qualification records...</p>
           </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ highestScore }}</div>
-            <div class="stat-label">Highest</div>
+          
+          <div v-else-if="filteredQualifications.length === 0" class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M9 11h6"></path><path d="M9 15h6"></path><path d="M14.5 4h-5L7 7H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-3l-2.5-3z"></path></svg>
+            <p class="empty-text">No post-qualification records available.</p>
+            <p class="empty-subtext">Add a new record to get started.</p>
           </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ lowestScore }}</div>
-            <div class="stat-label">Lowest</div>
+          
+          <div v-else class="qualifications-grid">
+            <div v-for="qualification in filteredQualifications" :key="qualification.id" class="qualification-card" :class="getScoreClass(qualification.evaluationScore)">
+              <div class="qualification-header">
+                <div class="qualification-title">{{ qualification.supplierName }}</div>
+                <div class="score-badge" :class="getScoreClass(qualification.evaluationScore)">
+                  <div class="score-value">{{ qualification.evaluationScore }}</div>
+                </div>
+              </div>
+              
+              <div class="qualification-body">
+                <div class="qualification-remarks">
+                  <div class="remarks-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                    Remarks
+                  </div>
+                  <div class="remarks-content">{{ qualification.remarks }}</div>
+                </div>
+                
+                <div class="qualification-date" v-if="qualification.createdAt">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>{{ formatDate(qualification.createdAt) }}</span>
+                </div>
+              </div>
+              
+              <div class="qualification-actions">
+                <button @click="viewDetails(qualification)" class="card-action-btn view">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  Details
+                </button>
+                <button @click="editQualification(qualification)" class="card-action-btn edit">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  Edit
+                </button>
+                <button @click="confirmDelete(qualification)" class="card-action-btn delete">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="card-content">
-        <!-- Search and Filter Bar -->
-        <div class="action-bar">
-          <div class="search-container">
-            <input 
-              type="text" 
-              v-model="searchQuery" 
-              placeholder="Search by supplier name..." 
-              class="search-input"
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <!-- Add/Edit Qualification Modal -->
+      <div v-if="isModalOpen" class="modal-overlay" @click.self="closeModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 class="modal-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              {{ editMode ? 'Edit Post-Qualification' : 'Add Post-Qualification' }}
+            </h3>
+            <button @click="closeModal" class="close-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
           </div>
-          <div class="filter-container">
-            <select v-model="scoreFilter" class="filter-select">
-              <option value="all">All Scores</option>
-              <option value="high">High (&gt;80)</option> <!-- Escaped '>' as '&gt;' -->
-              <option value="medium">Medium (50-80)</option>
-              <option value="low">Low (&lt;50)</option> <!-- Escaped '<' as '&lt;' -->
-            </select>
-          </div>
-          <button @click="navigateToAddQualification" class="btn-add">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Add New
-          </button>
-        </div>
-
-        <!-- Post Qualification List -->
-        <div v-if="loading" class="loading-state">
-          <div class="loading-spinner">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
-          </div>
-          <p>Loading post-qualification records...</p>
-        </div>
-        
-        <div v-else-if="filteredQualifications.length === 0" class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M9 11h6"></path><path d="M9 15h6"></path><path d="M14.5 4h-5L7 7H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-3l-2.5-3z"></path></svg>
-          <p class="empty-text">No post-qualification records available.</p>
-          <p class="empty-subtext">Add a new record to get started.</p>
-        </div>
-        
-        <div v-else class="qualifications-grid">
-          <div v-for="qualification in filteredQualifications" :key="qualification.id" class="qualification-card" :class="getScoreClass(qualification.evaluationScore)">
-            <div class="qualification-header">
-              <div class="qualification-title">{{ qualification.supplierName }}</div>
-              <div class="score-badge" :class="getScoreClass(qualification.evaluationScore)">
-                <div class="score-value">{{ qualification.evaluationScore }}</div>
+          
+          <form @submit.prevent="submitPostQualification" class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Supplier Name</label>
+              <input 
+                v-model="postQualification.supplierName" 
+                type="text" 
+                class="input-field" 
+                placeholder="Enter supplier name" 
+                required 
+              />
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Evaluation Score</label>
+                <div class="score-input-container">
+                  <input 
+                    v-model="postQualification.evaluationScore" 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    step="1" 
+                    class="score-slider" 
+                    required 
+                  />
+                  <div class="score-display">
+                    <span class="score-value">{{ postQualification.evaluationScore }}</span>
+                    <span class="score-max">/100</span>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div class="qualification-body">
-              <div class="qualification-remarks">
-                <div class="remarks-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                  Remarks
-                </div>
-                <div class="remarks-content">{{ qualification.remarks }}</div>
+            <div class="form-group">
+              <label class="form-label">Remarks</label>
+              <textarea 
+                v-model="postQualification.remarks" 
+                class="input-field textarea" 
+                placeholder="Enter remarks" 
+                required
+              ></textarea>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Evaluation Date</label>
+                <input 
+                  v-model="postQualification.evaluationDate" 
+                  type="date" 
+                  class="input-field" 
+                  required 
+                />
               </div>
               
-              <div class="qualification-date" v-if="qualification.createdAt">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                <span>{{ formatDate(qualification.createdAt) }}</span>
+              <div class="form-group">
+                <label class="form-label">Evaluator</label>
+                <input 
+                  v-model="postQualification.evaluator" 
+                  type="text" 
+                  class="input-field" 
+                  placeholder="Enter evaluator name" 
+                  required 
+                />
               </div>
             </div>
             
-            <div class="qualification-actions">
-              <button @click="viewDetails(qualification)" class="card-action-btn view">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                Details
+            <div class="form-group">
+              <label class="form-label">Supporting Documents (Optional)</label>
+              <div class="file-upload">
+                <input 
+                  type="file" 
+                  id="file-upload" 
+                  class="file-input" 
+                  @change="handleFileUpload" 
+                />
+                <label for="file-upload" class="file-label">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
+                  {{ fileName || 'Choose file' }}
+                </label>
+              </div>
+            </div>
+            
+            <div class="modal-actions">
+              <button type="button" @click="closeModal" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                Cancel
               </button>
-              <button @click="editQualification(qualification)" class="card-action-btn edit">
+              <button type="submit" class="btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                {{ editMode ? 'Update' : 'Submit' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- View Details Modal -->
+      <div v-if="isViewingDetails" class="modal-overlay" @click.self="closeViewModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 class="modal-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              Post-Qualification Details
+            </h3>
+            <button @click="closeViewModal" class="close-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+          
+          <div class="modal-body">
+            <div class="qualification-details">
+              <div class="detail-row">
+                <div class="detail-label">Supplier</div>
+                <div class="detail-value">{{ activeQualification.supplierName }}</div>
+              </div>
+              
+              <div class="detail-row">
+                <div class="detail-label">Score</div>
+                <div class="detail-value">
+                  <span class="score-pill" :class="getScoreClass(activeQualification.evaluationScore)">
+                    {{ activeQualification.evaluationScore }}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="detail-section">
+                <h4 class="detail-section-title">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                  Remarks
+                </h4>
+                <div class="detail-section-content">{{ activeQualification.remarks }}</div>
+              </div>
+              
+              <div class="detail-row">
+                <div class="detail-label">Evaluation Date</div>
+                <div class="detail-value">{{ formatDate(activeQualification.evaluationDate) }}</div>
+              </div>
+              
+              <div class="detail-row">
+                <div class="detail-label">Evaluator</div>
+                <div class="detail-value">{{ activeQualification.evaluator }}</div>
+              </div>
+              
+              <div class="detail-row" v-if="activeQualification.createdAt">
+                <div class="detail-label">Created On</div>
+                <div class="detail-value">{{ formatDate(activeQualification.createdAt) }}</div>
+              </div>
+              
+              <div class="detail-section" v-if="activeQualification.documentURL">
+                <h4 class="detail-section-title">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                  Supporting Document
+                </h4>
+                <div class="detail-section-content">
+                  <a :href="activeQualification.documentURL" target="_blank" class="document-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    View Document
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="modal-actions">
+              <button @click="editQualification(activeQualification)" class="btn-edit">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 Edit
               </button>
-              <button @click="confirmDelete(qualification)" class="card-action-btn delete">
+              <button @click="confirmDelete(activeQualification)" class="btn-delete">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                Delete
+              </button>
+              <button @click="closeViewModal" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation Modal -->
+      <div v-if="isConfirmingDelete" class="modal-overlay" @click.self="cancelDelete">
+        <div class="modal modal-sm">
+          <div class="modal-header">
+            <h3 class="modal-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              Confirm Deletion
+            </h3>
+          </div>
+          
+          <div class="modal-body">
+            <p class="confirm-message">Are you sure you want to delete this post-qualification record? This action cannot be undone.</p>
+            
+            <div class="modal-actions">
+              <button @click="cancelDelete" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                Cancel
+              </button>
+              <button @click="deleteQualification" class="btn-delete">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 Delete
               </button>
@@ -122,236 +345,20 @@
         </div>
       </div>
     </div>
-
-    <!-- Add/Edit Qualification Modal -->
-    <div v-if="isModalOpen" class="modal-overlay" @click.self="closeModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3 class="modal-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            {{ editMode ? 'Edit Post-Qualification' : 'Add Post-Qualification' }}
-          </h3>
-          <button @click="closeModal" class="close-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-          </button>
-        </div>
-        
-        <form @submit.prevent="submitPostQualification" class="modal-body">
-          <div class="form-group">
-            <label class="form-label">Supplier Name</label>
-            <input 
-              v-model="postQualification.supplierName" 
-              type="text" 
-              class="input-field" 
-              placeholder="Enter supplier name" 
-              required 
-            />
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Evaluation Score</label>
-              <div class="score-input-container">
-                <input 
-                  v-model="postQualification.evaluationScore" 
-                  type="range" 
-                  min="0" 
-                  max="100" 
-                  step="1" 
-                  class="score-slider" 
-                  required 
-                />
-                <div class="score-display">
-                  <span class="score-value">{{ postQualification.evaluationScore }}</span>
-                  <span class="score-max">/100</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Remarks</label>
-            <textarea 
-              v-model="postQualification.remarks" 
-              class="input-field textarea" 
-              placeholder="Enter remarks" 
-              required
-            ></textarea>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Evaluation Date</label>
-              <input 
-                v-model="postQualification.evaluationDate" 
-                type="date" 
-                class="input-field" 
-                required 
-              />
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Evaluator</label>
-              <input 
-                v-model="postQualification.evaluator" 
-                type="text" 
-                class="input-field" 
-                placeholder="Enter evaluator name" 
-                required 
-              />
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Supporting Documents (Optional)</label>
-            <div class="file-upload">
-              <input 
-                type="file" 
-                id="file-upload" 
-                class="file-input" 
-                @change="handleFileUpload" 
-              />
-              <label for="file-upload" class="file-label">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
-                {{ fileName || 'Choose file' }}
-              </label>
-            </div>
-          </div>
-          
-          <div class="modal-actions">
-            <button type="button" @click="closeModal" class="btn-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-              Cancel
-            </button>
-            <button type="submit" class="btn-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-              {{ editMode ? 'Update' : 'Submit' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- View Details Modal -->
-    <div v-if="isViewingDetails" class="modal-overlay" @click.self="closeViewModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3 class="modal-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            Post-Qualification Details
-          </h3>
-          <button @click="closeViewModal" class="close-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-          </button>
-        </div>
-        
-        <div class="modal-body">
-          <div class="qualification-details">
-            <div class="detail-row">
-              <div class="detail-label">Supplier</div>
-              <div class="detail-value">{{ activeQualification.supplierName }}</div>
-            </div>
-            
-            <div class="detail-row">
-              <div class="detail-label">Score</div>
-              <div class="detail-value">
-                <span class="score-pill" :class="getScoreClass(activeQualification.evaluationScore)">
-                  {{ activeQualification.evaluationScore }}
-                </span>
-              </div>
-            </div>
-            
-            <div class="detail-section">
-              <h4 class="detail-section-title">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                Remarks
-              </h4>
-              <div class="detail-section-content">{{ activeQualification.remarks }}</div>
-            </div>
-            
-            <div class="detail-row">
-              <div class="detail-label">Evaluation Date</div>
-              <div class="detail-value">{{ formatDate(activeQualification.evaluationDate) }}</div>
-            </div>
-            
-            <div class="detail-row">
-              <div class="detail-label">Evaluator</div>
-              <div class="detail-value">{{ activeQualification.evaluator }}</div>
-            </div>
-            
-            <div class="detail-row" v-if="activeQualification.createdAt">
-              <div class="detail-label">Created On</div>
-              <div class="detail-value">{{ formatDate(activeQualification.createdAt) }}</div>
-            </div>
-            
-            <div class="detail-section" v-if="activeQualification.documentURL">
-              <h4 class="detail-section-title">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                Supporting Document
-              </h4>
-              <div class="detail-section-content">
-                <a :href="activeQualification.documentURL" target="_blank" class="document-link">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                  View Document
-                </a>
-              </div>
-            </div>
-          </div>
-          
-          <div class="modal-actions">
-            <button @click="editQualification(activeQualification)" class="btn-edit">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-              Edit
-            </button>
-            <button @click="confirmDelete(activeQualification)" class="btn-delete">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-              Delete
-            </button>
-            <button @click="closeViewModal" class="btn-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Confirmation Modal -->
-    <div v-if="isConfirmingDelete" class="modal-overlay" @click.self="cancelDelete">
-      <div class="modal modal-sm">
-        <div class="modal-header">
-          <h3 class="modal-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            Confirm Deletion
-          </h3>
-        </div>
-        
-        <div class="modal-body">
-          <p class="confirm-message">Are you sure you want to delete this post-qualification record? This action cannot be undone.</p>
-          
-          <div class="modal-actions">
-            <button @click="cancelDelete" class="btn-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-              Cancel
-            </button>
-            <button @click="deleteQualification" class="btn-delete">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
+import AdminNavigationBar from './AdminNavigationBar.vue';
 import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { useRouter } from 'vue-router';
 
 export default {
+  components: {
+    AdminNavigationBar,
+  },
   setup() {
     const postQualifications = ref([]);
     const loading = ref(true);

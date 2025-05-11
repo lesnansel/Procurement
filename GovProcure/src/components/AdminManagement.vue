@@ -1,5 +1,6 @@
 <template>
   <div class="admin-wrapper">
+    <AdminNavigationBar />
     <!-- Background Pattern -->
     <div class="background-pattern">
       <div class="pattern-overlay"></div>
@@ -502,6 +503,17 @@ const nextPage = () => {
 
 // Lifecycle
 onMounted(fetchUsers);
+</script>
+
+<script>
+import AdminNavigationBar from './AdminNavigationBar.vue';
+
+export default {
+  name: 'AdminManagement',
+  components: {
+    AdminNavigationBar,
+  },
+};
 </script>
 
 <style scoped>

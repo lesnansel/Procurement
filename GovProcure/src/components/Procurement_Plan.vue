@@ -1,175 +1,178 @@
 <template>
-  <div class="admin-wrapper">
-    <!-- Background Pattern -->
-    <div class="background-pattern">
-      <div class="pattern-overlay"></div>
-    </div>
-
-    <!-- Admin Card -->
-    <div class="admin-card">
-      <div class="card-header">
-        <div class="logo-container">
-          <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
-        </div>
-        <h1 class="title">Procurement Plan</h1>
-        <p class="subtitle">Manage and review purchase requests efficiently.</p>
+  <div>
+    <AdminNavigationBar />
+    <div class="admin-wrapper">
+      <!-- Background Pattern -->
+      <div class="background-pattern">
+        <div class="pattern-overlay"></div>
       </div>
 
-      <div class="card-content">
-        <!-- Search and Filter Bar -->
-        <div class="action-bar">
-          <div class="search-container">
-            <input 
-              type="text" 
-              v-model="searchQuery" 
-              placeholder="Search requests..." 
-              class="search-input"
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <!-- Admin Card -->
+      <div class="admin-card">
+        <div class="card-header">
+          <div class="logo-container">
+            <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
           </div>
-          <div class="filter-container">
-            <select v-model="statusFilter" class="filter-select">
-              <option value="all">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="filter-icon"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-          </div>
+          <h1 class="title">Procurement Plan</h1>
+          <p class="subtitle">Manage and review purchase requests efficiently.</p>
         </div>
 
-        <!-- Purchase Requests List -->
-        <div v-if="filteredRequests.length" class="table-container">
-          <table class="requests-table">
-            <thead>
-              <tr>
-                <th>Item Name</th>
-                <th>Quantity</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="request in filteredRequests" :key="request.id" class="table-row">
-                <td>{{ request.itemName }}</td>
-                <td>{{ request.quantity }}</td>
-                <td class="description-cell">{{ request.description }}</td>
-                <td>
-                  <span :class="['status-badge', `status-${request.status.toLowerCase()}`]">
-                    {{ request.status }}
-                  </span>
-                </td>
-                <td class="actions-cell">
-                  <button @click="navigateToDetails(request.id)" class="btn-icon" title="View Details">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div v-else-if="!requests.length" class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
-          <p class="empty-text">No purchase requests available.</p>
-          <p class="empty-subtext">New requests will appear here once submitted.</p>
-        </div>
-        <div v-else class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
-          <p class="empty-text">No matching requests found.</p>
-          <p class="empty-subtext">Try adjusting your search or filter criteria.</p>
-        </div>
+        <div class="card-content">
+          <!-- Search and Filter Bar -->
+          <div class="action-bar">
+            <div class="search-container">
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                placeholder="Search requests..." 
+                class="search-input"
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <div class="filter-container">
+              <select v-model="statusFilter" class="filter-select">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="filter-icon"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+            </div>
+          </div>
 
-        <!-- View Purchase Request Modal - Single consolidated modal -->
-        <div v-if="isViewing" class="modal-overlay" @click.self="closeModal">
-          <div class="modal">
-            <div class="modal-header">
-              <h3 class="modal-title">Purchase Request Details</h3>
-              <button @click="closeModal" class="close-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-              </button>
-            </div>
-            <div class="modal-body">
-              <div class="detail-row">
-                <div class="detail-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                  <span>Item Name:</span>
-                </div>
-                <div class="detail-value">{{ viewRequestData.itemName }}</div>
+          <!-- Purchase Requests List -->
+          <div v-if="filteredRequests.length" class="table-container">
+            <table class="requests-table">
+              <thead>
+                <tr>
+                  <th>Item Name</th>
+                  <th>Quantity</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="request in filteredRequests" :key="request.id" class="table-row">
+                  <td>{{ request.itemName }}</td>
+                  <td>{{ request.quantity }}</td>
+                  <td class="description-cell">{{ request.description }}</td>
+                  <td>
+                    <span :class="['status-badge', `status-${request.status.toLowerCase()}`]">
+                      {{ request.status }}
+                    </span>
+                  </td>
+                  <td class="actions-cell">
+                    <button @click="navigateToDetails(request.id)" class="btn-icon" title="View Details">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else-if="!requests.length" class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
+            <p class="empty-text">No purchase requests available.</p>
+            <p class="empty-subtext">New requests will appear here once submitted.</p>
+          </div>
+          <div v-else class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
+            <p class="empty-text">No matching requests found.</p>
+            <p class="empty-subtext">Try adjusting your search or filter criteria.</p>
+          </div>
+
+          <!-- View Purchase Request Modal - Single consolidated modal -->
+          <div v-if="isViewing" class="modal-overlay" @click.self="closeModal">
+            <div class="modal">
+              <div class="modal-header">
+                <h3 class="modal-title">Purchase Request Details</h3>
+                <button @click="closeModal" class="close-button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
               </div>
-              <div class="detail-row">
-                <div class="detail-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>
-                  <span>Quantity:</span>
+              <div class="modal-body">
+                <div class="detail-row">
+                  <div class="detail-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    <span>Item Name:</span>
+                  </div>
+                  <div class="detail-value">{{ viewRequestData.itemName }}</div>
                 </div>
-                <div class="detail-value">{{ viewRequestData.quantity }}</div>
+                <div class="detail-row">
+                  <div class="detail-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>
+                    <span>Quantity:</span>
+                  </div>
+                  <div class="detail-value">{{ viewRequestData.quantity }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                    <span>Description:</span>
+                  </div>
+                  <div class="detail-value description">{{ viewRequestData.description }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 6v6l4 2"></path></svg>
+                    <span>Status:</span>
+                  </div>
+                  <div class="detail-value">
+                    <span :class="['status-badge', `status-${viewRequestData.status?.toLowerCase()}`]">
+                      {{ viewRequestData.status }}
+                    </span>
+                  </div>
+                </div>
+                <div v-if="viewRequestData.approvalDate" class="detail-row">
+                  <div class="detail-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Approval Date:</span>
+                  </div>
+                  <div class="detail-value">{{ formatDate(viewRequestData.approvalDate) }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>Requested By:</span>
+                  </div>
+                  <div class="detail-value">{{ viewRequestData.userEmail || 'Unknown' }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Date Created:</span>
+                  </div>
+                  <div class="detail-value">{{ formatDate(viewRequestData.createdAt) }}</div>
+                </div>
+                <div v-if="viewRequestData.requiredDate" class="detail-row">
+                  <div class="detail-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Required By:</span>
+                  </div>
+                  <div class="detail-value">{{ formatDate(viewRequestData.requiredDate) }}</div>
+                </div>
+                <div v-if="viewRequestData.estimatedCost" class="detail-row">
+                  <div class="detail-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span>Est. Cost:</span>
+                  </div>
+                  <div class="detail-value">₱{{ viewRequestData.estimatedCost.toLocaleString() }}</div>
+                </div>
+                <div v-if="viewRequestData.justification" class="detail-row">
+                  <div class="detail-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                    <span>Justification:</span>
+                  </div>
+                  <div class="detail-value description">{{ viewRequestData.justification }}</div>
+                </div>
               </div>
-              <div class="detail-row">
-                <div class="detail-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                  <span>Description:</span>
-                </div>
-                <div class="detail-value description">{{ viewRequestData.description }}</div>
+              <div class="modal-actions">
+                <button type="button" @click="closeModal" class="btn-secondary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                  Close
+                </button>
               </div>
-              <div class="detail-row">
-                <div class="detail-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 6v6l4 2"></path></svg>
-                  <span>Status:</span>
-                </div>
-                <div class="detail-value">
-                  <span :class="['status-badge', `status-${viewRequestData.status?.toLowerCase()}`]">
-                    {{ viewRequestData.status }}
-                  </span>
-                </div>
-              </div>
-              <div v-if="viewRequestData.approvalDate" class="detail-row">
-                <div class="detail-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                  <span>Approval Date:</span>
-                </div>
-                <div class="detail-value">{{ formatDate(viewRequestData.approvalDate) }}</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                  <span>Requested By:</span>
-                </div>
-                <div class="detail-value">{{ viewRequestData.userEmail || 'Unknown' }}</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                  <span>Date Created:</span>
-                </div>
-                <div class="detail-value">{{ formatDate(viewRequestData.createdAt) }}</div>
-              </div>
-              <div v-if="viewRequestData.requiredDate" class="detail-row">
-                <div class="detail-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                  <span>Required By:</span>
-                </div>
-                <div class="detail-value">{{ formatDate(viewRequestData.requiredDate) }}</div>
-              </div>
-              <div v-if="viewRequestData.estimatedCost" class="detail-row">
-                <div class="detail-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                  <span>Est. Cost:</span>
-                </div>
-                <div class="detail-value">₱{{ viewRequestData.estimatedCost.toLocaleString() }}</div>
-              </div>
-              <div v-if="viewRequestData.justification" class="detail-row">
-                <div class="detail-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                  <span>Justification:</span>
-                </div>
-                <div class="detail-value description">{{ viewRequestData.justification }}</div>
-              </div>
-            </div>
-            <div class="modal-actions">
-              <button type="button" @click="closeModal" class="btn-secondary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                Close
-              </button>
             </div>
           </div>
         </div>
@@ -179,12 +182,16 @@
 </template>
 
 <script>
+import AdminNavigationBar from './AdminNavigationBar.vue';
 import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useRouter } from 'vue-router';
 
 export default {
+  components: {
+    AdminNavigationBar,
+  },
   name: "ProcurementPlan",
   setup() {
     const router = useRouter();

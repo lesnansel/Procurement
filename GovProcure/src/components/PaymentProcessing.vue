@@ -1,131 +1,381 @@
 <template>
-  <div class="admin-wrapper">
-    <!-- Background Pattern -->
-    <div class="background-pattern">
-      <div class="pattern-overlay"></div>
-    </div>
+  <div>
+    <AdminNavigationBar />
+    <div class="admin-wrapper">
+      <!-- Background Pattern -->
+      <div class="background-pattern">
+        <div class="pattern-overlay"></div>
+      </div>
 
-    <!-- Admin Card -->
-    <div class="admin-card">
-      <!-- Header with gradient overlay and stats -->
-      <div class="card-header">
-        <div class="header-content">
-          <div class="logo-container">
-            <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+      <!-- Admin Card -->
+      <div class="admin-card">
+        <!-- Header with gradient overlay and stats -->
+        <div class="card-header">
+          <div class="header-content">
+            <div class="logo-container">
+              <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+            </div>
+            <div class="header-text">
+              <h1 class="title">Payment Processing</h1>
+              <p class="subtitle">Manage and track all procurement payments</p>
+            </div>
           </div>
-          <div class="header-text">
-            <h1 class="title">Payment Processing</h1>
-            <p class="subtitle">Manage and track all procurement payments</p>
+          
+          <!-- Stats Overview -->
+          <div class="stats-overview">
+            <div class="stat-item">
+              <div class="stat-value">{{ payments.length }}</div>
+              <div class="stat-label">Total Payments</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ pendingPaymentsCount }}</div>
+              <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ paidPaymentsCount }}</div>
+              <div class="stat-label">Paid</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ formatCurrency(totalPaymentAmount) }}</div>
+              <div class="stat-label">Total Amount</div>
+            </div>
           </div>
         </div>
-        
-        <!-- Stats Overview -->
-        <div class="stats-overview">
-          <div class="stat-item">
-            <div class="stat-value">{{ payments.length }}</div>
-            <div class="stat-label">Total Payments</div>
+
+        <div class="card-content">
+          <!-- Search and Filter Bar -->
+          <div class="action-bar">
+            <div class="search-container">
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                placeholder="Search by supplier..." 
+                class="search-input"
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <div class="filter-container">
+              <select v-model="statusFilter" class="filter-select">
+                <option value="all">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid</option>
+                <option value="Failed">Failed</option>
+              </select>
+            </div>
+            <button @click="navigateToAddPayment" class="btn-add">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add Payment
+            </button>
           </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ pendingPaymentsCount }}</div>
-            <div class="stat-label">Pending</div>
+
+          <!-- Payments List -->
+          <div v-if="loading" class="loading-state">
+            <div class="loading-spinner">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+            </div>
+            <p>Loading payments...</p>
           </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ paidPaymentsCount }}</div>
-            <div class="stat-label">Paid</div>
+          
+          <div v-else-if="filteredPayments.length === 0" class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M12 2v6m0 0v14m0-14h6m-6 0H6"></path><path d="M17 20H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2Z"></path></svg>
+            <p class="empty-text">No payments available.</p>
+            <p class="empty-subtext">Add a new payment to get started.</p>
           </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ formatCurrency(totalPaymentAmount) }}</div>
-            <div class="stat-label">Total Amount</div>
+          
+          <div v-else class="payments-grid">
+            <div v-for="payment in filteredPayments" :key="payment.id" class="payment-card" :class="`payment-card-${payment.status.toLowerCase()}`">
+              <div class="payment-card-header">
+                <div class="payment-header-content">
+                  <div class="payment-title">{{ payment.supplier }}</div>
+                  <span class="status-badge" :class="`status-${payment.status.toLowerCase()}`">
+                    {{ payment.status }}
+                  </span>
+                </div>
+                <div class="payment-amount-tag">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                  <span>{{ formatCurrency(payment.amount) }}</span>
+                </div>
+              </div>
+              
+              <div class="payment-card-body">
+                <div class="payment-details">
+                  <div class="detail-item" v-if="payment.paymentDate">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Date: {{ formatDate(payment.paymentDate) }}</span>
+                  </div>
+                  <div class="detail-item" v-if="payment.paymentMethod">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    <span>Method: {{ payment.paymentMethod }}</span>
+                  </div>
+                  <div class="detail-item" v-if="payment.invoiceNumber">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                    <span>Invoice: {{ payment.invoiceNumber }}</span>
+                  </div>
+                </div>
+                
+                <div class="payment-description" v-if="payment.description">
+                  {{ payment.description }}
+                </div>
+              </div>
+              
+              <div class="payment-card-actions">
+                <button @click="viewPayment(payment)" class="card-action-btn view">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  View
+                </button>
+                <button @click="editPayment(payment)" class="card-action-btn edit">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  Edit
+                </button>
+                <button @click="confirmDelete(payment)" class="card-action-btn delete">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="card-content">
-        <!-- Search and Filter Bar -->
-        <div class="action-bar">
-          <div class="search-container">
-            <input 
-              type="text" 
-              v-model="searchQuery" 
-              placeholder="Search by supplier..." 
-              class="search-input"
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <!-- Add/Edit Payment Modal -->
+      <div v-if="isModalOpen" class="modal-overlay" @click.self="closeModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 class="modal-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              {{ editMode ? 'Edit Payment' : 'Add New Payment' }}
+            </h3>
+            <button @click="closeModal" class="close-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
           </div>
-          <div class="filter-container">
-            <select v-model="statusFilter" class="filter-select">
-              <option value="all">All Statuses</option>
-              <option value="Pending">Pending</option>
-              <option value="Paid">Paid</option>
-              <option value="Failed">Failed</option>
-            </select>
-          </div>
-          <button @click="navigateToAddPayment" class="btn-add">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Add Payment
-          </button>
-        </div>
-
-        <!-- Payments List -->
-        <div v-if="loading" class="loading-state">
-          <div class="loading-spinner">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
-          </div>
-          <p>Loading payments...</p>
-        </div>
-        
-        <div v-else-if="filteredPayments.length === 0" class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M12 2v6m0 0v14m0-14h6m-6 0H6"></path><path d="M17 20H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2Z"></path></svg>
-          <p class="empty-text">No payments available.</p>
-          <p class="empty-subtext">Add a new payment to get started.</p>
-        </div>
-        
-        <div v-else class="payments-grid">
-          <div v-for="payment in filteredPayments" :key="payment.id" class="payment-card" :class="`payment-card-${payment.status.toLowerCase()}`">
-            <div class="payment-card-header">
-              <div class="payment-header-content">
-                <div class="payment-title">{{ payment.supplier }}</div>
-                <span class="status-badge" :class="`status-${payment.status.toLowerCase()}`">
-                  {{ payment.status }}
-                </span>
+          
+          <form @submit.prevent="submitPayment" class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Supplier</label>
+                <input 
+                  v-model="paymentData.supplier" 
+                  type="text" 
+                  class="input-field" 
+                  placeholder="Enter supplier name" 
+                  required 
+                />
               </div>
-              <div class="payment-amount-tag">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                <span>{{ formatCurrency(payment.amount) }}</span>
+              
+              <div class="form-group">
+                <label class="form-label">Amount</label>
+                <input 
+                  v-model="paymentData.amount" 
+                  type="number" 
+                  step="0.01" 
+                  class="input-field" 
+                  placeholder="Enter payment amount" 
+                  required 
+                />
               </div>
             </div>
             
-            <div class="payment-card-body">
-              <div class="payment-details">
-                <div class="detail-item" v-if="payment.paymentDate">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                  <span>Date: {{ formatDate(payment.paymentDate) }}</span>
-                </div>
-                <div class="detail-item" v-if="payment.paymentMethod">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-                  <span>Method: {{ payment.paymentMethod }}</span>
-                </div>
-                <div class="detail-item" v-if="payment.invoiceNumber">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                  <span>Invoice: {{ payment.invoiceNumber }}</span>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <select v-model="paymentData.status" class="input-field" required>
+                  <option value="Pending">Pending</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Failed">Failed</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">Payment Method</label>
+                <select v-model="paymentData.paymentMethod" class="input-field">
+                  <option value="">Select payment method</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="Credit Card">Credit Card</option>
+                  <option value="Check">Check</option>
+                  <option value="Cash">Cash</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Payment Date</label>
+                <input 
+                  v-model="paymentData.paymentDate" 
+                  type="date" 
+                  class="input-field" 
+                />
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">Invoice Number</label>
+                <input 
+                  v-model="paymentData.invoiceNumber" 
+                  type="text" 
+                  class="input-field" 
+                  placeholder="Enter invoice number" 
+                />
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea 
+                v-model="paymentData.description" 
+                class="input-field textarea" 
+                placeholder="Enter payment description"
+              ></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Receipt Document (Optional)</label>
+              <div class="file-upload">
+                <input 
+                  type="file" 
+                  id="file-upload" 
+                  class="file-input" 
+                  @change="handleFileUpload" 
+                />
+                <label for="file-upload" class="file-label">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
+                  {{ fileName || 'Choose file' }}
+                </label>
+              </div>
+            </div>
+            
+            <div class="modal-actions">
+              <button type="button" @click="closeModal" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                Cancel
+              </button>
+              <button type="submit" class="btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                {{ editMode ? 'Update Payment' : 'Add Payment' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- View Payment Modal -->
+      <div v-if="isViewingDetails" class="modal-overlay" @click.self="closeViewModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 class="modal-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              Payment Details
+            </h3>
+            <button @click="closeViewModal" class="close-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+          
+          <div class="modal-body">
+            <div class="payment-details-view">
+              <div class="detail-row">
+                <div class="detail-label">Supplier</div>
+                <div class="detail-value">{{ activePayment.supplier }}</div>
+              </div>
+              
+              <div class="detail-row">
+                <div class="detail-label">Amount</div>
+                <div class="detail-value">{{ formatCurrency(activePayment.amount) }}</div>
+              </div>
+              
+              <div class="detail-row">
+                <div class="detail-label">Status</div>
+                <div class="detail-value">
+                  <span class="status-badge" :class="`status-${activePayment.status?.toLowerCase()}`">
+                    {{ activePayment.status }}
+                  </span>
                 </div>
               </div>
               
-              <div class="payment-description" v-if="payment.description">
-                {{ payment.description }}
+              <div class="detail-row" v-if="activePayment.paymentMethod">
+                <div class="detail-label">Method</div>
+                <div class="detail-value">{{ activePayment.paymentMethod }}</div>
+              </div>
+              
+              <div class="detail-row" v-if="activePayment.paymentDate">
+                <div class="detail-label">Payment Date</div>
+                <div class="detail-value">{{ formatDate(activePayment.paymentDate) }}</div>
+              </div>
+              
+              <div class="detail-row" v-if="activePayment.invoiceNumber">
+                <div class="detail-label">Invoice #</div>
+                <div class="detail-value">{{ activePayment.invoiceNumber }}</div>
+              </div>
+              
+              <div class="detail-section" v-if="activePayment.description">
+                <h4 class="detail-section-title">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                  Description
+                </h4>
+                <div class="detail-section-content">{{ activePayment.description }}</div>
+              </div>
+              
+              <div class="detail-section" v-if="activePayment.receiptURL">
+                <h4 class="detail-section-title">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                  Receipt
+                </h4>
+                <div class="detail-section-content">
+                  <a :href="activePayment.receiptURL" target="_blank" class="document-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    View Receipt
+                  </a>
+                </div>
+              </div>
+              
+              <div class="detail-row" v-if="activePayment.createdAt">
+                <div class="detail-label">Created On</div>
+                <div class="detail-value">{{ formatDate(activePayment.createdAt) }}</div>
+              </div>
+              
+              <div class="detail-row" v-if="activePayment.updatedAt">
+                <div class="detail-label">Last Updated</div>
+                <div class="detail-value">{{ formatDate(activePayment.updatedAt) }}</div>
               </div>
             </div>
             
-            <div class="payment-card-actions">
-              <button @click="viewPayment(payment)" class="card-action-btn view">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                View
-              </button>
-              <button @click="editPayment(payment)" class="card-action-btn edit">
+            <div class="modal-actions">
+              <button @click="editPayment(activePayment)" class="btn-edit">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 Edit
               </button>
-              <button @click="confirmDelete(payment)" class="card-action-btn delete">
+              <button @click="confirmDelete(activePayment)" class="btn-delete">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                Delete
+              </button>
+              <button @click="closeViewModal" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation Modal -->
+      <div v-if="isConfirmingDelete" class="modal-overlay" @click.self="cancelDelete">
+        <div class="modal modal-sm">
+          <div class="modal-header">
+            <h3 class="modal-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              Confirm Deletion
+            </h3>
+          </div>
+          
+          <div class="modal-body">
+            <p class="confirm-message">Are you sure you want to delete this payment? This action cannot be undone.</p>
+            
+            <div class="modal-actions">
+              <button @click="cancelDelete" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                Cancel
+              </button>
+              <button @click="deletePayment" class="btn-delete">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 Delete
               </button>
@@ -134,263 +384,20 @@
         </div>
       </div>
     </div>
-
-    <!-- Add/Edit Payment Modal -->
-    <div v-if="isModalOpen" class="modal-overlay" @click.self="closeModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3 class="modal-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            {{ editMode ? 'Edit Payment' : 'Add New Payment' }}
-          </h3>
-          <button @click="closeModal" class="close-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-          </button>
-        </div>
-        
-        <form @submit.prevent="submitPayment" class="modal-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Supplier</label>
-              <input 
-                v-model="paymentData.supplier" 
-                type="text" 
-                class="input-field" 
-                placeholder="Enter supplier name" 
-                required 
-              />
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Amount</label>
-              <input 
-                v-model="paymentData.amount" 
-                type="number" 
-                step="0.01" 
-                class="input-field" 
-                placeholder="Enter payment amount" 
-                required 
-              />
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Status</label>
-              <select v-model="paymentData.status" class="input-field" required>
-                <option value="Pending">Pending</option>
-                <option value="Paid">Paid</option>
-                <option value="Failed">Failed</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Payment Method</label>
-              <select v-model="paymentData.paymentMethod" class="input-field">
-                <option value="">Select payment method</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-                <option value="Credit Card">Credit Card</option>
-                <option value="Check">Check</option>
-                <option value="Cash">Cash</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Payment Date</label>
-              <input 
-                v-model="paymentData.paymentDate" 
-                type="date" 
-                class="input-field" 
-              />
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Invoice Number</label>
-              <input 
-                v-model="paymentData.invoiceNumber" 
-                type="text" 
-                class="input-field" 
-                placeholder="Enter invoice number" 
-              />
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Description</label>
-            <textarea 
-              v-model="paymentData.description" 
-              class="input-field textarea" 
-              placeholder="Enter payment description"
-            ></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Receipt Document (Optional)</label>
-            <div class="file-upload">
-              <input 
-                type="file" 
-                id="file-upload" 
-                class="file-input" 
-                @change="handleFileUpload" 
-              />
-              <label for="file-upload" class="file-label">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
-                {{ fileName || 'Choose file' }}
-              </label>
-            </div>
-          </div>
-          
-          <div class="modal-actions">
-            <button type="button" @click="closeModal" class="btn-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-              Cancel
-            </button>
-            <button type="submit" class="btn-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-              {{ editMode ? 'Update Payment' : 'Add Payment' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- View Payment Modal -->
-    <div v-if="isViewingDetails" class="modal-overlay" @click.self="closeViewModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3 class="modal-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            Payment Details
-          </h3>
-          <button @click="closeViewModal" class="close-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-          </button>
-        </div>
-        
-        <div class="modal-body">
-          <div class="payment-details-view">
-            <div class="detail-row">
-              <div class="detail-label">Supplier</div>
-              <div class="detail-value">{{ activePayment.supplier }}</div>
-            </div>
-            
-            <div class="detail-row">
-              <div class="detail-label">Amount</div>
-              <div class="detail-value">{{ formatCurrency(activePayment.amount) }}</div>
-            </div>
-            
-            <div class="detail-row">
-              <div class="detail-label">Status</div>
-              <div class="detail-value">
-                <span class="status-badge" :class="`status-${activePayment.status?.toLowerCase()}`">
-                  {{ activePayment.status }}
-                </span>
-              </div>
-            </div>
-            
-            <div class="detail-row" v-if="activePayment.paymentMethod">
-              <div class="detail-label">Method</div>
-              <div class="detail-value">{{ activePayment.paymentMethod }}</div>
-            </div>
-            
-            <div class="detail-row" v-if="activePayment.paymentDate">
-              <div class="detail-label">Payment Date</div>
-              <div class="detail-value">{{ formatDate(activePayment.paymentDate) }}</div>
-            </div>
-            
-            <div class="detail-row" v-if="activePayment.invoiceNumber">
-              <div class="detail-label">Invoice #</div>
-              <div class="detail-value">{{ activePayment.invoiceNumber }}</div>
-            </div>
-            
-            <div class="detail-section" v-if="activePayment.description">
-              <h4 class="detail-section-title">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                Description
-              </h4>
-              <div class="detail-section-content">{{ activePayment.description }}</div>
-            </div>
-            
-            <div class="detail-section" v-if="activePayment.receiptURL">
-              <h4 class="detail-section-title">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                Receipt
-              </h4>
-              <div class="detail-section-content">
-                <a :href="activePayment.receiptURL" target="_blank" class="document-link">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                  View Receipt
-                </a>
-              </div>
-            </div>
-            
-            <div class="detail-row" v-if="activePayment.createdAt">
-              <div class="detail-label">Created On</div>
-              <div class="detail-value">{{ formatDate(activePayment.createdAt) }}</div>
-            </div>
-            
-            <div class="detail-row" v-if="activePayment.updatedAt">
-              <div class="detail-label">Last Updated</div>
-              <div class="detail-value">{{ formatDate(activePayment.updatedAt) }}</div>
-            </div>
-          </div>
-          
-          <div class="modal-actions">
-            <button @click="editPayment(activePayment)" class="btn-edit">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-              Edit
-            </button>
-            <button @click="confirmDelete(activePayment)" class="btn-delete">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-              Delete
-            </button>
-            <button @click="closeViewModal" class="btn-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Confirmation Modal -->
-    <div v-if="isConfirmingDelete" class="modal-overlay" @click.self="cancelDelete">
-      <div class="modal modal-sm">
-        <div class="modal-header">
-          <h3 class="modal-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            Confirm Deletion
-          </h3>
-        </div>
-        
-        <div class="modal-body">
-          <p class="confirm-message">Are you sure you want to delete this payment? This action cannot be undone.</p>
-          
-          <div class="modal-actions">
-            <button @click="cancelDelete" class="btn-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-              Cancel
-            </button>
-            <button @click="deletePayment" class="btn-delete">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
+import AdminNavigationBar from './AdminNavigationBar.vue';
 import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebase";
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "vue-router";
 
 export default {
+  components: {
+    AdminNavigationBar,
+  },
   setup() {
     const payments = ref([]);
     const loading = ref(true);

@@ -1,246 +1,249 @@
 <template>
-  <div class="admin-wrapper">
-    <!-- Background Pattern -->
-    <div class="background-pattern">
-      <div class="pattern-overlay"></div>
-    </div>
-
-    <!-- Admin Card -->
-    <div class="admin-card">
-      <div class="card-header">
-        <div class="header-content">
-          <div class="logo-container">
-            <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
-          </div>
-          <div class="header-text">
-            <h1 class="title">Bid Evaluation</h1>
-            <p class="subtitle">Score, approve, or reject vendor bid submissions</p>
-          </div>
-        </div>
-        
-        <!-- Stats Overview -->
-        <div class="stats-overview">
-          <div class="stat-item">
-            <div class="stat-value">{{ bids.length }}</div>
-            <div class="stat-label">Total Bids</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ pendingBidsCount }}</div>
-            <div class="stat-label">Pending</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ approvedBidsCount }}</div>
-            <div class="stat-label">Approved</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ rejectedBidsCount }}</div>
-            <div class="stat-label">Rejected</div>
-          </div>
-        </div>
+  <div>
+    <AdminNavigationBar />
+    <div class="admin-wrapper">
+      <!-- Background Pattern -->
+      <div class="background-pattern">
+        <div class="pattern-overlay"></div>
       </div>
 
-      <div class="card-content">
-        <!-- Search and Filter Bar -->
-        <div class="action-bar">
-          <div class="search-container">
-            <input 
-              type="text" 
-              v-model="searchQuery" 
-              placeholder="Search by bidder name..." 
-              class="search-input"
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          </div>
-          <div class="filter-container">
-            <select v-model="statusFilter" class="filter-select">
-              <option value="all">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Bids List -->
-        <div v-if="loading" class="loading-state">
-          <div class="loading-spinner">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
-          </div>
-          <p>Loading bids...</p>
-        </div>
-        
-        <div v-else-if="filteredBids.length === 0" class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
-          <p class="empty-text">No bids available for evaluation.</p>
-          <p class="empty-subtext">Bids will appear here once vendors submit them.</p>
-        </div>
-        
-        <div v-else class="bids-grid">
-          <div v-for="bid in filteredBids" :key="bid.id" class="bid-card" :class="`bid-card-${bid.status?.toLowerCase()}`">
-            <div class="bid-card-header">
-              <div class="bid-header-content">
-                <div class="bid-title">{{ bid.bidderName || 'Anonymous Vendor' }}</div>
-                <span class="status-badge" :class="`status-${bid.status?.toLowerCase()}`">
-                  {{ bid.status || 'Pending' }}
-                </span>
-              </div>
-              <div class="bid-price-tag">
-                <span class="bid-price">{{ formatCurrency(bid.bidPrice) }}</span>
-                <span class="bid-currency">{{ bid.currency }}</span>
-              </div>
+      <!-- Admin Card -->
+      <div class="admin-card">
+        <div class="card-header">
+          <div class="header-content">
+            <div class="logo-container">
+              <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
             </div>
-            
-            <div class="bid-card-body">
-              <div class="bid-score">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                <span>Score: <strong>{{ bid.score || 'Not evaluated' }}</strong></span>
-              </div>
-              
-              <div class="bid-date" v-if="bid.submissionDate">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                <span>{{ formatDate(bid.submissionDate) }}</span>
-              </div>
-              
-              <div class="bid-description">{{ truncateDescription(bid.description) || 'No description provided' }}</div>
+            <div class="header-text">
+              <h1 class="title">Bid Evaluation</h1>
+              <p class="subtitle">Score, approve, or reject vendor bid submissions</p>
             </div>
-            
-            <div class="bid-card-actions">
-              <button @click="navigateToBidEvaluation(bid.id)" class="card-action-btn evaluate">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                Evaluate
-              </button>
-              <button @click="approveBid(bid.id)" class="card-action-btn approve">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-                Approve
-              </button>
-              <button @click="rejectBid(bid.id)" class="card-action-btn reject">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                Reject
-              </button>
+          </div>
+          
+          <!-- Stats Overview -->
+          <div class="stats-overview">
+            <div class="stat-item">
+              <div class="stat-value">{{ bids.length }}</div>
+              <div class="stat-label">Total Bids</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ pendingBidsCount }}</div>
+              <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ approvedBidsCount }}</div>
+              <div class="stat-label">Approved</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ rejectedBidsCount }}</div>
+              <div class="stat-label">Rejected</div>
             </div>
           </div>
         </div>
 
-        <!-- Evaluate Bid Modal -->
-        <div v-if="isEvaluating" class="modal-overlay" @click.self="isEvaluating = false">
-          <div class="modal">
-            <div class="modal-header">
-              <h3 class="modal-title">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                Evaluate Bid
-              </h3>
-              <button @click="isEvaluating = false" class="close-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-              </button>
+        <div class="card-content">
+          <!-- Search and Filter Bar -->
+          <div class="action-bar">
+            <div class="search-container">
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                placeholder="Search by bidder name..." 
+                class="search-input"
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </div>
-            
-            <div class="modal-body">
-              <!-- Bid details section -->
-              <div class="modal-details-grid">
-                <div class="modal-detail-card">
-                  <div class="detail-card-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    <span>Bidder</span>
-                  </div>
-                  <div class="detail-card-content">{{ selectedBid.bidderName || 'Anonymous' }}</div>
+            <div class="filter-container">
+              <select v-model="statusFilter" class="filter-select">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Bids List -->
+          <div v-if="loading" class="loading-state">
+            <div class="loading-spinner">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+            </div>
+            <p>Loading bids...</p>
+          </div>
+          
+          <div v-else-if="filteredBids.length === 0" class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
+            <p class="empty-text">No bids available for evaluation.</p>
+            <p class="empty-subtext">Bids will appear here once vendors submit them.</p>
+          </div>
+          
+          <div v-else class="bids-grid">
+            <div v-for="bid in filteredBids" :key="bid.id" class="bid-card" :class="`bid-card-${bid.status?.toLowerCase()}`">
+              <div class="bid-card-header">
+                <div class="bid-header-content">
+                  <div class="bid-title">{{ bid.bidderName || 'Anonymous Vendor' }}</div>
+                  <span class="status-badge" :class="`status-${bid.status?.toLowerCase()}`">
+                    {{ bid.status || 'Pending' }}
+                  </span>
                 </div>
-                
-                <div class="modal-detail-card">
-                  <div class="detail-card-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                    <span>Bid Amount</span>
-                  </div>
-                  <div class="detail-card-content">{{ formatCurrency(selectedBid.bidPrice) }} {{ selectedBid.currency }}</div>
-                </div>
-                
-                <div class="modal-detail-card" v-if="selectedBid.submissionDate">
-                  <div class="detail-card-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    <span>Submission Date</span>
-                  </div>
-                  <div class="detail-card-content">{{ formatDate(selectedBid.submissionDate) }}</div>
-                </div>
-                
-                <div class="modal-detail-card" v-if="selectedBid.status">
-                  <div class="detail-card-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <span>Status</span>
-                  </div>
-                  <div class="detail-card-content">
-                    <span class="status-badge" :class="`status-${selectedBid.status?.toLowerCase()}`">
-                      {{ selectedBid.status || 'Pending' }}
-                    </span>
-                  </div>
+                <div class="bid-price-tag">
+                  <span class="bid-price">{{ formatCurrency(bid.bidPrice) }}</span>
+                  <span class="bid-currency">{{ bid.currency }}</span>
                 </div>
               </div>
               
-              <!-- Description section -->
-              <div class="detail-section" v-if="selectedBid.description">
-                <h4 class="detail-section-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                  Description
-                </h4>
-                <div class="detail-section-content">{{ selectedBid.description }}</div>
+              <div class="bid-card-body">
+                <div class="bid-score">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  <span>Score: <strong>{{ bid.score || 'Not evaluated' }}</strong></span>
+                </div>
+                
+                <div class="bid-date" v-if="bid.submissionDate">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>{{ formatDate(bid.submissionDate) }}</span>
+                </div>
+                
+                <div class="bid-description">{{ truncateDescription(bid.description) || 'No description provided' }}</div>
               </div>
               
-              <!-- Notes section -->
-              <div class="detail-section" v-if="selectedBid.notes">
-                <h4 class="detail-section-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                  Additional Notes
-                </h4>
-                <div class="detail-section-content">{{ selectedBid.notes }}</div>
-              </div>
-              
-              <!-- Evaluation form -->
-              <form @submit.prevent="submitEvaluation" class="evaluation-form">
-                <h4 class="form-section-title">
+              <div class="bid-card-actions">
+                <button @click="navigateToBidEvaluation(bid.id)" class="card-action-btn evaluate">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                  Evaluation Score
-                </h4>
-                
-                <div class="score-input-container">
-                  <input 
-                    v-model="evaluationScore" 
-                    type="range" 
-                    min="0" 
-                    max="100" 
-                    step="1" 
-                    class="score-slider" 
-                    required 
-                  />
-                  <div class="score-display">
-                    <span class="score-value">{{ evaluationScore }}</span>
-                    <span class="score-max">/100</span>
+                  Evaluate
+                </button>
+                <button @click="approveBid(bid.id)" class="card-action-btn approve">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                  Approve
+                </button>
+                <button @click="rejectBid(bid.id)" class="card-action-btn reject">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                  Reject
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Evaluate Bid Modal -->
+          <div v-if="isEvaluating" class="modal-overlay" @click.self="isEvaluating = false">
+            <div class="modal">
+              <div class="modal-header">
+                <h3 class="modal-title">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  Evaluate Bid
+                </h3>
+                <button @click="isEvaluating = false" class="close-button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
+              </div>
+              
+              <div class="modal-body">
+                <!-- Bid details section -->
+                <div class="modal-details-grid">
+                  <div class="modal-detail-card">
+                    <div class="detail-card-header">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      <span>Bidder</span>
+                    </div>
+                    <div class="detail-card-content">{{ selectedBid.bidderName || 'Anonymous' }}</div>
+                  </div>
+                  
+                  <div class="modal-detail-card">
+                    <div class="detail-card-header">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                      <span>Bid Amount</span>
+                    </div>
+                    <div class="detail-card-content">{{ formatCurrency(selectedBid.bidPrice) }} {{ selectedBid.currency }}</div>
+                  </div>
+                  
+                  <div class="modal-detail-card" v-if="selectedBid.submissionDate">
+                    <div class="detail-card-header">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                      <span>Submission Date</span>
+                    </div>
+                    <div class="detail-card-content">{{ formatDate(selectedBid.submissionDate) }}</div>
+                  </div>
+                  
+                  <div class="modal-detail-card" v-if="selectedBid.status">
+                    <div class="detail-card-header">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                      <span>Status</span>
+                    </div>
+                    <div class="detail-card-content">
+                      <span class="status-badge" :class="`status-${selectedBid.status?.toLowerCase()}`">
+                        {{ selectedBid.status || 'Pending' }}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 
-                <div class="score-labels">
-                  <span>Poor</span>
-                  <span>Average</span>
-                  <span>Excellent</span>
+                <!-- Description section -->
+                <div class="detail-section" v-if="selectedBid.description">
+                  <h4 class="detail-section-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                    Description
+                  </h4>
+                  <div class="detail-section-content">{{ selectedBid.description }}</div>
                 </div>
                 
-                <div class="form-group">
-                  <label class="form-label">Evaluation Notes</label>
-                  <textarea 
-                    v-model="evaluationNotes" 
-                    class="input-field textarea" 
-                    placeholder="Add notes about your evaluation (optional)"
-                  ></textarea>
+                <!-- Notes section -->
+                <div class="detail-section" v-if="selectedBid.notes">
+                  <h4 class="detail-section-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    Additional Notes
+                  </h4>
+                  <div class="detail-section-content">{{ selectedBid.notes }}</div>
                 </div>
                 
-                <div class="modal-actions">
-                  <button type="button" @click="isEvaluating = false" class="btn-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                    Cancel
-                  </button>
-                  <button type="submit" class="btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-                    Submit Evaluation
-                  </button>
-                </div>
-              </form>
+                <!-- Evaluation form -->
+                <form @submit.prevent="submitEvaluation" class="evaluation-form">
+                  <h4 class="form-section-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    Evaluation Score
+                  </h4>
+                  
+                  <div class="score-input-container">
+                    <input 
+                      v-model="evaluationScore" 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      step="1" 
+                      class="score-slider" 
+                      required 
+                    />
+                    <div class="score-display">
+                      <span class="score-value">{{ evaluationScore }}</span>
+                      <span class="score-max">/100</span>
+                    </div>
+                  </div>
+                  
+                  <div class="score-labels">
+                    <span>Poor</span>
+                    <span>Average</span>
+                    <span>Excellent</span>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="form-label">Evaluation Notes</label>
+                    <textarea 
+                      v-model="evaluationNotes" 
+                      class="input-field textarea" 
+                      placeholder="Add notes about your evaluation (optional)"
+                    ></textarea>
+                  </div>
+                  
+                  <div class="modal-actions">
+                    <button type="button" @click="isEvaluating = false" class="btn-secondary">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                      Cancel
+                    </button>
+                    <button type="submit" class="btn-primary">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                      Submit Evaluation
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </div>
@@ -250,12 +253,16 @@
 </template>
 
 <script>
+import AdminNavigationBar from './AdminNavigationBar.vue';
 import { ref, computed, onMounted } from "vue"; // Import Vue functions
 import { db } from "@/firebase"; // Import Firestore database instance
 import { collection, doc, updateDoc, onSnapshot } from "firebase/firestore"; // Import Firestore functions
 import { useRouter } from "vue-router";
 
 export default {
+  components: {
+    AdminNavigationBar,
+  },
   setup() {
     const bids = ref([]);
     const loading = ref(true); // Define 'loading' as a ref

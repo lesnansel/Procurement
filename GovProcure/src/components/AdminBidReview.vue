@@ -1,288 +1,295 @@
 <template>
-  <div class="admin-wrapper">
-    <!-- Background Pattern -->
-    <div class="background-pattern">
-      <div class="pattern-overlay"></div>
-    </div>
-
-    <!-- Admin Card -->
-    <div class="admin-card">
-      <!-- Header with gradient overlay and stats -->
-      <div class="card-header">
-        <div class="header-content">
-          <div class="logo-container">
-            <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
-          </div>
-          <div class="header-text">
-            <h1 class="title">Admin Bid Review</h1>
-            <p class="subtitle">Review and process vendor bid submissions</p>
-          </div>
-        </div>
-        
-        <!-- Stats Overview -->
-        <div class="stats-overview">
-          <div class="stat-item">
-            <div class="stat-value">{{ filteredBids.length }}</div>
-            <div class="stat-label">Total Bids</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ pendingBidsCount }}</div>
-            <div class="stat-label">Pending</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ approvedBidsCount }}</div>
-            <div class="stat-label">Approved</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ rejectedBidsCount }}</div>
-            <div class="stat-label">Rejected</div>
-          </div>
-        </div>
+  <div>
+    <AdminNavigationBar />
+    <div class="admin-wrapper">
+      <!-- Background Pattern -->
+      <div class="background-pattern">
+        <div class="pattern-overlay"></div>
       </div>
 
-      <div class="card-content">
-        <!-- Search and Filter Bar -->
-        <div class="action-bar">
-          <div class="search-container">
-            <input 
-              type="text" 
-              v-model="searchQuery" 
-              placeholder="Search by project, vendor or description..." 
-              class="search-input"
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          </div>
-          <div class="filter-container">
-            <select v-model="statusFilter" class="filter-select">
-              <option value="all">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="more-info">Needs More Info</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Loading State -->
-        <div v-if="loading" class="loading-state">
-          <div class="loading-spinner">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
-          </div>
-          <p>Loading bids...</p>
-        </div>
-        
-        <div v-else-if="filteredBids.length === 0" class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
-          <p class="empty-text">No bids available for review.</p>
-          <p class="empty-subtext">Bids will appear here once vendors submit them.</p>
-        </div>
-
-        <template v-else>
-          <!-- Section Header -->
-          <div class="section-header">
-            <h3 class="section-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
-              Bid Submissions
-            </h3>
-            <div class="status-count">
-              <span>Showing {{ filteredBids.length }} of {{ bids.length }} bids</span>
+      <!-- Admin Card -->
+      <div class="admin-card">
+        <!-- Header with gradient overlay and stats -->
+        <div class="card-header">
+          <div class="header-content">
+            <div class="logo-container">
+              <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
             </div>
-          </div>
-
-          <!-- Bids Cards Grid -->
-          <div class="bids-grid">
-            <div v-for="bid in filteredBids" :key="bid.id" class="bid-card" :class="`bid-card-${bid.status.toLowerCase()}`">
-              <div class="bid-card-header">
-                <div class="bid-header-content">
-                  <div class="bid-title">{{ bid.itemName || 'Unnamed Request' }}</div>
-                  <span class="status-badge" :class="`status-${bid.status.toLowerCase()}`">
-                    {{ bid.status }}
-                  </span>
-                </div>
-                <div class="bid-price-tag">
-                  <span class="bid-price">{{ formatCurrency(bid.bidPrice) }}</span>
-                  <span class="bid-currency">{{ bid.currency }}</span>
-                </div>
-              </div>
-
-              <div class="bid-card-body">
-                <div class="bid-vendor">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                  <span>{{ bid.bidderName || 'Anonymous Vendor' }}</span>
-                </div>
-                <div class="bid-date">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                  <span>{{ formatDate(bid.submissionDate) }}</span>
-                </div>
-                <div class="bid-description">{{ truncateDescription(bid.description) || 'No description provided' }}</div>
-              </div>
-
-              <div class="bid-card-actions">
-                <button @click="navigateToBidDetail(bid.id)" class="card-action-btn view" title="View Details">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                  Details
-                </button>
-                <button @click="approveBid(bid.id)" class="card-action-btn approve" title="Approve Bid" :enable="bid.status === 'Approved'">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-                  Approve
-                </button>
-                <button @click="rejectBid(bid.id)" class="card-action-btn reject" title="Reject Bid" :enable="bid.status === 'Rejected'">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                  Reject
-                </button>
-              </div>
-            </div>
-          </div>
-        </template>
-      </div>
-    </div>
-
-    <!-- Bid Details Modal -->
-    <div v-if="isViewingDetails" class="modal-overlay" @click.self="closeViewModal">
-      <div class="modal">
-        <div class="modal-header">
-          <div class="modal-header-content">
-            <h3 class="modal-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              Bid Details
-            </h3>
-            <span class="status-badge-large" :class="`status-${activeBid.status?.toLowerCase()}`">
-              {{ activeBid.status }}
-            </span>
-          </div>
-          <button @click="closeViewModal" class="close-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-          </button>
-        </div>
-        <div class="modal-body">
-          <!-- Main details -->
-          <div class="modal-details-grid">
-            <div class="modal-detail-card">
-              <div class="detail-card-header">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
-                <span>Purchase Request</span>
-              </div>
-              <div class="detail-card-content">{{ activeBid.itemName || 'N/A' }}</div>
-            </div>
-            
-            <div class="modal-detail-card">
-              <div class="detail-card-header">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                <span>Bidder</span>
-              </div>
-              <div class="detail-card-content">{{ activeBid.bidderName || 'Anonymous' }}</div>
-            </div>
-            
-            <div class="modal-detail-card">
-              <div class="detail-card-header">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                <span>Bid Amount</span>
-              </div>
-              <div class="detail-card-content">{{ formatCurrency(activeBid.bidPrice) }} {{ activeBid.currency }}</div>
-            </div>
-            
-            <div class="modal-detail-card">
-              <div class="detail-card-header">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                <span>Submission Date</span>
-              </div>
-              <div class="detail-card-content">{{ formatDate(activeBid.submissionDate) }}</div>
+            <div class="header-text">
+              <h1 class="title">Admin Bid Review</h1>
+              <p class="subtitle">Review and process vendor bid submissions</p>
             </div>
           </div>
           
-          <!-- Description section -->
-          <div class="detail-section">
-            <h4 class="detail-section-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-              Description
-            </h4>
-            <div class="detail-section-content">{{ activeBid.description || 'No description provided' }}</div>
-          </div>
-          
-          <!-- Additional info section if available -->
-          <div v-if="activeBid.additionalInfo" class="detail-section">
-            <h4 class="detail-section-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-7l3-7"></path><path d="M18 14v7"></path><path d="M18 14a4 4 0 1 0 0 0"></path></svg>
-              Additional Information
-            </h4>
-            <div class="detail-section-content">{{ activeBid.additionalInfo }}</div>
-          </div>
-          
-          <!-- Info request section if available -->
-          <div v-if="activeBid.infoRequested" class="detail-section highlight-section">
-            <h4 class="detail-section-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-              Information Requested
-            </h4>
-            <div class="detail-section-content">{{ activeBid.infoRequested }}</div>
+          <!-- Stats Overview -->
+          <div class="stats-overview">
+            <div class="stat-item">
+              <div class="stat-value">{{ filteredBids.length }}</div>
+              <div class="stat-label">Total Bids</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ pendingBidsCount }}</div>
+              <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ approvedBidsCount }}</div>
+              <div class="stat-label">Approved</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ rejectedBidsCount }}</div>
+              <div class="stat-label">Rejected</div>
+            </div>
           </div>
         </div>
-        <div class="modal-actions">
-          <button @click="approveBid(activeBid.id)" class="btn-approve" :enable="activeBid.status === 'Approved'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-            Approve Bid
-          </button>
-          <button @click="rejectBid(activeBid.id)" class="btn-reject" :enable="activeBid.status === 'Rejected'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-            Reject Bid
-          </button>
-          <button @click="showRequestInfoModal" class="btn-info" :enable="activeBid.status === 'More Info Requested'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-            Request Information
-          </button>
-          <button @click="closeViewModal" class="btn-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-            Close
-          </button>
+
+        <div class="card-content">
+          <!-- Search and Filter Bar -->
+          <div class="action-bar">
+            <div class="search-container">
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                placeholder="Search by project, vendor or description..." 
+                class="search-input"
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <div class="filter-container">
+              <select v-model="statusFilter" class="filter-select">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="more-info">Needs More Info</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div v-if="loading" class="loading-state">
+            <div class="loading-spinner">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+            </div>
+            <p>Loading bids...</p>
+          </div>
+          
+          <div v-else-if="filteredBids.length === 0" class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
+            <p class="empty-text">No bids available for review.</p>
+            <p class="empty-subtext">Bids will appear here once vendors submit them.</p>
+          </div>
+
+          <template v-else>
+            <!-- Section Header -->
+            <div class="section-header">
+              <h3 class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
+                Bid Submissions
+              </h3>
+              <div class="status-count">
+                <span>Showing {{ filteredBids.length }} of {{ bids.length }} bids</span>
+              </div>
+            </div>
+
+            <!-- Bids Cards Grid -->
+            <div class="bids-grid">
+              <div v-for="bid in filteredBids" :key="bid.id" class="bid-card" :class="`bid-card-${bid.status.toLowerCase()}`">
+                <div class="bid-card-header">
+                  <div class="bid-header-content">
+                    <div class="bid-title">{{ bid.itemName || 'Unnamed Request' }}</div>
+                    <span class="status-badge" :class="`status-${bid.status.toLowerCase()}`">
+                      {{ bid.status }}
+                    </span>
+                  </div>
+                  <div class="bid-price-tag">
+                    <span class="bid-price">{{ formatCurrency(bid.bidPrice) }}</span>
+                    <span class="bid-currency">{{ bid.currency }}</span>
+                  </div>
+                </div>
+
+                <div class="bid-card-body">
+                  <div class="bid-vendor">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>{{ bid.bidderName || 'Anonymous Vendor' }}</span>
+                  </div>
+                  <div class="bid-date">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>{{ formatDate(bid.submissionDate) }}</span>
+                  </div>
+                  <div class="bid-description">{{ truncateDescription(bid.description) || 'No description provided' }}</div>
+                </div>
+
+                <div class="bid-card-actions">
+                  <button @click="navigateToBidDetail(bid.id)" class="card-action-btn view" title="View Details">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    Details
+                  </button>
+                  <button @click="approveBid(bid.id)" class="card-action-btn approve" title="Approve Bid" :enable="bid.status === 'Approved'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                    Approve
+                  </button>
+                  <button @click="rejectBid(bid.id)" class="card-action-btn reject" title="Reject Bid" :enable="bid.status === 'Rejected'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                    Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
-    </div>
 
-    <!-- Request More Info Modal -->
-    <div v-if="isRequestingInfo" class="modal-overlay" @click.self="closeRequestInfoModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3 class="modal-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-            Request Additional Information
-          </h3>
-          <button @click="closeRequestInfoModal" class="close-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-          </button>
-        </div>
-        <form @submit.prevent="submitInfoRequest">
+      <!-- Bid Details Modal -->
+      <div v-if="isViewingDetails" class="modal-overlay" @click.self="closeViewModal">
+        <div class="modal">
+          <div class="modal-header">
+            <div class="modal-header-content">
+              <h3 class="modal-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Bid Details
+              </h3>
+              <span class="status-badge-large" :class="`status-${activeBid.status?.toLowerCase()}`">
+                {{ activeBid.status }}
+              </span>
+            </div>
+            <button @click="closeViewModal" class="close-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
           <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+            <!-- Main details -->
+            <div class="modal-details-grid">
+              <div class="modal-detail-card">
+                <div class="detail-card-header">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
+                  <span>Purchase Request</span>
+                </div>
+                <div class="detail-card-content">{{ activeBid.itemName || 'N/A' }}</div>
+              </div>
+              
+              <div class="modal-detail-card">
+                <div class="detail-card-header">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  <span>Bidder</span>
+                </div>
+                <div class="detail-card-content">{{ activeBid.bidderName || 'Anonymous' }}</div>
+              </div>
+              
+              <div class="modal-detail-card">
+                <div class="detail-card-header">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                  <span>Bid Amount</span>
+                </div>
+                <div class="detail-card-content">{{ formatCurrency(activeBid.bidPrice) }} {{ activeBid.currency }}</div>
+              </div>
+              
+              <div class="modal-detail-card">
+                <div class="detail-card-header">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>Submission Date</span>
+                </div>
+                <div class="detail-card-content">{{ formatDate(activeBid.submissionDate) }}</div>
+              </div>
+            </div>
+            
+            <!-- Description section -->
+            <div class="detail-section">
+              <h4 class="detail-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                Description
+              </h4>
+              <div class="detail-section-content">{{ activeBid.description || 'No description provided' }}</div>
+            </div>
+            
+            <!-- Additional info section if available -->
+            <div v-if="activeBid.additionalInfo" class="detail-section">
+              <h4 class="detail-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-7l3-7"></path><path d="M18 14v7"></path><path d="M18 14a4 4 0 1 0 0 0"></path></svg>
+                Additional Information
+              </h4>
+              <div class="detail-section-content">{{ activeBid.additionalInfo }}</div>
+            </div>
+            
+            <!-- Info request section if available -->
+            <div v-if="activeBid.infoRequested" class="detail-section highlight-section">
+              <h4 class="detail-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
                 Information Requested
-              </label>
-              <textarea v-model="infoRequestText" class="input-field textarea" placeholder="Specify what additional information you need from the vendor..." required></textarea>
+              </h4>
+              <div class="detail-section-content">{{ activeBid.infoRequested }}</div>
             </div>
           </div>
           <div class="modal-actions">
-            <button type="button" @click="closeRequestInfoModal" class="btn-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-              Cancel
+            <button @click="approveBid(activeBid.id)" class="btn-approve" :enable="activeBid.status === 'Approved'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+              Approve Bid
             </button>
-            <button type="submit" class="btn-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
-              Send Request
+            <button @click="rejectBid(activeBid.id)" class="btn-reject" :enable="activeBid.status === 'Rejected'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+              Reject Bid
+            </button>
+            <button @click="showRequestInfoModal" class="btn-info" :enable="activeBid.status === 'More Info Requested'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+              Request Information
+            </button>
+            <button @click="closeViewModal" class="btn-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+              Close
             </button>
           </div>
-        </form>
+        </div>
+      </div>
+
+      <!-- Request More Info Modal -->
+      <div v-if="isRequestingInfo" class="modal-overlay" @click.self="closeRequestInfoModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 class="modal-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+              Request Additional Information
+            </h3>
+            <button @click="closeRequestInfoModal" class="close-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+          <form @submit.prevent="submitInfoRequest">
+            <div class="modal-body">
+              <div class="form-group">
+                <label class="form-label">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                  Information Requested
+                </label>
+                <textarea v-model="infoRequestText" class="input-field textarea" placeholder="Specify what additional information you need from the vendor..." required></textarea>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="button" @click="closeRequestInfoModal" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                Cancel
+              </button>
+              <button type="submit" class="btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+                Send Request
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import AdminNavigationBar from './AdminNavigationBar.vue';
 import { ref, onMounted, computed } from "vue";
 import { db } from "@/firebase";
 import { collection, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { useRouter } from "vue-router";
 
 export default {
+  components: {
+    AdminNavigationBar,
+  },
   setup() {
     const router = useRouter();
     const bids = ref([]);
