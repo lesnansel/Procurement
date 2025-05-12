@@ -12,6 +12,7 @@
     "bootstrap": "^5.3.5",
     "chart.js": "^4.4.7",
     "core-js": "^3.8.3",
+    "dayjs": "^1.11.13",
     "dompurify": "^3.2.4",
     "emailjs-com": "^3.2.0",
     "firebase": "^11.2.0",
