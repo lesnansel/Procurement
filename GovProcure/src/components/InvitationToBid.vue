@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="main-content">
     <AdminNavigationBar />
     <div class="admin-wrapper">
       <!-- Background Pattern -->
@@ -41,28 +41,83 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
               Create New Invitation
             </h3>
-            <form @submit.prevent="createInvitation" class="form">
+            <form @submit.prevent="createInvitation" class="form" enctype="multipart/form-data">
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-                    Project Name
-                  </label>
-                  <input v-model="newInvitation.projectName" type="text" class="input-field" placeholder="Enter project name" required />
+                  <label class="form-label">ITB Number / Reference Code</label>
+                  <input v-model="newInvitation.itbNumber" type="text" class="input-field" placeholder="e.g. ITB-2024-0001" required />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    Deadline
-                  </label>
+                  <label class="form-label">Procuring Entity</label>
+                  <input v-model="newInvitation.procuringEntity" type="text" class="input-field" placeholder="Agency/Department Name" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Project Title</label>
+                  <input v-model="newInvitation.projectName" type="text" class="input-field" placeholder="Enter project name" required />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Approved Budget for the Contract (ABC)</label>
+                  <input v-model="newInvitation.abc" type="number" min="0" class="input-field" placeholder="e.g. 1000000" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Contract Duration</label>
+                  <input v-model="newInvitation.contractDuration" type="text" class="input-field" placeholder="e.g. 120 calendar days" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Delivery Location</label>
+                  <input v-model="newInvitation.deliveryLocation" type="text" class="input-field" placeholder="e.g. Quezon City" required />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Funding Source</label>
+                  <input v-model="newInvitation.fundingSource" type="text" class="input-field" placeholder="e.g. General Appropriations Act" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Document Fee (₱)</label>
+                  <input v-model="newInvitation.documentFee" type="number" min="0" class="input-field" placeholder="e.g. 5000" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">PR/Reference ID</label>
+                  <input v-model="newInvitation.prId" type="text" class="input-field" placeholder="e.g. PR-2024-0012" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Pre-bid Conference Date</label>
+                  <input v-model="newInvitation.preBidDate" type="date" class="input-field" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Bid Submission Deadline</label>
                   <input v-model="newInvitation.deadline" type="date" class="input-field" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Bid Opening Schedule</label>
+                  <input v-model="newInvitation.bidOpeningDate" type="date" class="input-field" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Status</label>
+                  <select v-model="newInvitation.status" class="input-field" required>
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="closed">Closed</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Attach ITB PDF</label>
+                  <input type="file" accept="application/pdf" @change="onFileChange($event, 'itbPdf')" class="input-field" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Attach Supporting Documents</label>
+                  <input type="file" multiple @change="onFileChange($event, 'supportingDocs')" class="input-field" />
                 </div>
               </div>
               <div class="form-group">
-                <label class="form-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                  Description
-                </label>
+                <label class="form-label">Description</label>
                 <textarea v-model="newInvitation.description" class="input-field textarea" placeholder="Enter description" required></textarea>
               </div>
               <div class="form-actions">
@@ -112,13 +167,13 @@
                   <td>
                     <div class="actions-container">
                       <div class="action-buttons">
-                        <button @click="handleEdit(invitation)" class="action-btn edit" title="Edit Invitation">
+                        <button @click="openModal('edit', invitation)" class="action-btn edit" title="Edit Invitation">
                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button @click="handleDelete(invitation.id)" class="action-btn delete" title="Delete Invitation">
+                        <button @click="openModal('delete', invitation)" class="action-btn delete" title="Delete Invitation">
                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                         </button>
-                        <button @click="handleView(invitation)" class="action-btn view" title="View Details">
+                        <button @click="openModal('view', invitation)" class="action-btn view" title="View Details">
                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         </button>
                       </div>
@@ -129,7 +184,7 @@
             </table>
           </div>
           <div v-else-if="!invitations.length" class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2v-7"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
             <p class="empty-text">No invitations available.</p>
             <p class="empty-subtext">Create your first invitation to get started.</p>
           </div>
@@ -139,142 +194,36 @@
             <p class="empty-subtext">Try adjusting your search criteria.</p>
           </div>
 
-          <!-- Edit Invitation Modal -->
-          <div v-if="isEditing" class="modal-overlay" @click.self="closeEditModal">
-            <div class="modal">
-              <div class="modal-header">
-                <h3 class="modal-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                  Edit Invitation
-                </h3>
-                <button @click="closeEditModal" class="close-button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                </button>
-              </div>
-              <form @submit.prevent="updateInvitation">
-                <div class="modal-body">
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label class="form-label">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-                        Project Name
-                      </label>
-                      <input v-model="editInvitationData.projectName" type="text" class="input-field" placeholder="Enter project name" required />
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        Deadline
-                      </label>
-                      <input v-model="editInvitationData.deadline" type="date" class="input-field" required />
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                      Description
-                    </label>
-                    <textarea v-model="editInvitationData.description" class="input-field textarea" placeholder="Enter description" required></textarea>
-                  </div>
-                </div>
-                <div class="modal-actions">
-                  <button type="button" @click="closeEditModal" class="btn-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                    Cancel
-                  </button>
-                  <button type="submit" class="btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-                    Update
-                  </button>
-                </div>
-              </form>
+          <!-- View Invitation Modal -->
+          <div v-if="modal.view" class="modal-backdrop">
+            <div class="modal-content">
+              <h2>📄 View Invitation</h2>
+              <p><strong>Project:</strong> {{ selectedInvitation.projectName }}</p>
+              <p><strong>Deadline:</strong> {{ selectedInvitation.deadline }}</p>
+              <p><strong>Description:</strong> {{ selectedInvitation.description }}</p>
+              <button @click="closeModals">Close</button>
             </div>
           </div>
 
-          <!-- View Invitation Modal -->
-          <div v-if="isViewing" class="modal-overlay" @click.self="closeViewModal">
-            <div class="modal">
-              <div class="modal-header">
-                <h3 class="modal-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                  Invitation Details
-                </h3>
-                <button @click="closeViewModal" class="close-button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                </button>
-              </div>
-              <div class="modal-body">
-                <!-- Grouped Details Layout -->
-                <div class="detail-group">
-                  <h3 class="detail-title">Project Information</h3>
-                  <div class="detail-row">
-                    <span class="detail-label">Project Name:</span>
-                    <span class="detail-value">{{ viewInvitationData.projectName }}</span>
-                  </div>
-                  <div class="detail-row">
-                    <span class="detail-label">Deadline:</span>
-                    <span class="detail-value">
-                      <span :class="isDeadlineSoon(viewInvitationData.deadline) ? 'deadline-soon' : ''">
-                        {{ formatDate(viewInvitationData.deadline) }}
-                      </span>
-                    </span>
-                  </div>
-                  <div class="detail-row">
-                    <span class="detail-label">Days Remaining:</span>
-                    <span class="detail-value">
-                      <span :class="getDaysRemaining(viewInvitationData.deadline) <= 7 ? 'deadline-soon' : ''">
-                        {{ getDaysRemaining(viewInvitationData.deadline) }} days
-                      </span>
-                    </span>
-                  </div>
-                </div>
-                <div class="detail-group">
-                  <h3 class="detail-title">Description</h3>
-                  <div class="detail-row">
-                    <span class="detail-label">Details:</span>
-                    <span class="detail-value description">{{ viewInvitationData.description }}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" @click="handleEditFromView" class="btn-primary">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                  Edit
-                </button>
-                <button type="button" @click="handleDeleteFromView" class="btn-danger">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  Delete
-                </button>
-                <button type="button" @click="closeViewModal" class="btn-secondary">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                  Close
-                </button>
-              </div>
+          <!-- Edit Invitation Modal -->
+          <div v-if="modal.edit" class="modal-backdrop">
+            <div class="modal-content">
+              <h2>✏️ Edit Invitation</h2>
+              <input v-model="selectedInvitation.projectName" placeholder="Project Name" />
+              <input v-model="selectedInvitation.deadline" type="date" />
+              <textarea v-model="selectedInvitation.description" placeholder="Description"></textarea>
+              <button @click="updateInvitationModal">Save</button>
+              <button @click="closeModals">Cancel</button>
             </div>
           </div>
 
           <!-- Delete Confirmation Modal -->
-          <div v-if="isDeleting" class="modal-overlay" @click.self="closeDeleteModal">
-            <div class="modal delete-modal">
-              <div class="modal-header">
-                <h3 class="modal-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                  Confirm Deletion
-                </h3>
-              </div>
-              <div class="modal-body">
-                <p class="delete-message">Are you sure you want to delete this invitation? This action cannot be undone.</p>
-              </div>
-              <div class="modal-actions">
-                <button type="button" @click="closeDeleteModal" class="btn-secondary">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                  Cancel
-                </button>
-                <button type="button" @click="confirmDeleteInvitation" class="btn-danger">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  Delete Permanently
-                </button>
-              </div>
+          <div v-if="modal.delete" class="modal-backdrop">
+            <div class="modal-content">
+              <h2>🗑️ Confirm Deletion</h2>
+              <p>Are you sure you want to delete <strong>{{ selectedInvitation.projectName }}</strong>?</p>
+              <button @click="deleteInvitationModal">Yes, Delete</button>
+              <button @click="closeModals">Cancel</button>
             </div>
           </div>
         </div>
@@ -286,8 +235,9 @@
 <script>
 import AdminNavigationBar from './AdminNavigationBar.vue';
 import { ref, onMounted, computed } from "vue";
-import { db } from "@/firebase";
+import { db, storage } from "@/firebase";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default {
   components: {
@@ -295,7 +245,26 @@ export default {
   },
   setup() {
     const invitations = ref([]);
-    const newInvitation = ref({ projectName: "", deadline: "", description: "" });
+    const newInvitation = ref({
+      itbNumber: "",
+      procuringEntity: "",
+      projectName: "",
+      abc: "",
+      contractDuration: "",
+      deliveryLocation: "",
+      fundingSource: "",
+      documentFee: "",
+      prId: "",
+      preBidDate: "",
+      deadline: "",
+      bidOpeningDate: "",
+      status: "draft",
+      description: "",
+      itbPdfUrl: "",
+      supportingDocsUrls: [],
+    });
+    const itbPdfFile = ref(null);
+    const supportingDocsFiles = ref([]);
     const isEditing = ref(false);
     const isViewing = ref(false);
     const isDeleting = ref(false);
@@ -304,6 +273,56 @@ export default {
     const deleteId = ref(null);
     const searchQuery = ref("");
     const showCreateForm = ref(false);
+
+    // Make sure these are defined in setup
+    const modal = ref({
+      view: false,
+      edit: false,
+      delete: false,
+    });
+    const selectedInvitation = ref({});
+
+    const openModal = (type, invitation) => {
+      selectedInvitation.value = { ...invitation };
+      modal.value.view = false;
+      modal.value.edit = false;
+      modal.value.delete = false;
+      modal.value[type] = true;
+    };
+    const closeModals = () => {
+      modal.value.view = false;
+      modal.value.edit = false;
+      modal.value.delete = false;
+    };
+
+    const updateInvitationModal = async () => {
+      if (!selectedInvitation.value.id) return;
+      try {
+        const invitationRef = doc(db, "invitations", selectedInvitation.value.id);
+        await updateDoc(invitationRef, {
+          projectName: selectedInvitation.value.projectName,
+          deadline: selectedInvitation.value.deadline,
+          description: selectedInvitation.value.description,
+        });
+        showNotification("Invitation updated successfully!");
+        closeModals();
+        fetchInvitations();
+      } catch (error) {
+        showNotification("Failed to update invitation.", "error");
+      }
+    };
+
+    const deleteInvitationModal = async () => {
+      if (!selectedInvitation.value.id) return;
+      try {
+        await deleteDoc(doc(db, "invitations", selectedInvitation.value.id));
+        showNotification("Invitation deleted successfully!");
+        closeModals();
+        fetchInvitations();
+      } catch (error) {
+        showNotification("Failed to delete invitation.", "error");
+      }
+    };
 
     const fetchInvitations = async () => {
       try {
@@ -325,9 +344,38 @@ export default {
       );
     });
 
+    const onFileChange = (event, type) => {
+      if (type === "itbPdf") {
+        itbPdfFile.value = event.target.files[0] || null;
+      } else if (type === "supportingDocs") {
+        supportingDocsFiles.value = Array.from(event.target.files);
+      }
+    };
+
     const createInvitation = async () => {
       try {
-        await addDoc(collection(db, "invitations"), newInvitation.value);
+        // Upload files if present
+        let itbPdfUrl = "";
+        let supportingDocsUrls = [];
+        if (itbPdfFile.value) {
+          const pdfRef = storageRef(storage, `itb_pdfs/${Date.now()}_${itbPdfFile.value.name}`);
+          await uploadBytes(pdfRef, itbPdfFile.value);
+          itbPdfUrl = await getDownloadURL(pdfRef);
+        }
+        if (supportingDocsFiles.value.length) {
+          for (const file of supportingDocsFiles.value) {
+            const docRef = storageRef(storage, `itb_supporting_docs/${Date.now()}_${file.name}`);
+            await uploadBytes(docRef, file);
+            const url = await getDownloadURL(docRef);
+            supportingDocsUrls.push(url);
+          }
+        }
+        // Save to Firestore
+        await addDoc(collection(db, "invitations"), {
+          ...newInvitation.value,
+          itbPdfUrl,
+          supportingDocsUrls,
+        });
         showNotification("Invitation created successfully!");
         resetForm();
         showCreateForm.value = false;
@@ -339,7 +387,26 @@ export default {
     };
 
     const resetForm = () => {
-      newInvitation.value = { projectName: "", deadline: "", description: "" };
+      newInvitation.value = {
+        itbNumber: "",
+        procuringEntity: "",
+        projectName: "",
+        abc: "",
+        contractDuration: "",
+        deliveryLocation: "",
+        fundingSource: "",
+        documentFee: "",
+        prId: "",
+        preBidDate: "",
+        deadline: "",
+        bidOpeningDate: "",
+        status: "draft",
+        description: "",
+        itbPdfUrl: "",
+        supportingDocsUrls: [],
+      };
+      itbPdfFile.value = null;
+      supportingDocsFiles.value = [];
     };
 
     const getInvitationIndex = (id) => {
@@ -487,6 +554,8 @@ export default {
       invitations,
       filteredInvitations,
       newInvitation,
+      itbPdfFile,
+      supportingDocsFiles,
       isEditing,
       isViewing,
       isDeleting,
@@ -496,6 +565,7 @@ export default {
       searchQuery,
       showCreateForm,
       createInvitation,
+      onFileChange,
       handleEdit,
       handleDelete,
       handleView,
@@ -510,7 +580,13 @@ export default {
       formatDate,
       isDeadlineSoon,
       getDaysRemaining,
-      getInvitationIndex
+      getInvitationIndex,
+      modal,
+      selectedInvitation,
+      openModal,
+      closeModals,
+      updateInvitationModal,
+      deleteInvitationModal,
     };
   },
 };
@@ -929,7 +1005,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 9999 !important;
   backdrop-filter: blur(4px);
   animation: fadeIn 0.2s ease-out;
 }
@@ -1138,5 +1214,94 @@ export default {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+.main-content {
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.collapsed {
+  margin-left: 0;
+}
+
+/* Modal Backdrop and Content (for new modals) */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  /* Ensure content is not clipped */
+  overflow: visible;
+}
+
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.75rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-sizing: border-box;
+  margin-bottom: 0.75rem;
+  background: #f8fafc;
+  color: #1e293b;
+  resize: none;
+}
+
+.modal-content textarea {
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.modal-content button {
+  font-size: 1rem;
+  padding: 0.6rem 1.2rem;
+  margin-top: 0.25rem;
+}
+
+.modal-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: #0f2942;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.modal-content p,
+.modal-content label {
+  font-size: 1rem;
+  color: #1e293b;
+  word-break: break-word;
+  margin-bottom: 0.5rem;
+}
+
+/* Modularized admin-card and input styles for reuse */
+.admin-card {
+  /* ...existing code... */
+}
+.input-field {
+  /* ...existing code... */
+}
+.form-label {
+  /* ...existing code... */
 }
 </style>

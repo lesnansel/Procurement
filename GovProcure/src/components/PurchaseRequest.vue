@@ -1,166 +1,319 @@
 <template>
-  <div class="admin-wrapper">
-    <!-- Background Pattern -->
-    <div class="background-pattern">
-      <div class="pattern-overlay"></div>
-    </div>
-
-    <!-- Admin Card -->
-    <div class="admin-card">
-      <div class="card-header">
-        <div class="logo-container">
-          <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+  <div class="app-container">
+    <!-- Fixed Left Sidebar -->
+    <div class="sidebar">
+      <!-- User Profile Section -->
+      <div class="user-profile">
+        <div class="user-avatar">
+          <span class="avatar-text">JD</span>
         </div>
-        <h1 class="title">Purchase Request</h1>
-        <p class="subtitle">Submit and manage your purchase requests.</p>
+        <div class="user-info">
+          <div class="username">ansel</div>
+          <div class="user-role">user</div>
+        </div>
       </div>
 
-      <div class="card-content">
-        <!-- Submit Purchase Request Form -->
-        <form @submit.prevent="submitRequest" class="form">
-          <div class="form-section">
-            <h2 class="section-title">Request Details</h2>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="itemName">Item Name</label>
-                <input 
-                  id="itemName"
-                  v-model="newRequest.itemName" 
-                  type="text" 
-                  class="input-field" 
-                  placeholder="Enter item name" 
-                  required 
-                />
-                <span v-if="validationErrors.itemName" class="error-message">{{ validationErrors.itemName }}</span>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="quantity">Quantity</label>
-                <input 
-                  id="quantity"
-                  v-model.number="newRequest.quantity" 
-                  type="number" 
-                  min="1"
-                  class="input-field" 
-                  placeholder="Enter quantity" 
-                  required 
-                />
-                <span v-if="validationErrors.quantity" class="error-message">{{ validationErrors.quantity }}</span>
-              </div>
+      <!-- Navigation Menu -->
+      <nav class="nav-menu">
+        <!-- GENERAL Section -->
+        <div class="nav-section">
+          <div class="section-header">GENERAL</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                <span class="nav-text">Home</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <span class="nav-text">Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span class="nav-text">Profile</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- PROCUREMENT Section -->
+        <div class="nav-section">
+          <div class="section-header">PROCUREMENT</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#" class="nav-link active">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span class="nav-text">Request Purchase</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="nav-text">Track Payments</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+                <span class="nav-text">PR Lists</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- USER MANAGEMENT Section -->
+        <div class="nav-section">
+          <div class="section-header">USER MANAGEMENT</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                <span class="nav-text">Edit Profile</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                </svg>
+                <span class="nav-text">Reset Password</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- ADMIN CONTROLS Section -->
+        <div class="nav-section">
+          <div class="section-header">ADMIN CONTROLS</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span class="nav-text">View Profile</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span class="nav-text">Settings</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link logout">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                <span class="nav-text">Log Out</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Background Pattern -->
+      <div class="background-pattern">
+        <div class="pattern-overlay"></div>
+      </div>
+
+      <!-- Purchase Request Form -->
+      <div class="content-wrapper">
+        <div class="admin-card">
+          <div class="card-header">
+            <div class="logo-container">
+              <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
             </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="category">Category</label>
-                <select 
-                  id="category"
-                  v-model="newRequest.category" 
-                  class="input-field" 
-                  required
-                >
-                  <option value="" disabled>Select a category</option>
-                  <option v-for="category in categories" :key="category" :value="category">
-                    {{ category }}
-                  </option>
-                </select>
-                <span v-if="validationErrors.category" class="error-message">{{ validationErrors.category }}</span>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="priority">Priority</label>
-                <select 
-                  id="priority"
-                  v-model="newRequest.priority" 
-                  class="input-field" 
-                  required
-                >
-                  <option value="" disabled>Select priority</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-                <span v-if="validationErrors.priority" class="error-message">{{ validationErrors.priority }}</span>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label" for="description">Description</label>
-              <textarea 
-                id="description"
-                v-model="newRequest.description" 
-                class="input-field textarea" 
-                placeholder="Enter detailed description of the item(s)" 
-                required
-              ></textarea>
-              <span v-if="validationErrors.description" class="error-message">{{ validationErrors.description }}</span>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="estimatedCost">Estimated Cost (₱)</label>
-                <input 
-                  id="estimatedCost"
-                  v-model.number="newRequest.estimatedCost" 
-                  type="number" 
-                  min="0" 
-                  step="0.01"
-                  class="input-field" 
-                  placeholder="Enter estimated cost" 
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="requiredDate">Required By</label>
-                <input 
-                  id="requiredDate"
-                  v-model="newRequest.requiredDate" 
-                  type="date" 
-                  class="input-field" 
-                  :min="minDate"
-                  required
-                />
-                <span v-if="validationErrors.requiredDate" class="error-message">{{ validationErrors.requiredDate }}</span>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label" for="justification">Justification</label>
-              <textarea 
-                id="justification"
-                v-model="newRequest.justification" 
-                class="input-field textarea" 
-                placeholder="Explain why this purchase is necessary" 
-                required
-              ></textarea>
-              <span v-if="validationErrors.justification" class="error-message">{{ validationErrors.justification }}</span>
-            </div>
+            <h1 class="title">Purchase Request</h1>
+            <p class="subtitle">Submit and manage your purchase requests.</p>
           </div>
-          
-          <div class="form-actions">
-            <button type="button" class="btn-secondary" @click="resetForm">Reset</button>
-            <button 
-              type="submit" 
-              class="btn-primary" 
-              :disabled="isSubmitting"
-            >
-              <span v-if="isSubmitting" class="spinner"></span>
-              {{ isSubmitting ? 'Submitting...' : 'Submit Request' }}
-            </button>
-          </div>
-        </form>
-        
-        <!-- Success/Error Notification -->
-        <div v-if="notification.show" :class="['notification', notification.type]">
-          <div class="notification-content">
-            <span v-if="notification.type === 'success'" class="notification-icon success">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            </span>
-            <span v-else class="notification-icon error">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            </span>
-            <p>{{ notification.message }}</p>
-            <button class="notification-close" @click="closeNotification">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
+
+          <div class="card-content">
+            <!-- Submit Purchase Request Form -->
+            <form @submit.prevent="submitRequest" class="form">
+              <div class="form-section">
+                <h2 class="section-title">Request Details</h2>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="itemName">Item Name</label>
+                    <input 
+                      id="itemName"
+                      v-model="newRequest.itemName" 
+                      type="text" 
+                      class="input-field" 
+                      placeholder="Enter item name" 
+                      required 
+                    />
+                    <span v-if="validationErrors.itemName" class="error-message">{{ validationErrors.itemName }}</span>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="quantity">Quantity</label>
+                    <input 
+                      id="quantity"
+                      v-model.number="newRequest.quantity" 
+                      type="number" 
+                      min="1"
+                      class="input-field" 
+                      placeholder="Enter quantity" 
+                      required 
+                    />
+                    <span v-if="validationErrors.quantity" class="error-message">{{ validationErrors.quantity }}</span>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="category">Category</label>
+                    <select 
+                      id="category"
+                      v-model="newRequest.category" 
+                      class="input-field" 
+                      required
+                    >
+                      <option value="" disabled>Select a category</option>
+                      <option v-for="category in categories" :key="category" :value="category">
+                        {{ category }}
+                      </option>
+                    </select>
+                    <span v-if="validationErrors.category" class="error-message">{{ validationErrors.category }}</span>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="priority">Priority</label>
+                    <select 
+                      id="priority"
+                      v-model="newRequest.priority" 
+                      class="input-field" 
+                      required
+                    >
+                      <option value="" disabled>Select priority</option>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="urgent">Urgent</option>
+                    </select>
+                    <span v-if="validationErrors.priority" class="error-message">{{ validationErrors.priority }}</span>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="description">Description</label>
+                  <textarea 
+                    id="description"
+                    v-model="newRequest.description" 
+                    class="input-field textarea" 
+                    placeholder="Enter detailed description of the item(s)" 
+                    required
+                  ></textarea>
+                  <span v-if="validationErrors.description" class="error-message">{{ validationErrors.description }}</span>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="estimatedCost">Estimated Cost (₱)</label>
+                    <input 
+                      id="estimatedCost"
+                      v-model.number="newRequest.estimatedCost" 
+                      type="number" 
+                      min="0" 
+                      step="0.01"
+                      class="input-field" 
+                      placeholder="Enter estimated cost" 
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="requiredDate">Required By</label>
+                    <input 
+                      id="requiredDate"
+                      v-model="newRequest.requiredDate" 
+                      type="date" 
+                      class="input-field" 
+                      :min="minDate"
+                      required
+                    />
+                    <span v-if="validationErrors.requiredDate" class="error-message">{{ validationErrors.requiredDate }}</span>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="justification">Justification</label>
+                  <textarea 
+                    id="justification"
+                    v-model="newRequest.justification" 
+                    class="input-field textarea" 
+                    placeholder="Explain why this purchase is necessary" 
+                    required
+                  ></textarea>
+                  <span v-if="validationErrors.justification" class="error-message">{{ validationErrors.justification }}</span>
+                </div>
+
+                <!-- File Upload Section -->
+                <div class="form-group">
+                  <label class="form-label" for="prDocument">PR Document (PDF)</label>
+                  <input 
+                    id="prDocument"
+                    type="file"
+                    accept="application/pdf"
+                    class="input-field"
+                    @change="e => file = e.target.files[0]"
+                    required
+                  />
+                  <span v-if="fileError" class="error-message">{{ fileError }}</span>
+                </div>
+              </div>
+              
+              <div class="form-actions">
+                <button type="button" class="btn-secondary" @click="resetForm">Reset</button>
+                <button 
+                  type="submit" 
+                  class="btn-primary" 
+                  :disabled="isSubmitting"
+                >
+                  <span v-if="isSubmitting" class="spinner"></span>
+                  {{ isSubmitting ? 'Submitting...' : 'Submit Request' }}
+                </button>
+              </div>
+            </form>
+            
+            <!-- Success/Error Notification -->
+            <div v-if="notification.show" :class="['notification', notification.type]">
+              <div class="notification-content">
+                <span v-if="notification.type === 'success'" class="notification-icon success">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </span>
+                <span v-else class="notification-icon error">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                </span>
+                <p>{{ notification.message }}</p>
+                <button class="notification-close" @click="closeNotification">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -170,8 +323,9 @@
 
 <script>
 import { ref, computed, reactive } from "vue";
-import { db, auth } from "@/firebase";
+import { db, auth, storage } from "@/firebase";
 import { collection, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default {
   name: "PurchaseRequest",
@@ -216,6 +370,10 @@ export default {
       return today.toISOString().split('T')[0];
     });
     
+    // File upload state
+    const file = ref(null);
+    const fileError = ref("");
+    
     // Validate form
     const validateForm = () => {
       const errors = {};
@@ -250,6 +408,15 @@ export default {
         errors.justification = "Justification is required";
       }
       
+      // File validation
+      if (!file.value) {
+        fileError.value = "Please upload a PR document (PDF).";
+      } else if (file.value && file.value.type !== "application/pdf") {
+        fileError.value = "Only PDF files are allowed.";
+      } else {
+        fileError.value = "";
+      }
+      
       return errors;
     };
     
@@ -269,6 +436,13 @@ export default {
         delete validationErrors[key];
       });
       
+      // File validation
+      if (!file.value || file.value.type !== "application/pdf") {
+        fileError.value = !file.value ? "Please upload a PR document (PDF)." : "Only PDF files are allowed.";
+        showNotification("error", fileError.value);
+        return;
+      }
+      
       isSubmitting.value = true;
       
       try {
@@ -280,6 +454,12 @@ export default {
           return;
         }
         
+        // Upload file to Firebase Storage
+        const storagePath = `purchaseRequests/${currentUser.uid}/${Date.now()}_${file.value.name}`;
+        const fileStorageRef = storageRef(storage, storagePath);
+        await uploadBytes(fileStorageRef, file.value);
+        const fileURL = await getDownloadURL(fileStorageRef);
+        
         // Prepare request data
         const requestData = {
           ...newRequest,
@@ -287,7 +467,8 @@ export default {
           userEmail: currentUser.email,
           status: "pending",
           createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+          updatedAt: serverTimestamp(),
+          prDocumentURL: fileURL
         };
         
         // Add document to Firestore
@@ -330,6 +511,9 @@ export default {
       Object.keys(validationErrors).forEach(key => {
         delete validationErrors[key];
       });
+      
+      file.value = null;
+      fileError.value = "";
     };
     
     // Show notification
@@ -349,6 +533,20 @@ export default {
       notification.show = false;
     };
     
+    // Handle file input change
+    const onFileChange = (event) => {
+      const selectedFile = event.target.files[0];
+      file.value = selectedFile || null;
+      
+      // Validate file type
+      if (selectedFile && selectedFile.type !== "application/pdf") {
+        fileError.value = "Only PDF files are allowed.";
+        file.value = null;
+      } else {
+        fileError.value = "";
+      }
+    };
+    
     return {
       newRequest,
       validationErrors,
@@ -358,27 +556,169 @@ export default {
       minDate,
       submitRequest,
       resetForm,
-      closeNotification
+      closeNotification,
+      file,
+      fileError,
+      onFileChange
     };
   }
 };
 </script>
 
 <style scoped>
-.admin-wrapper {
-  min-height: 100vh;
+/* Main App Container */
+.app-container {
+  display: flex;
+  height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Fixed Left Sidebar */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 256px;
+  height: 100vh;
+  background-color: #1e3a5f;
+  color: white;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* User Profile Section */
+.user-profile {
+  padding: 24px;
+  border-bottom: 1px solid #2d4a6b;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  background-color: #4a90e2;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  flex-shrink: 0;
+}
+
+.avatar-text {
+  font-weight: bold;
+  font-size: 18px;
+  color: white;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.username {
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.user-role {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+/* Navigation Menu */
+.nav-menu {
+  padding: 16px 0;
+}
+
+.nav-section {
+  margin-bottom: 32px;
+}
+
+.section-header {
+  padding: 0 24px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
+  margin-bottom: 4px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: all 0.2s ease;
   position: relative;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.nav-link:hover {
+  background-color: #2d4a6b;
+  color: white;
+}
+
+.nav-link.active {
+  background-color: #2d4a6b;
+  color: white;
+  border-right: 3px solid #4a90e2;
+}
+
+.nav-link.logout {
+  color: #fca5a5;
+}
+
+.nav-link.logout:hover {
+  background-color: #dc2626;
+  color: white;
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.nav-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Main Content Area */
+.main-content {
+  margin-left: 256px;
+  flex: 1;
+  position: relative;
+  overflow-y: auto;
+}
+
+.content-wrapper {
+  padding: 24px;
+  min-height: 100vh;
 }
 
 /* Background Pattern */
 .background-pattern {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 256px;
+  right: 0;
+  bottom: 0;
   background-color: #1a1a2e;
   z-index: -1;
   overflow: hidden;
@@ -405,6 +745,7 @@ export default {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   position: relative;
+  margin: 0 auto;
 }
 
 .card-header {
@@ -650,12 +991,12 @@ export default {
   border-radius: 4px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  color: #718096;
+  background-color: #edf2f7;
 }
 
 .notification-close:hover {
-  color: #718096;
-  background-color: #edf2f7;
+  background-color: #e2e8f0;
 }
 
 @keyframes slideIn {
@@ -669,11 +1010,44 @@ export default {
   }
 }
 
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 240px;
+  }
+  
+  .main-content {
+    margin-left: 240px;
+  }
+  
+  .background-pattern {
+    left: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .background-pattern {
+    left: 0;
+  }
+  
+  .content-wrapper {
+    padding: 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .notification {
     animation: none;
   }
-  
   .spinner {
     animation: none;
   }

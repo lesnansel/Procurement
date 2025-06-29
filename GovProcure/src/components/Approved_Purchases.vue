@@ -1,273 +1,413 @@
 <template>
-  <div class="admin-wrapper">
-    <!-- Background Pattern -->
-    <div class="background-pattern">
-      <div class="pattern-overlay"></div>
-    </div>
-
-    <!-- Admin Card -->
-    <div class="admin-card">
-      <div class="card-header">
-        <div class="logo-container">
-          <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
-        </div>
-        <h1 class="title">Approved Purchases</h1>
-        <p class="subtitle">View and manage approved purchase requests</p>
+  <!-- Purchase Details Modal (move to root for true centering) -->
+  <div v-if="selectedPurchase" class="modal-overlay" @click="closeModal">
+    <div class="modal" @click.stop>
+      <div class="modal-header">
+        <h2 class="modal-title">Purchase Details</h2>
+        <button @click="closeModal" class="close-button" aria-label="Close modal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
-
-      <div class="card-content">
-        <!-- Search and Filter Controls -->
-        <div class="controls-container">
-          <div class="search-container">
-            <input 
-              type="text" 
-              v-model="searchQuery" 
-              placeholder="Search by item name or ID..." 
-              class="search-input"
-              aria-label="Search purchases"
-            />
-            <button class="search-button" @click="handleSearch" aria-label="Search">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </button>
+      <div class="modal-body">
+        <div class="detail-group">
+          <h3 class="detail-title">Request Information</h3>
+          <div class="detail-row">
+            <span class="detail-label">Request ID:</span>
+            <span class="detail-value">{{ selectedPurchase.requestId || selectedPurchase.id.substring(0, 8) }}</span>
           </div>
-          
-          <div class="filter-container">
-            <div class="filter-group">
-              <label for="dateFilter" class="filter-label">Date Range:</label>
-              <select id="dateFilter" v-model="dateFilter" class="filter-select">
-                <option value="all">All Time</option>
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="quarter">This Quarter</option>
-                <option value="year">This Year</option>
-              </select>
-            </div>
-            
-            <div class="filter-group">
-              <label for="sortBy" class="filter-label">Sort By:</label>
-              <select id="sortBy" v-model="sortBy" class="filter-select">
-                <option value="dateDesc">Date (Newest First)</option>
-                <option value="dateAsc">Date (Oldest First)</option>
-                <option value="nameAsc">Item Name (A-Z)</option>
-                <option value="nameDesc">Item Name (Z-A)</option>
-                <option value="quantityDesc">Quantity (High-Low)</option>
-                <option value="quantityAsc">Quantity (Low-High)</option>
-              </select>
-            </div>
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value status-badge approved">Approved</span>
           </div>
-        </div>
-
-        <!-- Loading State -->
-        <div v-if="loading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Loading approved purchases...</p>
+          <div class="detail-row">
+            <span class="detail-label">Date Submitted:</span>
+            <span class="detail-value">{{ formatDate(selectedPurchase.createdAt) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Date Approved:</span>
+            <span class="detail-value">{{ formatDate(selectedPurchase.dateApproved || selectedPurchase.updatedAt) }}</span>
+          </div>
         </div>
         
-        <!-- Error State -->
-        <div v-else-if="error" class="error-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-          <p>{{ error }}</p>
-          <button @click="fetchApprovedPurchases" class="retry-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path></svg>
-            Retry
-          </button>
+        <div class="detail-group">
+          <h3 class="detail-title">Item Details</h3>
+          <div class="detail-row">
+            <span class="detail-label">Item Name:</span>
+            <span class="detail-value">{{ selectedPurchase.itemName }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Category:</span>
+            <span class="detail-value">{{ selectedPurchase.category || 'N/A' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Quantity:</span>
+            <span class="detail-value">{{ selectedPurchase.quantity }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Description:</span>
+            <span class="detail-value">{{ selectedPurchase.description || 'No description provided' }}</span>
+          </div>
+          <div class="detail-row" v-if="selectedPurchase.estimatedCost">
+            <span class="detail-label">Estimated Cost:</span>
+            <span class="detail-value">₱{{ selectedPurchase.estimatedCost.toLocaleString() }}</span>
+          </div>
         </div>
         
-        <!-- Empty State -->
-        <div v-else-if="filteredPurchases.length === 0" class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-          <p v-if="searchQuery">No approved purchases match your search criteria.</p>
-          <p v-else>No approved purchases available.</p>
-          <button @click="resetFilters" class="reset-button">Reset Filters</button>
+        <div class="detail-group">
+          <h3 class="detail-title">Approval Information</h3>
+          <div class="detail-row">
+            <span class="detail-label">Approved By:</span>
+            <span class="detail-value">{{ selectedPurchase.approvedBy || 'System' }}</span>
+          </div>
+          <div class="detail-row" v-if="selectedPurchase.approvalNotes">
+            <span class="detail-label">Approval Notes:</span>
+            <span class="detail-value">{{ selectedPurchase.approvalNotes }}</span>
+          </div>
         </div>
 
-        <!-- Approved Purchases Table -->
-        <div v-else class="table-container">
-          <table class="purchases-table">
-            <thead>
-              <tr>
-                <th>Request ID</th>
-                <th>Item Name</th>
-                <th>Category</th>
-                <th>Quantity</th>
-                <th>Approved By</th>
-                <th>Date Approved</th>
-                <th>Bid Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="purchase in paginatedPurchases" :key="purchase.id">
-                <td class="id-cell">
-                  <span class="id-badge">{{ purchase.requestId || purchase.id.substring(0, 8) }}</span>
-                </td>
-                <td>{{ purchase.itemName }}</td>
-                <td>{{ purchase.category || 'N/A' }}</td>
-                <td>{{ purchase.quantity }}</td>
-                <td>{{ purchase.approvedBy || 'System' }}</td>
-                <td>{{ formatDate(purchase.dateApproved || purchase.updatedAt) }}</td>
-                <td>
-                  <span :class="['bid-status', getBidStatusClass(purchase)]">
-                    {{ getBidStatusText(purchase) }}
-                  </span>
-                </td>
-                <td>
-                  <div class="action-buttons">
-                    <button 
-                      @click="viewPurchaseDetails(purchase)" 
-                      class="action-button view"
-                      aria-label="View details"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    </button>
-                    <button 
-                      @click="navigateToSubmitBid(purchase)" 
-                      class="action-button bid"
-                      aria-label="Submit bid"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    </button>
-                    <button 
-                      @click="downloadPDF(purchase)" 
-                      class="action-button download"
-                      aria-label="Download PDF"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          
-          <!-- Pagination -->
-          <div class="pagination">
-            <button 
-              @click="prevPage" 
-              :disabled="currentPage === 1" 
-              class="pagination-button"
-              aria-label="Previous page"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </button>
-            <span class="pagination-info">Page {{ currentPage }} of {{ totalPages }}</span>
-            <button 
-              @click="nextPage" 
-              :disabled="currentPage === totalPages" 
-              class="pagination-button"
-              aria-label="Next page"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Purchase Details Modal -->
-    <div v-if="selectedPurchase" class="modal-overlay" @click="closeModal">
-      <div class="modal" @click.stop>
-        <div class="modal-header">
-          <h2 class="modal-title">Purchase Details</h2>
-          <button @click="closeModal" class="close-button" aria-label="Close modal">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="detail-group">
-            <h3 class="detail-title">Request Information</h3>
-            <div class="detail-row">
-              <span class="detail-label">Request ID:</span>
-              <span class="detail-value">{{ selectedPurchase.requestId || selectedPurchase.id.substring(0, 8) }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Status:</span>
-              <span class="detail-value status-badge approved">Approved</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Date Submitted:</span>
-              <span class="detail-value">{{ formatDate(selectedPurchase.createdAt) }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Date Approved:</span>
-              <span class="detail-value">{{ formatDate(selectedPurchase.dateApproved || selectedPurchase.updatedAt) }}</span>
-            </div>
-          </div>
-          
-          <div class="detail-group">
-            <h3 class="detail-title">Item Details</h3>
-            <div class="detail-row">
-              <span class="detail-label">Item Name:</span>
-              <span class="detail-value">{{ selectedPurchase.itemName }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Category:</span>
-              <span class="detail-value">{{ selectedPurchase.category || 'N/A' }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Quantity:</span>
-              <span class="detail-value">{{ selectedPurchase.quantity }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Description:</span>
-              <span class="detail-value">{{ selectedPurchase.description || 'No description provided' }}</span>
-            </div>
-            <div class="detail-row" v-if="selectedPurchase.estimatedCost">
-              <span class="detail-label">Estimated Cost:</span>
-              <span class="detail-value">₱{{ selectedPurchase.estimatedCost.toLocaleString() }}</span>
-            </div>
-          </div>
-          
-          <div class="detail-group">
-            <h3 class="detail-title">Approval Information</h3>
-            <div class="detail-row">
-              <span class="detail-label">Approved By:</span>
-              <span class="detail-value">{{ selectedPurchase.approvedBy || 'System' }}</span>
-            </div>
-            <div class="detail-row" v-if="selectedPurchase.approvalNotes">
-              <span class="detail-label">Approval Notes:</span>
-              <span class="detail-value">{{ selectedPurchase.approvalNotes }}</span>
-            </div>
-          </div>
-
-          <!-- Bid Attachments Section -->
-          <div class="detail-group">
-            <h3 class="detail-title">Bid Attachments</h3>
-            <div v-if="selectedPurchase.bidAttachments && selectedPurchase.bidAttachments.length > 0">
-              <div v-for="(attachment, index) in selectedPurchase.bidAttachments" :key="index" class="attachment-item">
-                <div class="attachment-info">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="attachment-icon"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                  <div>
-                    <div class="attachment-name">{{ attachment.fileName }}</div>
-                    <div class="attachment-meta">
-                      <span>{{ formatFileSize(attachment.fileSize) }}</span>
-                      <span>•</span>
-                      <span>{{ formatDate(attachment.uploadedAt) }}</span>
-                    </div>
+        <!-- Bid Attachments Section -->
+        <div class="detail-group">
+          <h3 class="detail-title">Bid Attachments</h3>
+          <div v-if="selectedPurchase.bidAttachments && selectedPurchase.bidAttachments.length > 0">
+            <div v-for="(attachment, index) in selectedPurchase.bidAttachments" :key="index" class="attachment-item">
+              <div class="attachment-info">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="attachment-icon"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                <div>
+                  <div class="attachment-name">{{ attachment.fileName }}</div>
+                  <div class="attachment-meta">
+                    <span>{{ formatFileSize(attachment.fileSize) }}</span>
+                    <span>•</span>
+                    <span>{{ formatDate(attachment.uploadedAt) }}</span>
                   </div>
                 </div>
-                <button @click="downloadAttachment(attachment)" class="attachment-download">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </div>
+              <button @click="downloadAttachment(attachment)" class="attachment-download">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </button>
+            </div>
+          </div>
+          <div v-else class="no-attachments">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            <p>No bid attachments yet</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="navigateToSubmitBid(selectedPurchase)" class="btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Submit Bid
+        </button>
+        <button @click="triggerFileInput" class="btn-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Upload PDF
+        </button>
+        <input ref="fileInput" type="file" accept="application/pdf" style="display:none" @change="handleFileUpload" />
+        <button @click="closeModal" class="btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Fixed Left Sidebar -->
+    <div class="sidebar">
+      <!-- User Profile Section -->
+      <div class="user-profile">
+        <div class="user-avatar">
+          <span class="avatar-text">JD</span>
+        </div>
+        <div class="user-info">
+          <div class="username">ansel</div>
+          <div class="user-role">user</div>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="nav-menu">
+        <!-- GENERAL Section -->
+        <div class="nav-section">
+          <div class="section-header">GENERAL</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                <span class="nav-text">Home</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <span class="nav-text">Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span class="nav-text">Profile</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- PROCUREMENT Section -->
+        <div class="nav-section">
+          <div class="section-header">PROCUREMENT</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span class="nav-text">Request Purchase</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="nav-text">Track Payments</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link active">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+                <span class="nav-text">PR Lists</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- USER MANAGEMENT Section -->
+        <div class="nav-section">
+          <div class="section-header">USER MANAGEMENT</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                <span class="nav-text">Edit Profile</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                </svg>
+                <span class="nav-text">Reset Password</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- ADMIN CONTROLS Section -->
+        <div class="nav-section">
+          <div class="section-header">ADMIN CONTROLS</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span class="nav-text">View Profile</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span class="nav-text">Settings</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link logout">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                <span class="nav-text">Log Out</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Background Pattern -->
+      <div class="background-pattern">
+        <div class="pattern-overlay"></div>
+      </div>
+
+      <!-- Approved Purchases Content -->
+      <div class="content-wrapper">
+        <div class="admin-card">
+          <div class="card-header">
+            <div class="logo-container">
+              <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+            </div>
+            <h1 class="title">Approved Purchases</h1>
+            <p class="subtitle">View and manage approved purchase requests</p>
+          </div>
+
+          <div class="card-content">
+            <!-- Search and Filter Controls -->
+            <div class="controls-container">
+              <div class="search-container">
+                <input 
+                  type="text" 
+                  v-model="searchQuery" 
+                  placeholder="Search by item name or ID..." 
+                  class="search-input"
+                  aria-label="Search purchases"
+                />
+                <button class="search-button" @click="handleSearch" aria-label="Search">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </button>
+              </div>
+              
+              <div class="filter-container">
+                <div class="filter-group">
+                  <label for="dateFilter" class="filter-label">Date Range:</label>
+                  <select id="dateFilter" v-model="dateFilter" class="filter-select">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="quarter">This Quarter</option>
+                    <option value="year">This Year</option>
+                  </select>
+                </div>
+                
+                <div class="filter-group">
+                  <label for="sortBy" class="filter-label">Sort By:</label>
+                  <select id="sortBy" v-model="sortBy" class="filter-select">
+                    <option value="dateDesc">Date (Newest First)</option>
+                    <option value="dateAsc">Date (Oldest First)</option>
+                    <option value="nameAsc">Item Name (A-Z)</option>
+                    <option value="nameDesc">Item Name (Z-A)</option>
+                    <option value="quantityDesc">Quantity (High-Low)</option>
+                    <option value="quantityAsc">Quantity (Low-High)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Loading State -->
+            <div v-if="loading" class="loading-state">
+              <div class="loading-spinner"></div>
+              <p>Loading approved purchases...</p>
+            </div>
+            
+            <!-- Error State -->
+            <div v-else-if="error" class="error-state">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <p>{{ error }}</p>
+              <button @click="fetchApprovedPurchases" class="retry-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path></svg>
+                Retry
+              </button>
+            </div>
+            
+            <!-- Empty State -->
+            <div v-else-if="filteredPurchases.length === 0" class="empty-state">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <p v-if="searchQuery">No approved purchases match your search criteria.</p>
+              <p v-else>No approved purchases available.</p>
+              <button @click="resetFilters" class="reset-button">Reset Filters</button>
+            </div>
+
+            <!-- Approved Purchases Table -->
+            <div v-else class="table-container">
+              <table class="purchases-table">
+                <thead>
+                  <tr>
+                    <th>Request ID</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Approved By</th>
+                    <th>Date Approved</th>
+                    <th>Bid Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="purchase in paginatedPurchases" :key="purchase.id">
+                    <td class="id-cell">
+                      <span class="id-badge">{{ purchase.requestId || purchase.id.substring(0, 8) }}</span>
+                    </td>
+                    <td>{{ purchase.itemName }}</td>
+                    <td>{{ purchase.category || 'N/A' }}</td>
+                    <td>{{ purchase.quantity }}</td>
+                    <td>{{ purchase.approvedBy || 'System' }}</td>
+                    <td>{{ formatDate(purchase.dateApproved || purchase.updatedAt) }}</td>
+                    <td>
+                      <span :class="['bid-status', getBidStatusClass(purchase)]">
+                        {{ getBidStatusText(purchase) }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="action-buttons">
+                        <button 
+                          @click="viewPurchaseDetails(purchase)" 
+                          class="action-button view"
+                          aria-label="View details"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                        <button 
+                          @click="navigateToSubmitBid(purchase)" 
+                          class="action-button bid"
+                          aria-label="Submit bid"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        </button>
+                        <button 
+                          @click="downloadPDF(purchase)" 
+                          class="action-button download"
+                          aria-label="Download PDF"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              
+              <!-- Pagination -->
+              <div class="pagination">
+                <button 
+                  @click="prevPage" 
+                  :disabled="currentPage === 1" 
+                  class="pagination-button"
+                  aria-label="Previous page"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <span class="pagination-info">Page {{ currentPage }} of {{ totalPages }}</span>
+                <button 
+                  @click="nextPage" 
+                  :disabled="currentPage === totalPages" 
+                  class="pagination-button"
+                  aria-label="Next page"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </button>
               </div>
             </div>
-            <div v-else class="no-attachments">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-              <p>No bid attachments yet</p>
-            </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button @click="navigateToSubmitBid(selectedPurchase)" class="btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            Submit Bid
-          </button>
-          <button @click="downloadPDF(selectedPurchase)" class="btn-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Download PDF
-          </button>
-          <button @click="closeModal" class="btn-secondary">Close</button>
         </div>
       </div>
     </div>
@@ -276,14 +416,17 @@
 
 <script>
 import { ref, computed, onMounted, watch } from "vue";
-import { db } from "@/firebase";
+import { db, storage } from "@/firebase";
 import { 
   collection, 
   getDocs, 
   query, 
   where, 
-  Timestamp 
+  Timestamp, 
+  doc, 
+  updateDoc 
 } from "firebase/firestore";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from 'vue-router';
 
 export default {
@@ -302,6 +445,7 @@ export default {
     const currentPage = ref(1);
     const itemsPerPage = ref(10);
     const selectedPurchase = ref(null);
+    const fileInput = ref(null);
     
     // Updated fetch function with debug logging
     const fetchApprovedPurchases = async () => {
@@ -448,7 +592,7 @@ export default {
             break;
           }
           case "week": {
-            startDate = new Date(now.setDate(now.getDate() - now.getDay()));
+            startDate = new Date(now.getDate() - now.getDay());
             break;
           }
           case "month": {
@@ -584,6 +728,46 @@ export default {
       }
     };
     
+    // Trigger file input click
+    const triggerFileInput = () => {
+      fileInput.value && fileInput.value.click();
+    };
+    
+    // Handle file upload
+    const handleFileUpload = async (event) => {
+      const file = event.target.files[0];
+      if (!file || file.type !== "application/pdf") {
+        alert("Please select a valid PDF file.");
+        return;
+      }
+      if (!selectedPurchase.value) {
+        alert("No purchase selected.");
+        return;
+      }
+      try {
+        const storagePath = `approvedPurchases/${selectedPurchase.value.id}/${Date.now()}_${file.name}`;
+        const fileStorageRef = storageRef(storage, storagePath);
+        await uploadBytes(fileStorageRef, file);
+        // After upload, add the file to bidAttachments and update Firestore
+        const fileURL = await getDownloadURL(fileStorageRef); // eslint-disable-line no-unused-vars
+        const newAttachment = {
+          fileName: file.name,
+          fileSize: file.size,
+          fileUrl: fileURL,
+          uploadedAt: new Date(),
+        };
+        // Update Firestore
+        const docRef = doc(db, "purchaseRequests", selectedPurchase.value.id);
+        const updatedAttachments = [...(selectedPurchase.value.bidAttachments || []), newAttachment];
+        await updateDoc(docRef, { bidAttachments: updatedAttachments });
+        // Update local state so UI updates immediately
+        selectedPurchase.value.bidAttachments = updatedAttachments;
+        alert("PDF uploaded and attached successfully!");
+      } catch (error) {
+        alert("Failed to upload PDF: " + error.message);
+      }
+    };
+    
     // Fetch data on component mount
     onMounted(fetchApprovedPurchases);
     
@@ -599,6 +783,7 @@ export default {
       paginatedPurchases,
       totalPages,
       selectedPurchase,
+      fileInput,
       formatDate,
       formatFileSize,
       getBidStatusText,
@@ -612,27 +797,168 @@ export default {
       closeModal,
       downloadPDF,
       navigateToSubmitBid,
-      downloadAttachment
+      downloadAttachment,
+      triggerFileInput,
+      handleFileUpload
     };
   }
 };
 </script>
 
 <style scoped>
-.admin-wrapper {
-  min-height: 100vh;
+/* Main App Container */
+.app-container {
+  display: flex;
+  height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Fixed Left Sidebar */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 256px;
+  height: 100vh;
+  background-color: #1e3a5f;
+  color: white;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* User Profile Section */
+.user-profile {
+  padding: 24px;
+  border-bottom: 1px solid #2d4a6b;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  background-color: #4a90e2;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  flex-shrink: 0;
+}
+
+.avatar-text {
+  font-weight: bold;
+  font-size: 18px;
+  color: white;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.username {
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.user-role {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+/* Navigation Menu */
+.nav-menu {
+  padding: 16px 0;
+}
+
+.nav-section {
+  margin-bottom: 32px;
+}
+
+.section-header {
+  padding: 0 24px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
+  margin-bottom: 4px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: all 0.2s ease;
   position: relative;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.nav-link:hover {
+  background-color: #2d4a6b;
+  color: white;
+}
+
+.nav-link.active {
+  background-color: #2d4a6b;
+  color: white;
+  border-right: 3px solid #4a90e2;
+}
+
+.nav-link.logout {
+  color: #fca5a5;
+}
+
+.nav-link.logout:hover {
+  background-color: #dc2626;
+  color: white;
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.nav-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Main Content Area */
+.main-content {
+  margin-left: 256px;
+  flex: 1;
+  position: relative;
+  overflow-y: auto;
+}
+
+.content-wrapper {
+  padding: 24px;
+  min-height: 100vh;
 }
 
 /* Background Pattern */
 .background-pattern {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 256px;
+  right: 0;
+  bottom: 0;
   background-color: #1a1a2e;
   z-index: -1;
   overflow: hidden;
@@ -662,6 +988,7 @@ export default {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   position: relative;
+  margin: 0 auto;
 }
 
 .card-header {
@@ -1024,13 +1351,17 @@ export default {
 /* Modal */
 .modal-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
-  padding: 20px;
+  z-index: 9999;
+  padding: 0;
+  pointer-events: auto;
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -1041,9 +1372,10 @@ export default {
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
-  overflow: hidden;
+  overflow: auto;
   display: flex;
   flex-direction: column;
+  margin: 0 auto;
   animation: slideUp 0.3s ease-out;
 }
 
@@ -1257,8 +1589,39 @@ export default {
   }
 }
 
-/* Responsive Adjustments */
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 240px;
+  }
+  
+  .main-content {
+    margin-left: 240px;
+  }
+  
+  .background-pattern {
+    left: 240px;
+  }
+}
+
 @media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .background-pattern {
+    left: 0;
+  }
+  
+  .content-wrapper {
+    padding: 16px;
+  }
+  
   .controls-container {
     flex-direction: column;
     align-items: stretch;

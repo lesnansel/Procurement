@@ -1,81 +1,181 @@
 <template>
-  <div class="admin-wrapper">
-    <!-- Background Pattern -->
-    <div class="background-pattern">
-      <div class="pattern-overlay"></div>
-    </div>
+  <div>
+    <div class="admin-wrapper">
+      <!-- Background Pattern -->
+      <div class="background-pattern">
+        <div class="pattern-overlay"></div>
+      </div>
 
-    <!-- Admin Card -->
-    <div class="admin-card">
-      <div class="card-header">
-        <div class="header-content">
-          <div class="logo-container">
-            <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+      <!-- Admin Card -->
+      <div class="admin-card">
+        <div class="card-header">
+          <div class="header-content">
+            <div class="logo-container">
+              <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+            </div>
+            <div class="header-text">
+              <h1 class="title">Bid Details</h1>
+              <p class="subtitle">View detailed information about the selected bid</p>
+            </div>
           </div>
-          <div class="header-text">
-            <h1 class="title">Bid Details</h1>
-            <p class="subtitle">View detailed information about the selected bid</p>
+        </div>
+
+        <div class="card-content">
+          <!-- Loading State -->
+          <div v-if="loading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading bid details...</p>
+          </div>
+
+          <!-- Bid Details -->
+          <div v-else>
+            <div class="detail-section">
+              <h3 class="detail-section-title">Bid Information</h3>
+              <div class="detail-row">
+                <span class="detail-label">Bidder Name:</span>
+                <span class="detail-value">{{ bid.bidderName || 'Anonymous Vendor' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Bid Amount:</span>
+                <span class="detail-value">{{ formatCurrency(bid.bidPrice) }} {{ bid.currency }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Submission Date:</span>
+                <span class="detail-value">{{ formatDate(bid.submissionDate) }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="status-badge" :class="`status-${bid.status?.toLowerCase()}`">
+                  {{ bid.status || 'Pending' }}
+                </span>
+              </div>
+              <!-- Bid Document Viewer/Download -->
+              <div class="detail-row" v-if="bid.documentUrl">
+                <span class="detail-label">Bid Document:</span>
+                <span class="detail-value"><a :href="bid.documentUrl" target="_blank">View Submitted Bid Document</a></span>
+              </div>
+            </div>
+
+            <!-- Scoring Breakdown -->
+            <div class="detail-section" v-if="bid.technicalScore !== undefined || bid.financialScore !== undefined">
+              <h3 class="detail-section-title">Scoring Breakdown</h3>
+              <div class="detail-row" v-if="bid.technicalScore !== undefined">
+                <span class="detail-label">Technical Score:</span>
+                <span class="detail-value">{{ bid.technicalScore }}%</span>
+              </div>
+              <div class="detail-row" v-if="bid.financialScore !== undefined">
+                <span class="detail-label">Financial Score:</span>
+                <span class="detail-value">{{ bid.financialScore }}%</span>
+              </div>
+              <div class="detail-row" v-if="bid.technicalScore !== undefined && bid.financialScore !== undefined">
+                <span class="detail-label">Total Score:</span>
+                <span class="detail-value">{{ (bid.technicalScore * 0.6 + bid.financialScore * 0.4).toFixed(2) }}%</span>
+              </div>
+            </div>
+
+            <!-- Evaluator Remarks -->
+            <div class="detail-section" v-if="bid.remarks">
+              <h3 class="detail-section-title">Evaluator Remarks</h3>
+              <p class="detail-value">"{{ bid.remarks }}"</p>
+            </div>
+
+            <!-- Checklist Status -->
+            <div class="detail-section" v-if="bid.checklist">
+              <h3 class="detail-section-title">Document Checklist</h3>
+              <ul>
+                <li>Mayor’s Permit: <span v-if="bid.checklist.mayorsPermit">✅</span><span v-else>❌</span></li>
+                <li>Tax Clearance: <span v-if="bid.checklist.taxClearance">✅</span><span v-else>❌</span></li>
+                <li>Audited FS: <span v-if="bid.checklist.auditedFS">✅</span><span v-else>❌</span></li>
+                <li>Technical Specs: <span v-if="bid.checklist.technicalSpecs">✅</span><span v-else>❌</span></li>
+              </ul>
+            </div>
+
+            <!-- Timeline / Audit Trail -->
+            <div class="detail-section">
+              <h3 class="detail-section-title">Timeline / Audit Trail</h3>
+              <div class="detail-row">
+                <span class="detail-label">Submitted:</span>
+                <span class="detail-value">{{ formatDate(bid.submissionDate) }}</span>
+              </div>
+              <div class="detail-row" v-if="bid.evaluatedByName">
+                <span class="detail-label">Evaluated by:</span>
+                <span class="detail-value">{{ bid.evaluatedByName }}</span>
+              </div>
+              <div class="detail-row" v-if="bid.evaluatedAt">
+                <span class="detail-label">Evaluated on:</span>
+                <span class="detail-value">{{ bid.evaluatedAt?.toDate ? bid.evaluatedAt.toDate().toLocaleString() : formatDate(bid.evaluatedAt) }}</span>
+              </div>
+              <div class="detail-row" v-if="bid.approvedAt">
+                <span class="detail-label">Approved on:</span>
+                <span class="detail-value">{{ bid.approvedAt?.toDate ? bid.approvedAt.toDate().toLocaleString() : formatDate(bid.approvedAt) }}</span>
+              </div>
+              <div class="detail-row" v-if="bid.rejectedAt">
+                <span class="detail-label">Rejected on:</span>
+                <span class="detail-value">{{ bid.rejectedAt?.toDate ? bid.rejectedAt.toDate().toLocaleString() : formatDate(bid.rejectedAt) }}</span>
+              </div>
+            </div>
+
+            <div class="detail-section" v-if="bid.description">
+              <h3 class="detail-section-title">Description</h3>
+              <p class="detail-value">{{ bid.description }}</p>
+            </div>
+
+            <div class="detail-section" v-if="bid.notes">
+              <h3 class="detail-section-title">Notes</h3>
+              <p class="detail-value">{{ bid.notes }}</p>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button @click="goBack" class="btn-back">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              Back
+            </button>
+            <button @click="showApproveModal = true" class="btn-approve">
+              Approve Bid
+            </button>
+            <button @click="showRejectModal = true" class="btn-reject">
+              Reject Bid
+            </button>
+            <button @click="requestMoreInfo" class="btn-info">
+              Request More Info
+            </button>
           </div>
         </div>
       </div>
-
-      <div class="card-content">
-        <!-- Loading State -->
-        <div v-if="loading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Loading bid details...</p>
+    </div>
+    <!-- Approve Confirmation Modal -->
+    <div v-if="showApproveModal" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;">
+      <div style="background:#fff;padding:32px 24px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.25);min-width:320px;max-width:90vw;text-align:center;">
+        <h2 style="margin-bottom:16px;font-size:2rem;font-weight:700;color:#0f2942;">Confirm Approval</h2>
+        <p style="margin-bottom:24px;font-size:1.15rem;font-weight:500;color:#1e293b;">Are you sure you want to approve this bid?</p>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <button @click="approveBid" style="background:#059669;color:#fff;padding:10px 20px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:1.1rem;">Yes, Approve</button>
+          <button @click="showApproveModal = false" style="background:#f1f5f9;color:#64748b;padding:10px 20px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:1.1rem;">Cancel</button>
         </div>
-
-        <!-- Bid Details -->
-        <div v-else>
-          <div class="detail-section">
-            <h3 class="detail-section-title">Bid Information</h3>
-            <div class="detail-row">
-              <span class="detail-label">Bidder Name:</span>
-              <span class="detail-value">{{ bid.bidderName || 'Anonymous Vendor' }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Bid Amount:</span>
-              <span class="detail-value">{{ formatCurrency(bid.bidPrice) }} {{ bid.currency }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Submission Date:</span>
-              <span class="detail-value">{{ formatDate(bid.submissionDate) }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Status:</span>
-              <span class="status-badge" :class="`status-${bid.status?.toLowerCase()}`">
-                {{ bid.status || 'Pending' }}
-              </span>
-            </div>
-          </div>
-
-          <div class="detail-section" v-if="bid.description">
-            <h3 class="detail-section-title">Description</h3>
-            <p class="detail-value">{{ bid.description }}</p>
-          </div>
-
-          <div class="detail-section" v-if="bid.notes">
-            <h3 class="detail-section-title">Notes</h3>
-            <p class="detail-value">{{ bid.notes }}</p>
-          </div>
+      </div>
+    </div>
+    <!-- Reject Confirmation Modal -->
+    <div v-if="showRejectModal" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;">
+      <div style="background:#fff;padding:32px 24px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.25);min-width:320px;max-width:90vw;text-align:center;">
+        <h2 style="margin-bottom:16px;font-size:2rem;font-weight:700;color:#b91c1c;">Confirm Rejection</h2>
+        <p style="margin-bottom:24px;font-size:1.15rem;font-weight:500;color:#b91c1c;">Are you sure you want to reject this bid?</p>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <button @click="rejectBid" style="background:#dc2626;color:#fff;padding:10px 20px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:1.1rem;">Yes, Reject</button>
+          <button @click="showRejectModal = false" style="background:#f1f5f9;color:#64748b;padding:10px 20px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:1.1rem;">Cancel</button>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-          <button @click="goBack" class="btn-back">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            Back
-          </button>
-          <button @click="approveBid" class="btn-approve">
-            Approve Bid
-          </button>
-          <button @click="rejectBid" class="btn-reject">
-            Reject Bid
-          </button>
-          <button @click="requestMoreInfo" class="btn-info">
-            Request More Info
-          </button>
+      </div>
+    </div>
+    <!-- Request More Info Modal -->
+    <div v-if="showRequestInfoModal" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;">
+      <div style="background:#fff;padding:32px 24px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.25);min-width:320px;max-width:90vw;text-align:center;">
+        <h2 style="margin-bottom:16px;font-size:2rem;font-weight:700;color:#2563eb;">Request More Information</h2>
+        <p style="margin-bottom:16px;font-size:1.15rem;font-weight:500;color:#1e293b;">Enter the additional information you need from the bidder:</p>
+        <textarea v-model="requestInfoText" style="width:100%;min-height:80px;margin-bottom:24px;padding:8px 12px;border-radius:6px;border:1px solid #ccc;resize:vertical;font-size:1.1rem;"></textarea>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <button @click="submitRequestInfo" style="background:#2563eb;color:#fff;padding:10px 20px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:1.1rem;">Send Request</button>
+          <button @click="showRequestInfoModal = false" style="background:#f1f5f9;color:#64748b;padding:10px 20px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:1.1rem;">Cancel</button>
         </div>
       </div>
     </div>
@@ -95,6 +195,10 @@ export default {
     const bidId = route.params.id;
     const bid = ref({});
     const loading = ref(true);
+    const showApproveModal = ref(false);
+    const showRejectModal = ref(false);
+    const showRequestInfoModal = ref(false);
+    const requestInfoText = ref("");
 
     const fetchBidDetails = async () => {
       try {
@@ -117,7 +221,7 @@ export default {
     const approveBid = async () => {
       try {
         const bidRef = doc(db, "bids", bidId);
-        await updateDoc(bidRef, { status: "Approved" });
+        await updateDoc(bidRef, { status: "Approved", approvedAt: new Date() });
         alert("Bid approved successfully!");
         router.push("/admin-bid-review");
       } catch (error) {
@@ -129,7 +233,7 @@ export default {
     const rejectBid = async () => {
       try {
         const bidRef = doc(db, "bids", bidId);
-        await updateDoc(bidRef, { status: "Rejected" });
+        await updateDoc(bidRef, { status: "Rejected", rejectedAt: new Date() });
         alert("Bid rejected successfully!");
         router.push("/admin-bid-review");
       } catch (error) {
@@ -138,15 +242,22 @@ export default {
       }
     };
 
-    const requestMoreInfo = async () => {
+    const requestMoreInfo = () => {
+      showRequestInfoModal.value = true;
+      requestInfoText.value = "";
+    };
+
+    const submitRequestInfo = async () => {
       try {
-        const info = prompt("Enter the additional information you need:");
-        if (info) {
-          const bidRef = doc(db, "bids", bidId);
-          await updateDoc(bidRef, { status: "More Info Requested", infoRequested: info });
-          alert("Information request sent successfully!");
-          router.push("/admin-bid-review");
+        if (!requestInfoText.value.trim()) {
+          alert("Please enter your request.");
+          return;
         }
+        const bidRef = doc(db, "bids", bidId);
+        await updateDoc(bidRef, { status: "More Info Requested", infoRequested: requestInfoText.value });
+        alert("Information request sent successfully!");
+        showRequestInfoModal.value = false;
+        router.push("/admin-bid-review");
       } catch (error) {
         console.error("Error requesting more information:", error);
         alert("Failed to request more information.");
@@ -186,6 +297,11 @@ export default {
       goBack,
       formatCurrency,
       formatDate,
+      showApproveModal,
+      showRejectModal,
+      showRequestInfoModal,
+      requestInfoText,
+      submitRequestInfo,
     };
   },
 };

@@ -1,188 +1,190 @@
 <template>
-  <div class="admin-wrapper">
+  <div class="main-content">
     <AdminNavigationBar />
-    <!-- Background Pattern -->
-    <div class="background-pattern">
-      <div class="pattern-overlay"></div>
-    </div>
-
-    <!-- Admin Card -->
-    <div class="admin-card">
-      <div class="card-header">
-        <div class="logo-container">
-          <img src="/placeholder.svg?height=70&width=70" alt="Procurement System Logo" class="logo" />
-        </div>
-        <h1 class="title">User Management</h1>
-        <p class="subtitle">Manage system users and their permissions</p>
+    <div class="admin-wrapper">
+      <!-- Background Pattern -->
+      <div class="background-pattern">
+        <div class="pattern-overlay"></div>
       </div>
 
-      <div class="card-content">
-        <!-- Search and Filter -->
-        <div class="controls">
-          <div class="search-box">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input 
-              type="text" 
-              v-model="searchQuery" 
-              placeholder="Search users..."
-              @input="filterUsers"
-            >
+      <!-- Admin Card -->
+      <div class="admin-card">
+        <div class="card-header">
+          <div class="logo-container">
+            <img src="/placeholder.svg?height=70&width=70" alt="Procurement System Logo" class="logo" />
           </div>
-          <select v-model="statusFilter" @change="filterUsers" class="filter-select">
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="deactivated">Deactivated</option>
-          </select>
-          <select v-model="roleFilter" @change="filterUsers" class="filter-select">
-            <option value="all">All Roles</option>
-            <option value="user">Users</option>
-            <option value="admin">Admins</option>
-          </select>
+          <h1 class="title">User Management</h1>
+          <p class="subtitle">Manage system users and their permissions</p>
         </div>
 
-        <!-- Loading State -->
-        <div v-if="loading" class="loading-state">
-          <div class="spinner"></div>
-          <p>Loading users...</p>
-        </div>
+        <div class="card-content">
+          <!-- Search and Filter -->
+          <div class="controls">
+            <div class="search-box">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                placeholder="Search users..."
+                @input="filterUsers"
+              >
+            </div>
+            <select v-model="statusFilter" @change="filterUsers" class="filter-select">
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="deactivated">Deactivated</option>
+            </select>
+            <select v-model="roleFilter" @change="filterUsers" class="filter-select">
+              <option value="all">All Roles</option>
+              <option value="user">Users</option>
+              <option value="admin">Admins</option>
+            </select>
+          </div>
 
-        <!-- Error Message -->
-        <div v-else-if="errorMessage" class="error-container">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-          <p>{{ errorMessage }}</p>
-          <button @click="fetchUsers" class="retry-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="retry-icon"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
-            Retry
-          </button>
-        </div>
+          <!-- Loading State -->
+          <div v-if="loading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading users...</p>
+          </div>
 
-        <!-- Users Table -->
-        <div v-else-if="filteredUsers.length" class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>
-                  <div class="th-content">
-                    <span>User</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" @click="sortUsers('username')"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-                  </div>
-                </th>
-                <th>
-                  <div class="th-content">
-                    <span>Email</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" @click="sortUsers('email')"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-                  </div>
-                </th>
-                <th>
-                  <div class="th-content">
-                    <span>Role</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" @click="sortUsers('role')"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-                  </div>
-                </th>
-                <th>
-                  <div class="th-content">
-                    <span>Status</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" @click="sortUsers('status')"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-                  </div>
-                </th>
-                <th>
-                  <div class="th-content">
-                    <span>Last Active</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" @click="sortUsers('lastActive')"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-                  </div>
-                </th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="user in paginatedUsers" :key="user.id" :class="{ 'deactivated': user.status === 'deactivated' }">
-                <td>
-                  <div class="user-info">
-                    <img :src="user.profileImageUrl || defaultAvatar" :alt="user.username">
-                    <span>{{ user.username || "Unknown" }}</span>
-                  </div>
-                </td>
-                <td>{{ user.email }}</td>
-                <td>
-                  <div class="role-badge" :class="user.role">
-                    <select 
-                      v-model="user.role" 
-                      @change="updateUserRole(user)"
-                      :disabled="user.status === 'deactivated'"
-                    >
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge" :class="user.status">
-                    <svg v-if="user.status === 'active'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="status-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="status-icon"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                    {{ user.status === 'deactivated' ? 'Deactivated' : 'Active' }}
-                  </span>
-                </td>
-                <td>
-                  <span class="last-active">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="clock-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    {{ formatLastActive(user.lastLogin) }}
-                  </span>
-                </td>
-                <td>
-                  <div class="action-buttons">
-                    <button 
-                      v-if="user.status === 'active'" 
-                      @click="confirmDeactivation(user)" 
-                      class="action-btn deactivate"
-                      title="Deactivate User"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="4" x2="7" y2="20"/></svg>
-                    </button>
-                    <button 
-                      v-else 
-                      @click="confirmReactivation(user)" 
-                      class="action-btn reactivate"
-                      title="Reactivate User"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
-                    </button>
-                    <button 
-                      @click="confirmDeletion(user)" 
-                      class="action-btn delete"
-                      title="Delete User"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- Pagination -->
-          <div class="pagination">
-            <button 
-              @click="prevPage" 
-              :disabled="currentPage === 1"
-              class="page-btn"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <span>Page {{ currentPage }} of {{ totalPages }}</span>
-            <button 
-              @click="nextPage" 
-              :disabled="currentPage === totalPages"
-              class="page-btn"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          <!-- Error Message -->
+          <div v-else-if="errorMessage" class="error-container">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            <p>{{ errorMessage }}</p>
+            <button @click="fetchUsers" class="retry-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="retry-icon"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+              Retry
             </button>
           </div>
-        </div>
 
-        <div v-else class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-          <p>No users found</p>
-          <span>Try adjusting your search or filters</span>
+          <!-- Users Table -->
+          <div v-else-if="filteredUsers.length" class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>
+                    <div class="th-content">
+                      <span>User</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" @click="sortUsers('username')"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="th-content">
+                      <span>Email</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" @click="sortUsers('email')"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="th-content">
+                      <span>Role</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" @click="sortUsers('role')"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="th-content">
+                      <span>Status</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" @click="sortUsers('status')"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="th-content">
+                      <span>Last Active</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" @click="sortUsers('lastActive')"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                    </div>
+                  </th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="user in paginatedUsers" :key="user.id" :class="{ 'deactivated': user.status === 'deactivated' }">
+                  <td>
+                    <div class="user-info">
+                      <img :src="user.profileImageUrl || defaultAvatar" :alt="user.username">
+                      <span>{{ user.username || "Unknown" }}</span>
+                    </div>
+                  </td>
+                  <td>{{ user.email }}</td>
+                  <td>
+                    <div class="role-badge" :class="user.role">
+                      <select 
+                        v-model="user.role" 
+                        @change="updateUserRole(user)"
+                        :disabled="user.status === 'deactivated'"
+                      >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge" :class="user.status">
+                      <svg v-if="user.status === 'active'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="status-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                      <svg v-else xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="status-icon"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                      {{ user.status === 'deactivated' ? 'Deactivated' : 'Active' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="last-active">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="clock-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      {{ formatLastActive(user.lastLogin) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button 
+                        v-if="user.status === 'active'" 
+                        @click="confirmDeactivation(user)" 
+                        class="action-btn deactivate"
+                        title="Deactivate User"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="4" x2="7" y2="20"/></svg>
+                      </button>
+                      <button 
+                        v-else 
+                        @click="confirmReactivation(user)" 
+                        class="action-btn reactivate"
+                        title="Reactivate User"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                      </button>
+                      <button 
+                        @click="confirmDeletion(user)" 
+                        class="action-btn delete"
+                        title="Delete User"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination">
+              <button 
+                @click="prevPage" 
+                :disabled="currentPage === 1"
+                class="page-btn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <span>Page {{ currentPage }} of {{ totalPages }}</span>
+              <button 
+                @click="nextPage" 
+                :disabled="currentPage === totalPages"
+                class="page-btn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div v-else class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+            <p>No users found</p>
+            <span>Try adjusting your search or filters</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1062,5 +1064,25 @@ tr.deactivated td {
   .action-btn:hover {
     transform: none;
   }
+}
+
+.user-info span {
+  color: #222;
+  font-weight: 500;
+}
+
+/* Make email text in the second column more visible */
+td:nth-child(2) {
+  color: #222;
+  font-weight: 500;
+}
+
+.main-content {
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.collapsed {
+  margin-left: 0;
 }
 </style>

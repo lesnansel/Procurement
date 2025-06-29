@@ -87,6 +87,13 @@
             </div>
           </div>
 
+          <div class="form-group">
+            <label class="form-label">Supporting Document (optional)</label>
+            <input type="file" @change="handleFileUpload" class="input-field" />
+            <span v-if="fileName">Selected: {{ fileName }}</span>
+            <span v-if="fileURL"><a :href="fileURL" target="_blank" class="document-link">View Uploaded</a></span>
+          </div>
+
           <div class="form-actions">
             <button type="submit" class="btn-primary">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
@@ -108,6 +115,7 @@ import { ref } from "vue";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/firebase";
 import { useRouter } from "vue-router";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default {
   name: "AddQualification",
@@ -120,11 +128,29 @@ export default {
       evaluationDate: new Date().toISOString().split("T")[0],
       evaluator: "",
     });
+    const file = ref(null);
+    const fileName = ref("");
+    const fileURL = ref("");
+    const storage = getStorage();
+
+    const handleFileUpload = async (event) => {
+      const selected = event.target.files[0];
+      if (selected) {
+        file.value = selected;
+        fileName.value = selected.name;
+        // Upload to Firebase Storage
+        const storagePath = `qualification-supporting/${Date.now()}_${selected.name}`;
+        const fileRef = storageRef(storage, storagePath);
+        await uploadBytes(fileRef, selected);
+        fileURL.value = await getDownloadURL(fileRef);
+      }
+    };
 
     const submitQualification = async () => {
       try {
         await addDoc(collection(db, "qualifications"), {
           ...qualification.value,
+          supportingFile: fileURL.value || "",
           createdAt: serverTimestamp(),
         });
         alert("Qualification added successfully!");
@@ -143,6 +169,9 @@ export default {
         evaluationDate: new Date().toISOString().split("T")[0],
         evaluator: "",
       };
+      file.value = null;
+      fileName.value = "";
+      fileURL.value = "";
     };
 
     const navigateBack = () => {
@@ -153,6 +182,9 @@ export default {
       qualification,
       submitQualification,
       navigateBack,
+      handleFileUpload,
+      fileName,
+      fileURL,
     };
   },
 };
@@ -216,14 +248,16 @@ export default {
 }
 
 .title {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 700;
+  color: #1e293b;
   margin-bottom: 8px;
 }
 
 .subtitle {
-  font-size: 0.95rem;
-  opacity: 0.8;
+  font-size: 1.1rem;
+  color: #64748b;
+  opacity: 0.9;
 }
 
 .card-content {
@@ -239,27 +273,37 @@ export default {
 .form-group {
   display: flex;
   flex-direction: column;
+  margin-bottom: 10px;
 }
 
 .input-field {
   padding: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 15px;
   color: #2d3748;
-  background-color: #ffffff;
+  background-color: #fff;
   transition: all 0.2s ease;
 }
 
 .input-field:focus {
-  border-color: #3182ce;
+  border-color: #2563eb;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.form-label {
+  color: #374151;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
 }
 
 .textarea {
   min-height: 100px;
   resize: vertical;
+  color: #2d3748;
+  background: #f9fafb;
 }
 
 .form-row {
@@ -304,7 +348,7 @@ export default {
 .score-value {
   font-size: 2rem;
   font-weight: 700;
-  color: #0f2942;
+  color: #1e293b;
 }
 
 .score-max {
@@ -315,15 +359,17 @@ export default {
 .form-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .btn-primary {
   padding: 10px 16px;
   background-color: #2563eb;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 6px;
   font-weight: 600;
+  font-size: 16px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -335,10 +381,11 @@ export default {
 .btn-secondary {
   padding: 10px 16px;
   background-color: #f1f5f9;
-  color: #64748b;
+  color: #374151;
   border: none;
   border-radius: 6px;
   font-weight: 600;
+  font-size: 16px;
   cursor: pointer;
   transition: all 0.2s;
   display: inline-flex;
@@ -349,5 +396,12 @@ export default {
 .btn-secondary:hover {
   background-color: #e2e8f0;
   color: #1e293b;
+}
+
+.document-link {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
 }
 </style>

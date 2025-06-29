@@ -517,11 +517,26 @@ export default {
       e.target.src = defaultAvatar;
     };
 
-    const formatDate = (date) => {
-      return new Intl.DateTimeFormat('en-US', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-      }).format(date);
+    // Robust date formatter for activity log
+    const formatDate = (timestamp) => {
+      let dateObj = null;
+      if (!timestamp) return '—';
+      // Firestore Timestamp object
+      if (timestamp instanceof Timestamp) {
+        dateObj = timestamp.toDate();
+      } else if (timestamp.seconds) {
+        dateObj = new Date(timestamp.seconds * 1000);
+      } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
+        dateObj = new Date(timestamp);
+      } else if (timestamp instanceof Date) {
+        dateObj = timestamp;
+      }
+      if (!dateObj || isNaN(dateObj.getTime())) return '—';
+      // Format as e.g. Jun 29, 2025, 2:30 PM
+      return dateObj.toLocaleString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true
+      });
     };
 
     const confirmLogout = () => {

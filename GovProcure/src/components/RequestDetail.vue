@@ -84,6 +84,27 @@
               {{ requestDetails.justification }}
             </div>
           </div>
+
+          <div class="detail-section full-width" v-if="requestDetails.prDocumentURL">
+            <h3 class="section-title">PR Document Attachment</h3>
+            <div class="pdf-viewer-box">
+              <iframe
+                v-if="requestDetails.prDocumentURL"
+                :src="requestDetails.prDocumentURL"
+                width="100%"
+                height="500px"
+                frameborder="0"
+                style="border:1px solid #e2e8f0; border-radius:8px;"
+                allowfullscreen
+              ></iframe>
+              <div v-else class="no-attachment">No PR document uploaded.</div>
+              <div class="pdf-download-link">
+                <a :href="requestDetails.prDocumentURL" target="_blank" rel="noopener" class="btn-primary">
+                  Download/View Full PDF
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="actions" v-if="!loading && !errorMessage">
@@ -468,6 +489,45 @@ export default {
   padding: 16px;
   min-height: 100px;
   line-height: 1.6;
+}
+
+.pdf-viewer-box {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pdf-viewer-box iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+}
+
+.no-attachment {
+  color: #64748b;
+  text-align: center;
+  padding: 20px;
+}
+
+.pdf-download-link {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #0f2942;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #0d2330;
 }
 
 .actions {

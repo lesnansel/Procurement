@@ -127,7 +127,6 @@ export default {
     return {
       defaultAvatar: "https://via.placeholder.com/150",
       sidebarVisible: true,
-      // Removed showLogoutModal state
     };
   },
   methods: {
@@ -143,12 +142,23 @@ export default {
       this.sidebarVisible = !this.sidebarVisible;
       this.$emit('sidebar-toggle', this.sidebarVisible);
       localStorage.setItem('sidebarVisible', this.sidebarVisible);
+
+      // Adjust main content layout
+      const mainContent = document.querySelector(".main-content");
+      if (mainContent) {
+        mainContent.classList.toggle("collapsed", !this.sidebarVisible);
+      }
     },
   },
   mounted() {
     const savedState = localStorage.getItem('sidebarVisible');
     if (savedState !== null) {
       this.sidebarVisible = savedState === 'true';
+    }
+
+    const mainContent = document.querySelector(".main-content");
+    if (mainContent) {
+      mainContent.classList.toggle("collapsed", !this.sidebarVisible);
     }
 
     document.addEventListener('keydown', (e) => {

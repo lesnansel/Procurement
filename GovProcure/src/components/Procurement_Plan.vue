@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="main-content">
     <AdminNavigationBar />
     <div class="admin-wrapper">
       <!-- Background Pattern -->
@@ -785,5 +785,14 @@ export default {
   .modal-actions button {
     width: 100%;
   }
+}
+
+.main-content {
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.collapsed {
+  margin-left: 0;
 }
 </style>

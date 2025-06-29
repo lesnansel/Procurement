@@ -126,12 +126,13 @@ export default {
     const submitContract = async () => {
       try {
         const contractData = {
-          title: contractTitle.value,
-          contractor: contractorName.value,
-          amount: parseFloat(contractAmount.value),
+          supplier: contractorName.value, // maps contractor name
+          poNumber: contractTitle.value, // maps contract title as PO number
+          value: parseFloat(contractAmount.value),
           startDate: startDate.value,
           endDate: endDate.value,
           description: contractDescription.value,
+          status: "Pending", // default status
           createdAt: new Date(),
         };
 

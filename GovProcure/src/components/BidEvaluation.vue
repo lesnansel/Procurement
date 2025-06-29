@@ -49,25 +49,62 @@
             <p class="detail-value">{{ bid.description }}</p>
           </div>
 
-          <!-- Evaluation Form -->
-          <div class="evaluation-section">
-            <h3 class="detail-section-title">Evaluation</h3>
+          <!-- Document Compliance Checklist (RA 9184) -->
+          <div class="detail-section">
+            <h3 class="detail-section-title">Document Compliance Checklist</h3>
+            <div class="checklist-row">
+              <label><input type="checkbox" v-model="docs.secDti" /> SEC/DTI Registration</label>
+              <label><input type="checkbox" v-model="docs.mayorPermit" /> Mayor's Permit</label>
+              <label><input type="checkbox" v-model="docs.taxClearance" /> Tax Clearance</label>
+              <label><input type="checkbox" v-model="docs.auditedFs" /> Audited Financial Statement</label>
+              <label><input type="checkbox" v-model="docs.technicalForm" /> Technical Proposal/Form</label>
+              <label><input type="checkbox" v-model="docs.financialForm" /> Financial Proposal/Form</label>
+            </div>
+          </div>
+
+          <!-- Bid Attachments -->
+          <div class="detail-section" v-if="bid.attachments && bid.attachments.length">
+            <h3 class="detail-section-title">Bid Attachments</h3>
+            <ul>
+              <li v-for="(file, idx) in bid.attachments" :key="idx">
+                <a :href="file.url" target="_blank" rel="noopener">{{ file.name || ('Attachment ' + (idx+1)) }}</a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Scoring Section -->
+          <div class="detail-section">
+            <h3 class="detail-section-title">Scoring</h3>
             <div class="form-group">
-              <label for="evaluationNotes">Evaluation Notes</label>
-              <textarea
-                id="evaluationNotes"
-                v-model="evaluationNotes"
-                placeholder="Provide your evaluation notes here..."
-                class="input-field textarea"
-              ></textarea>
+              <label>Technical Score (60%)</label>
+              <input type="number" min="0" max="100" v-model.number="technicalScore" class="input-field" />
             </div>
             <div class="form-group">
-              <label for="evaluationStatus">Evaluation Status</label>
-              <select
-                id="evaluationStatus"
-                v-model="evaluationStatus"
-                class="input-field select"
-              >
+              <label>Financial Score (40%)</label>
+              <input type="number" min="0" max="100" v-model.number="financialScore" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>Total Score</label>
+              <input type="number" :value="totalScore" class="input-field" readonly />
+            </div>
+            <div class="form-group">
+              <span class="score-status" :class="totalScore >= 75 ? 'pass' : 'fail'">
+                {{ totalScore >= 75 ? 'PASS' : 'FAIL' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Evaluation Remarks -->
+          <div class="detail-section">
+            <h3 class="detail-section-title">Evaluator Remarks</h3>
+            <textarea v-model="evaluationRemarks" class="input-field textarea" placeholder="Enter evaluation remarks or summary..."></textarea>
+          </div>
+
+          <!-- Evaluation Status & Actions -->
+          <div class="evaluation-section">
+            <h3 class="detail-section-title">Evaluation Status</h3>
+            <div class="form-group">
+              <select v-model="evaluationStatus" class="input-field select">
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
                 <option value="needs-review">Needs Further Review</option>
@@ -81,9 +118,23 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
               Back
             </button>
-            <button @click="submitEvaluation" class="btn-submit">
-              Submit Evaluation
-            </button>
+            <button @click="confirmAction('approved')" class="btn-submit">Approve</button>
+            <button @click="confirmAction('rejected')" class="btn-reject">Reject</button>
+            <button @click="confirmAction('needs-review')" class="btn-review">Mark for Review</button>
+          </div>
+
+          <!-- Confirmation Modal -->
+          <div v-if="showConfirm" class="modal-backdrop">
+            <div class="modal-content">
+              <h3>Confirm Action</h3>
+              <p>
+                Are you sure you want to set this bid as <b>{{ confirmStatusLabel }}</b>?
+              </p>
+              <div class="modal-actions">
+                <button @click="submitEvaluation" class="btn-primary">Yes, Confirm</button>
+                <button @click="showConfirm = false" class="btn-secondary">Cancel</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -92,10 +143,11 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { db } from "@/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 export default {
   setup() {
@@ -104,15 +156,51 @@ export default {
     const bidId = route.params.id;
     const bid = ref({});
     const loading = ref(true);
-    const evaluationNotes = ref("");
+
+    // Document checklist
+    const docs = ref({
+      secDti: false,
+      mayorPermit: false,
+      taxClearance: false,
+      auditedFs: false,
+      technicalForm: false,
+      financialForm: false,
+    });
+
+    // Scoring
+    const technicalScore = ref(0);
+    const financialScore = ref(0);
+    const totalScore = computed(() => {
+      return (Number(technicalScore.value) * 0.6) + (Number(financialScore.value) * 0.4);
+    });
+
+    // Remarks and status
+    const evaluationRemarks = ref("");
     const evaluationStatus = ref("approved");
 
+    // Confirmation modal
+    const showConfirm = ref(false);
+    const confirmStatus = ref("approved");
+    const confirmStatusLabel = computed(() => {
+      if (confirmStatus.value === "approved") return "APPROVED";
+      if (confirmStatus.value === "rejected") return "REJECTED";
+      if (confirmStatus.value === "needs-review") return "FOR REVIEW";
+      return confirmStatus.value;
+    });
+
+    // Load bid details
     const fetchBidDetails = async () => {
       try {
         const bidRef = doc(db, "bids", bidId);
         const bidSnapshot = await getDoc(bidRef);
         if (bidSnapshot.exists()) {
           bid.value = bidSnapshot.data();
+          // Optionally, load checklist from bid if present
+          if (bid.value.docs) docs.value = { ...docs.value, ...bid.value.docs };
+          if (bid.value.technicalScore) technicalScore.value = bid.value.technicalScore;
+          if (bid.value.financialScore) financialScore.value = bid.value.financialScore;
+          if (bid.value.evaluationRemarks) evaluationRemarks.value = bid.value.evaluationRemarks;
+          if (bid.value.evaluationStatus) evaluationStatus.value = bid.value.evaluationStatus;
         } else {
           alert("Bid not found");
           router.push("/evaluate-bids");
@@ -125,14 +213,30 @@ export default {
       }
     };
 
+    // Confirm action modal
+    const confirmAction = (status) => {
+      confirmStatus.value = status;
+      evaluationStatus.value = status;
+      showConfirm.value = true;
+    };
+
+    // Submit evaluation with audit trail
     const submitEvaluation = async () => {
       try {
+        const auth = getAuth();
+        const user = auth.currentUser;
         const bidRef = doc(db, "bids", bidId);
         await updateDoc(bidRef, {
-          evaluationNotes: evaluationNotes.value,
+          docs: docs.value,
+          technicalScore: Number(technicalScore.value),
+          financialScore: Number(financialScore.value),
+          totalScore: Number(totalScore.value),
+          evaluationRemarks: evaluationRemarks.value,
           evaluationStatus: evaluationStatus.value,
-          evaluatedAt: new Date(),
+          evaluatedBy: user ? (user.displayName || user.email || user.uid) : "Unknown",
+          evaluatedAt: serverTimestamp(),
         });
+        showConfirm.value = false;
         alert("Evaluation submitted successfully!");
         router.push("/evaluate-bids");
       } catch (error) {
@@ -168,8 +272,15 @@ export default {
     return {
       bid,
       loading,
-      evaluationNotes,
+      docs,
+      technicalScore,
+      financialScore,
+      totalScore,
+      evaluationRemarks,
       evaluationStatus,
+      showConfirm,
+      confirmStatusLabel,
+      confirmAction,
       submitEvaluation,
       goBack,
       formatCurrency,
@@ -387,5 +498,132 @@ export default {
 
 .btn-submit:hover {
   background-color: #047857;
+}
+
+.btn-reject {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 20px;
+  transition: all 0.2s;
+}
+
+.btn-reject:hover {
+  background-color: #b91c1c;
+}
+
+.btn-review {
+  background-color: #f59e42;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 20px;
+  transition: all 0.2s;
+}
+
+.btn-review:hover {
+  background-color: #d97706;
+}
+
+/* Checklist Row */
+.checklist-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 32px;
+  margin-bottom: 16px;
+}
+
+.checklist-row label {
+  font-size: 1rem;
+  color: #334155;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Score Status */
+.score-status {
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 4px 12px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.score-status.pass {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.score-status.fail {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.btn-primary {
+  background-color: #059669;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 20px;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #047857;
+}
+
+.btn-secondary {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 20px;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+  color: #1e293b;
 }
 </style>

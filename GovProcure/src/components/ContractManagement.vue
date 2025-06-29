@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="main-content">
     <AdminNavigationBar />
     <div class="admin-wrapper">
       <!-- Background Pattern -->
@@ -119,17 +119,14 @@
               </div>
               
               <div class="contract-card-actions">
-                <button @click="viewContract(contract)" class="card-action-btn view">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                  View
+                <button @click="openModal('view', contract)" class="bg-gray-100 text-black px-4 py-2 rounded">
+                  👁️ View
                 </button>
-                <button @click="editContract(contract)" class="card-action-btn edit">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                  Edit
+                <button @click="openModal('edit', contract)" class="bg-blue-100 text-blue-800 px-4 py-2 rounded">
+                  ✏️ Edit
                 </button>
-                <button @click="confirmDelete(contract)" class="card-action-btn delete">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  Delete
+                <button @click="openModal('delete', contract)" class="bg-red-100 text-red-800 px-4 py-2 rounded">
+                  🗑️ Delete
                 </button>
               </div>
             </div>
@@ -256,128 +253,66 @@
         </div>
       </div>
 
-      <!-- View Contract Modal -->
-      <div v-if="isViewingDetails" class="modal-overlay" @click.self="closeViewModal">
-        <div class="modal">
-          <div class="modal-header">
-            <h3 class="modal-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              Contract Details
-            </h3>
-            <button @click="closeViewModal" class="close-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-            </button>
-          </div>
-          
-          <div class="modal-body">
-            <div class="contract-details-view">
-              <div class="detail-row">
-                <div class="detail-label">Supplier</div>
-                <div class="detail-value">{{ activeContract.supplier }}</div>
-              </div>
-              
-              <div class="detail-row">
-                <div class="detail-label">PO Number</div>
-                <div class="detail-value">{{ activeContract.poNumber }}</div>
-              </div>
-              
-              <div class="detail-row">
-                <div class="detail-label">Status</div>
-                <div class="detail-value">
-                  <span class="status-badge" :class="`status-${activeContract.status?.toLowerCase()}`">
-                    {{ activeContract.status }}
-                  </span>
-                </div>
-              </div>
-              
-              <div class="detail-row" v-if="activeContract.value">
-                <div class="detail-label">Value</div>
-                <div class="detail-value">{{ formatCurrency(activeContract.value) }}</div>
-              </div>
-              
-              <div class="detail-row" v-if="activeContract.startDate">
-                <div class="detail-label">Start Date</div>
-                <div class="detail-value">{{ formatDate(activeContract.startDate) }}</div>
-              </div>
-              
-              <div class="detail-row" v-if="activeContract.endDate">
-                <div class="detail-label">End Date</div>
-                <div class="detail-value">{{ formatDate(activeContract.endDate) }}</div>
-              </div>
-              
-              <div class="detail-section" v-if="activeContract.description">
-                <h4 class="detail-section-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                  Description
-                </h4>
-                <div class="detail-section-content">{{ activeContract.description }}</div>
-              </div>
-              
-              <div class="detail-section" v-if="activeContract.documentURL">
-                <h4 class="detail-section-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
-                  Contract Document
-                </h4>
-                <div class="detail-section-content">
-                  <a :href="activeContract.documentURL" target="_blank" class="document-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    View Document
-                  </a>
-                </div>
-              </div>
-              
-              <div class="detail-row" v-if="activeContract.createdAt">
-                <div class="detail-label">Created On</div>
-                <div class="detail-value">{{ formatDate(activeContract.createdAt) }}</div>
-              </div>
-              
-              <div class="detail-row" v-if="activeContract.updatedAt">
-                <div class="detail-label">Last Updated</div>
-                <div class="detail-value">{{ formatDate(activeContract.updatedAt) }}</div>
-              </div>
-            </div>
-            
-            <div class="modal-actions">
-              <button @click="editContract(activeContract)" class="btn-edit">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                Edit
-              </button>
-              <button @click="confirmDelete(activeContract)" class="btn-delete">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                Delete
-              </button>
-              <button @click="closeViewModal" class="btn-secondary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Modal Overlay and Box -->
+      <div v-if="activeModal" class="modal-overlay">
+        <div class="modal-centered">
+          <button class="modal-close" @click="closeModal">&times;</button>
 
-      <!-- Confirmation Modal -->
-      <div v-if="isConfirmingDelete" class="modal-overlay" @click.self="cancelDelete">
-        <div class="modal modal-sm">
-          <div class="modal-header">
-            <h3 class="modal-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-              Confirm Deletion
-            </h3>
+          <!-- View Modal -->
+          <div v-if="activeModal === 'view'">
+            <h3>View Contract</h3>
+            <p><strong>Supplier:</strong> {{ contractData.supplier }}</p>
+            <p><strong>PO Number:</strong> {{ contractData.poNumber }}</p>
+            <p><strong>Status:</strong> {{ contractData.status }}</p>
+            <p><strong>Value:</strong> {{ formatCurrency(contractData.value) }}</p>
+            <p><strong>Start Date:</strong> {{ formatDate(contractData.startDate) }}</p>
+            <p><strong>End Date:</strong> {{ formatDate(contractData.endDate) }}</p>
+            <p><strong>Description:</strong> {{ contractData.description }}</p>
           </div>
-          
-          <div class="modal-body">
-            <p class="confirm-message">Are you sure you want to delete this contract? This action cannot be undone.</p>
-            
-            <div class="modal-actions">
-              <button @click="cancelDelete" class="btn-secondary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                Cancel
-              </button>
-              <button @click="deleteContract" class="btn-delete">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                Delete
-              </button>
+
+          <!-- Edit Modal -->
+          <div v-else-if="activeModal === 'edit'">
+            <h3>Edit Contract</h3>
+            <div class="form-group">
+              <label>Supplier</label>
+              <input type="text" v-model="contractData.supplier" class="input-field" />
             </div>
+            <div class="form-group">
+              <label>PO Number</label>
+              <input type="text" v-model="contractData.poNumber" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select v-model="contractData.status" class="input-field">
+                <option value="Pending">Pending</option>
+                <option value="Active">Active</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Value</label>
+              <input type="number" v-model="contractData.value" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>Start Date</label>
+              <input type="date" v-model="contractData.startDate" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>End Date</label>
+              <input type="date" v-model="contractData.endDate" class="input-field" />
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea v-model="contractData.description" class="input-field textarea"></textarea>
+            </div>
+            <button @click="saveChanges" class="btn-primary mt-2">Save</button>
+          </div>
+
+          <!-- Delete Modal -->
+          <div v-else-if="activeModal === 'delete'">
+            <h3>Confirm Delete</h3>
+            <p>Delete {{ contractData.supplier }}?</p>
+            <button @click="confirmDeleteModal">Delete</button>
           </div>
         </div>
       </div>
@@ -400,7 +335,6 @@ export default {
     const contracts = ref([]);
     const loading = ref(true);
     const isModalOpen = ref(false);
-    const isViewingDetails = ref(false);
     const isConfirmingDelete = ref(false);
     const editMode = ref(false);
     const searchQuery = ref("");
@@ -418,6 +352,43 @@ export default {
       endDate: "",
       description: ""
     });
+
+    // Modal state for minimal modal
+    const activeModal = ref(null); // 'view' | 'edit' | 'delete' | null
+    const selectedContract = ref(null);
+
+    // Minimal modal handlers
+    async function saveChanges() {
+      if (selectedContract.value && selectedContract.value.id) {
+        try {
+          const contractRef = doc(db, "contracts", selectedContract.value.id);
+          await updateDoc(contractRef, {
+            ...selectedContract.value,
+            updatedAt: serverTimestamp()
+          });
+          showNotification("Contract updated successfully!");
+        } catch (error) {
+          console.error("Error updating contract:", error);
+          showNotification("Failed to update contract. Please try again.", "error");
+        }
+      }
+      activeModal.value = null;
+      selectedContract.value = null;
+    }
+    async function confirmDeleteModal() {
+      if (selectedContract.value && selectedContract.value.id) {
+        try {
+          const contractRef = doc(db, "contracts", selectedContract.value.id);
+          await deleteDoc(contractRef);
+          showNotification("Contract deleted successfully!");
+        } catch (error) {
+          console.error("Error deleting contract:", error);
+          showNotification("Failed to delete contract. Please try again.", "error");
+        }
+      }
+      activeModal.value = null;
+      selectedContract.value = null;
+    }
 
     const router = useRouter();
 
@@ -489,15 +460,8 @@ export default {
 
     const closeModal = () => {
       isModalOpen.value = false;
-    };
-
-    const viewContract = (contract) => {
-      activeContract.value = { ...contract };
-      isViewingDetails.value = true;
-    };
-
-    const closeViewModal = () => {
-      isViewingDetails.value = false;
+      activeModal.value = null;
+      selectedContract.value = null;
     };
 
     const resetForm = () => {
@@ -514,16 +478,11 @@ export default {
       selectedFile.value = null;
     };
 
-    const editContract = (contract) => {
-      editMode.value = true;
+    // Replace openModal logic to use minimalistic modal
+    const openModal = (type, contract) => {
+      activeModal.value = type; // 'view', 'edit', or 'delete'
+      selectedContract.value = { ...contract };
       contractData.value = { ...contract };
-      
-      // Close view modal if open
-      if (isViewingDetails.value) {
-        isViewingDetails.value = false;
-      }
-      
-      isModalOpen.value = true;
     };
 
     const submitContract = async () => {
@@ -555,11 +514,6 @@ export default {
     const confirmDelete = (contract) => {
       activeContract.value = contract;
       isConfirmingDelete.value = true;
-      
-      // Close view modal if open
-      if (isViewingDetails.value) {
-        isViewingDetails.value = false;
-      }
     };
 
     const cancelDelete = () => {
@@ -634,7 +588,6 @@ export default {
       contracts,
       loading,
       isModalOpen,
-      isViewingDetails,
       isConfirmingDelete,
       editMode,
       searchQuery,
@@ -648,9 +601,7 @@ export default {
       filteredContracts,
       showAddModal,
       closeModal,
-      viewContract,
-      closeViewModal,
-      editContract,
+      openModal,
       submitContract,
       confirmDelete,
       cancelDelete,
@@ -658,7 +609,11 @@ export default {
       handleFileUpload,
       formatDate,
       formatCurrency,
-      navigateToAddContract
+      navigateToAddContract,
+      activeModal,
+      selectedContract,
+      saveChanges,
+      confirmDeleteModal,
     };
   },
 };
@@ -1122,402 +1077,105 @@ export default {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
-  backdrop-filter: blur(4px);
-  animation: fadeIn 0.2s ease-out;
+  z-index: 9999;
 }
-
-.modal {
-  background-color: #ffffff;
+.modal-content {
+  background: #fff;
   border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  width: 100%;
-  max-width: 700px;
-  overflow: hidden;
-  animation: slideUp 0.3s ease-out;
-}
-
-.modal-sm {
-  max-width: 500px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #e2e8f0;
-  background-color: #f8fafc;
-}
-
-.modal-title {
-  color: #0f2942;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.close-button:hover {
-  background-color: #f1f5f9;
-  color: #1e293b;
-}
-
-.modal-body {
-  padding: 20px;
-}
-
-/* Form Styling */
-.form-row {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  flex: 1;
-  margin-bottom: 20px;
-}
-
-.input-field {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s;
-  background-color: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.input-field:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.textarea {
+  min-width: 320px;
+  max-width: 95vw;
   min-height: 120px;
-  resize: vertical;
-}
-
-.form-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 8px;
-  display: block;
-}
-
-/* File Upload */
-.file-upload {
-  position: relative;
-  margin-top: 8px;
-}
-
-.file-input {
-  width: 0.1px;
-  height: 0.1px;
-  opacity: 0;
-  overflow: hidden;
-  position: absolute;
-  z-index: -1;
-}
-
-.file-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 15px;
-  background-color: #f1f5f9;
-  border: 1px dashed #cbd5e1;
-  border-radius: 8px;
-  color: #64748b;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.file-label:hover {
-  background-color: #e2e8f0;
-  color: #1e293b;
-}
-
-/* Modal actions */
-.modal-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-/* Button Styles */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary:hover {
-  background-color: #1d4ed8;
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background-color: #f1f5f9;
-  color: #64748b;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background-color: #e2e8f0;
-  color: #1e293b;
-}
-
-.btn-edit {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background-color: #0ea5e9;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-edit:hover {
-  background-color: #0284c7;
-  transform: translateY(-1px);
-}
-
-.btn-delete {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background-color: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-delete:hover {
-  background-color: #dc2626;
-  transform: translateY(-1px);
-}
-
-/* Contract Details View */
-.contract-details-view {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  animation: fadeIn 0.2s;
   display: flex;
   flex-direction: column;
-  gap: 15px;
 }
-
-.detail-row {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 10px;
-}
-
-.detail-label {
-  width: 120px;
-  font-weight: 600;
-  color: #64748b;
-  font-size: 0.9rem;
-}
-
-.detail-value {
-  flex: 1;
-  color: #0f172a;
-}
-
-.detail-section {
-  margin-bottom: 15px;
-  background-color: #f8fafc;
+.modal-centered {
+  background: #fff;
+  padding: 24px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  color: #1e293b; /* Make modal text dark and readable */
 }
 
-.detail-section-title {
-  background-color: #0f2942;
-  color: white;
-  padding: 10px 15px;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.modal-centered h3,
+.modal-centered strong,
+.modal-centered label {
+  color: #0f2942;
+}
+
+.modal-centered p,
+.modal-centered input,
+.modal-centered button {
+  color: #1e293b;
+}
+
+.modal-centered input {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.modal-centered button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  margin-top: 8px;
+  cursor: pointer;
   font-weight: 600;
-  font-size: 0.9rem;
 }
 
-.detail-section-content {
-  padding: 15px;
-  color: #334155;
-  line-height: 1.5;
-  white-space: pre-wrap;
+.modal-centered button:hover {
+  background: #1d4ed8;
 }
 
-.document-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #2563eb;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.document-link:hover {
-  color: #1d4ed8;
-  text-decoration: underline;
-}
-
-.confirm-message {
-  color: #334155;
-  font-size: 1rem;
-  line-height: 1.5;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Notification */
-.notification {
+/* Modal Overlay and Box */
+.modal-overlay {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #0f2942;
-  color: white;
-  padding: 15px 20px;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-centered {
+  background: #fff;
+  padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  transform: translateY(100px);
-  opacity: 0;
-  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
 }
 
-.notification.show {
-  transform: translateY(0);
-  opacity: 1;
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
 }
 
-.notification.error {
-  background-color: #ef4444;
+.main-content {
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
 }
 
-.notification.success {
-  background-color: #10b981;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .action-bar {
-    flex-direction: column;
-  }
-
-  .search-container,
-  .filter-container {
-    width: 100%;
-  }
-
-  .btn-add {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .contracts-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-row {
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .modal-actions {
-    flex-direction: column;
-  }
-
-  .modal {
-    width: 95%;
-  }
-
-  .modal-actions button {
-    width: 100%;
-  }
-
-  .stats-overview {
-    flex-direction: column;
-  }
-
-  .stats-overview .stat-item {
-    width: 100%;
-  }
+.main-content.collapsed {
+  margin-left: 0;
 }
 </style>
