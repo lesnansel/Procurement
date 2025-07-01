@@ -7,27 +7,29 @@
 
     <!-- Edit Profile Card -->
     <div class="profile-card">
-      <div class="card-header">
-        <div class="logo-container">
-          <img src="/placeholder.svg?height=70&width=70" alt="Procurement System Logo" class="logo" />
+      <!-- Improved Section Header -->
+      <div class="profile-header align-left">
+        <div class="header-flex">
+          <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+          <div class="header-text">
+            <h2>Edit Profile</h2>
+            <p class="subtitle">Update your personal information</p>
+          </div>
         </div>
-        <h1 class="title">Edit Profile</h1>
-        <p class="subtitle">Update your personal information</p>
       </div>
 
       <div class="card-content">
-        <!-- Profile Picture Section -->
-        <div class="profile-picture-section">
-          <div class="profile-image-container">
+        <!-- Avatar Enhancement -->
+        <div class="avatar-container">
+          <div class="avatar-ring">
             <img 
               :src="previewUrl || profileImageUrl || defaultProfilePic" 
               alt="Profile Picture" 
               class="profile-img"
             />
-            <div class="upload-overlay" @click="triggerFileInput">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="camera-icon"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-              <span>Change Photo</span>
-            </div>
+            <button class="edit-avatar" @click="triggerFileInput" title="Change Photo">
+              ✏️
+            </button>
           </div>
           <input 
             type="file" 
@@ -61,6 +63,7 @@
                 id="completeName"
                 v-model="completeName" 
                 required
+                autofocus
               />
             </div>
 
@@ -71,11 +74,15 @@
                 id="age"
                 v-model="age" 
                 required
+                min="1"
               />
             </div>
 
             <div class="form-group">
-              <label for="birthday">Birthday</label>
+              <label for="birthday">
+                Birthday
+                <span class="tooltip" title="Enter your date of birth">(?)</span>
+              </label>
               <input 
                 type="date" 
                 id="birthday"
@@ -95,13 +102,16 @@
             </div>
 
             <div class="form-group">
-              <label for="gender">Gender</label>
+              <label for="gender">
+                Gender
+                <span class="tooltip" title="Select your gender">(?)</span>
+              </label>
               <select 
                 id="gender"
                 v-model="gender" 
                 required
               >
-                <option value="" disabled selected>Select gender</option>
+                <option value="" disabled>Select gender</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
                 <option value="other">Other</option>
@@ -119,10 +129,10 @@
             </div>
           </div>
 
-          <div class="form-actions">
+          <div class="button-row">
             <button 
               type="submit" 
-              class="submit-btn"
+              class="save-btn"
               :disabled="isLoading"
             >
               <span v-if="!isLoading">Save Changes</span>
@@ -397,13 +407,14 @@ const closeModal = () => {
   padding: 20px;
   position: relative;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #112940;
 }
 
 /* Background Pattern */
 .background-pattern {
   position: fixed;
   inset: 0;
-  background-color: #1a1a2e;
+  background-color: #112940;
   z-index: -1;
   overflow: hidden;
 }
@@ -423,255 +434,218 @@ const closeModal = () => {
   opacity: 0.2;
 }
 
+/* Section Header Refinement */
+.profile-header {
+  background: linear-gradient(to right, #0e2235, #163d5c);
+  padding: 2rem 1rem 1.5rem 1rem;
+  color: white;
+  text-align: center;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.profile-header.align-left {
+  background: linear-gradient(to right, #0e2235, #163d5c);
+  padding: 2rem 2rem 1.5rem 2rem;
+  color: white;
+  text-align: left;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.header-flex {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.profile-header .logo {
+  width: 60px;
+  margin: 0 auto 0.5rem;
+  display: block;
+}
+.profile-header.align-left .logo {
+  width: 60px;
+  margin: 0;
+  display: block;
+}
+.header-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.header-text h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  margin-top: 0;
+}
+.header-text .subtitle {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin-bottom: 0;
+}
+.profile-header.align-left {
+  text-align: left;
+}
+
 /* Card Design */
 .profile-card {
   width: 100%;
-  max-width: 800px;
+  max-width: 600px;
   background-color: #fff;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   position: relative;
-}
-
-.card-header {
-  background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
-  padding: 30px;
-  text-align: center;
-  color: white;
-}
-
-.logo-container {
-  margin-bottom: 20px;
-}
-
-.logo {
-  width: 70px;
-  height: 70px;
-  object-fit: contain;
-}
-
-.title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.subtitle {
-  font-size: 0.95rem;
-  opacity: 0.8;
+  margin: auto;
 }
 
 .card-content {
   padding: 30px;
 }
 
-/* Profile Picture Section */
-.profile-picture-section {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.profile-image-container {
+/* Avatar Enhancement */
+.avatar-container {
   position: relative;
-  display: inline-block;
-  margin-bottom: 16px;
-}
-
-.profile-img {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  border: 4px solid rgba(15, 41, 66, 0.1);
-  object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.upload-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
+  margin: 0 auto 1.5rem auto;
+  width: 110px;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.avatar-ring {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3c8dbc, #1e3a5f);
+  display: flex;
   justify-content: center;
+  align-items: center;
+  font-size: 2.2rem;
   color: white;
-  opacity: 0;
-  transition: opacity 0.3s;
+  box-shadow: 0 0 0 4px #fff;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-ring .profile-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: none;
+  box-shadow: none;
+}
+.edit-avatar {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 50%;
+  border: none;
   cursor: pointer;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
 }
-
-.upload-overlay:hover {
-  opacity: 1;
+.edit-avatar:hover {
+  background: #e9ecef;
 }
-
-.camera-icon {
-  margin-bottom: 4px;
-}
-
 .hidden {
   display: none;
 }
 
-.upload-btn {
-  background-color: #0f2942;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.upload-btn:hover:not(:disabled) {
-  background-color: #1a4971;
-}
-
-.upload-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-/* Form Styles */
-.edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
+/* Field Layout & Spacing */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
 }
-
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
-
-.form-group.full-width {
-  grid-column: 1 / -1;
-}
-
 .form-group label {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
+  margin-bottom: 4px;
   color: #333;
 }
-
-.form-group input,
-.form-group select {
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+input, select {
+  border-radius: 8px;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
   font-size: 1rem;
-  transition: border-color 0.3s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-
-.form-group input:focus,
-.form-group select:focus {
-  border-color: #0f2942;
+input:focus, select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(15, 41, 66, 0.1);
+  border-color: #3273dc;
+  box-shadow: 0 0 0 3px rgba(50, 115, 220, 0.1);
+}
+.tooltip {
+  font-size: 0.9em;
+  color: #888;
+  cursor: help;
+  margin-left: 4px;
 }
 
-.form-actions {
+/* Action Buttons Styling */
+.button-row {
   display: flex;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
-
-.submit-btn {
-  flex: 1;
-  background-color: #0f2942;
+.save-btn {
+  background: #0e2235;
   color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 6px;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
+  border: none;
+  transition: background 0.2s;
 }
-
-.submit-btn:hover:not(:disabled) {
-  background-color: #1a4971;
+.save-btn:hover {
+  background: #184b73;
 }
-
-.submit-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
 .cancel-btn {
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   color: #333;
-  padding: 12px 20px;
-  border-radius: 6px;
+  background: #f8f9fa;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
+  transition: background 0.2s, color 0.2s;
 }
-
 .cancel-btn:hover {
-  background-color: #e9ecef;
+  background: #e9ecef;
 }
-
 .deactivate-btn {
-  background-color: rgba(229, 62, 62, 0.1);
-  border: 1px solid rgba(229, 62, 62, 0.2);
-  color: #e53e3e;
-  padding: 12px 20px;
-  border-radius: 6px;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  background: rgba(231, 76, 60, 0.05);
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: background 0.2s, color 0.2s;
 }
-
 .deactivate-btn:hover {
-  background-color: rgba(229, 62, 62, 0.15);
+  background: rgba(231, 76, 60, 0.12);
+  color: #c0392b;
 }
 
-.success-message,
-.error-message {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  border-radius: 6px;
-  margin-top: 16px;
+/* Feedback/Validation */
+input:invalid, select:invalid {
+  border-color: #e74c3c;
 }
-
-.success-message {
-  background-color: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-  color: #16a34a;
-}
-
-.error-message {
-  background-color: rgba(229, 62, 62, 0.1);
-  border: 1px solid rgba(229, 62, 62, 0.2);
-  color: #e53e3e;
-}
-
-.spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+input:invalid:focus, select:invalid:focus {
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
 }
 
 /* Modal Styles */
@@ -741,7 +715,6 @@ const closeModal = () => {
   gap: 12px;
   justify-content: flex-end;
 }
-
 .confirm-btn {
   background-color: #e53e3e;
   color: white;
@@ -751,62 +724,32 @@ const closeModal = () => {
   cursor: pointer;
   transition: all 0.3s;
 }
-
 .confirm-btn:hover:not(:disabled) {
   background-color: #dc2626;
 }
-
 .confirm-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* Responsive Styles */
-@media (max-width: 640px) {
-  .card-content {
-    padding: 20px;
+@media (max-width: 700px) {
+  .profile-card {
+    max-width: 98vw;
   }
-
   .form-grid {
     grid-template-columns: 1fr;
   }
-
-  .form-actions {
+  .button-row {
     flex-direction: column;
+    align-items: stretch;
   }
-
-  .title {
-    font-size: 1.5rem;
+  .avatar-container {
+    width: 100px;
   }
 }
-
 @media (prefers-reduced-motion: reduce) {
   .spinner {
-    animation: none;
-  }
-
-  .profile-img {
-    transition: none;
-  }
-
-  .modal-overlay,
-  .modal-content {
     animation: none;
   }
 }

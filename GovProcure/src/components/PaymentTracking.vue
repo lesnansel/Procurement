@@ -1,18 +1,34 @@
 <template>
   <div class="app-container">
-    <!-- Fixed Left Sidebar -->
-    <div class="sidebar">
+    <!-- Background Pattern (always full screen, behind everything) -->
+    <div class="background-pattern">
+      <div class="pattern-overlay"></div>
+    </div>
+    <!-- Sidebar Overlay -->
+    <div v-if="sidebarOpen" class="sidebar-overlay" @click="toggleSidebar"></div>
+    <!-- Toggle Button (always visible, now with collapsed logic) -->
+    <button class="sidebar-toggle-btn" @click="toggleSidebar" aria-label="Toggle sidebar">
+      <svg v-if="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+    </button>
+    <!-- Sidebar -->
+    <div :class="['sidebar', sidebarOpen ? 'sidebar-open' : 'sidebar-closed', { collapsed: !sidebarOpen }]">
       <!-- User Profile Section -->
       <div class="user-profile">
         <div class="user-avatar">
           <span class="avatar-text">JD</span>
         </div>
-        <div class="user-info">
+        <div class="user-info" @mouseenter="hoverUser = true" @mouseleave="hoverUser = false">
           <div class="username">ansel</div>
           <div class="user-role">user</div>
+          <transition name="fade-slide">
+            <div v-if="hoverUser" class="user-expanded-info">
+              <div class="user-fullname">Ansel Doe</div>
+              <div class="user-email">ansel@email.com</div>
+            </div>
+          </transition>
         </div>
       </div>
-
       <!-- Navigation Menu -->
       <nav class="nav-menu">
         <!-- GENERAL Section -->
@@ -20,16 +36,22 @@
           <div class="section-header">GENERAL</div>
           <ul class="nav-list">
             <li class="nav-item">
-              <a href="#" class="nav-link">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <router-link
+                to="/"
+                class="nav-link"
+                :class="{ active: $route.path === '/' }"
+                exact
+                active-class="active"
+              >
+                <svg class="nav-icon sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                 </svg>
                 <span class="nav-text">Home</span>
-              </a>
+              </router-link>
             </li>
             <li class="nav-item">
               <a href="#" class="nav-link">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="nav-icon sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
                 <span class="nav-text">Dashboard</span>
@@ -37,7 +59,7 @@
             </li>
             <li class="nav-item">
               <a href="#" class="nav-link">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="nav-icon sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
                 <span class="nav-text">Profile</span>
@@ -51,83 +73,46 @@
           <div class="section-header">PROCUREMENT</div>
           <ul class="nav-list">
             <li class="nav-item">
-              <a href="#" class="nav-link">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <router-link
+                to="/purchase-requests"
+                class="nav-link sidebar-link"
+                :class="{ active: $route.path === '/purchase-requests' }"
+                exact
+                active-class="active"
+              >
+                <svg class="nav-icon sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
                 <span class="nav-text">Request Purchase</span>
-              </a>
+              </router-link>
             </li>
             <li class="nav-item">
-              <a href="#" class="nav-link active">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <router-link
+                to="/payment-tracking"
+                class="nav-link sidebar-link"
+                :class="{ active: $route.path === '/payment-tracking' }"
+                exact
+                active-class="active"
+              >
+                <svg class="nav-icon sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <span class="nav-text">Track Payments</span>
-              </a>
+              </router-link>
             </li>
             <li class="nav-item">
-              <a href="#" class="nav-link">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <router-link
+                to="/approved-purchases"
+                class="nav-link sidebar-link"
+                :class="{ active: $route.path === '/approved-purchases' }"
+                exact
+                active-class="active"
+              >
+                <svg class="nav-icon sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                 </svg>
                 <span class="nav-text">PR Lists</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <!-- USER MANAGEMENT Section -->
-        <div class="nav-section">
-          <div class="section-header">USER MANAGEMENT</div>
-          <ul class="nav-list">
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                </svg>
-                <span class="nav-text">Edit Profile</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
-                </svg>
-                <span class="nav-text">Reset Password</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <!-- ADMIN CONTROLS Section -->
-        <div class="nav-section">
-          <div class="section-header">ADMIN CONTROLS</div>
-          <ul class="nav-list">
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-                <span class="nav-text">View Profile</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                <span class="nav-text">Settings</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link logout">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                </svg>
-                <span class="nav-text">Log Out</span>
-              </a>
+              </router-link>
             </li>
           </ul>
         </div>
@@ -135,12 +120,7 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="main-content">
-      <!-- Background Pattern -->
-      <div class="background-pattern">
-        <div class="pattern-overlay"></div>
-      </div>
-
+    <div class="main-content" :style="{ marginLeft: sidebarOpen ? '80px' : '0' }">
       <!-- Payment Tracking Content -->
       <div class="content-wrapper">
         <div class="admin-card">
@@ -269,6 +249,22 @@ export default {
     const searchQuery = ref("");
     const statusFilter = ref("all");
 
+    // Sidebar state
+    const sidebarOpen = ref(true);
+    const hoverUser = ref(false);
+
+    // Toggle sidebar function
+    const toggleSidebar = () => {
+      sidebarOpen.value = !sidebarOpen.value;
+    };
+
+    // Keyboard accessibility: close sidebar on Esc
+    onMounted(() => {
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebarOpen.value) sidebarOpen.value = false;
+      });
+    });
+
     const pendingPaymentsCount = computed(() => 
       payments.value.filter(payment => payment.status === "Pending").length
     );
@@ -310,7 +306,6 @@ export default {
           }));
           loading.value = false;
         });
-
         return unsubscribe;
       } catch (error) {
         console.error("Error fetching payments:", error);
@@ -348,9 +343,12 @@ export default {
       totalPaymentAmount,
       filteredPayments,
       formatDate,
-      formatCurrency
+      formatCurrency,
+      sidebarOpen,
+      toggleSidebar,
+      hoverUser,
     };
-  },
+  }
 };
 </script>
 
@@ -367,13 +365,57 @@ export default {
   position: fixed;
   left: 0;
   top: 0;
-  width: 256px;
+  width: 300px;
   height: 100vh;
-  background-color: #1e3a5f;
+  background: linear-gradient(to bottom, #0e2235, #152f45);
+  backdrop-filter: blur(4px);
   color: white;
   overflow-y: auto;
   z-index: 1000;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+  height: 40px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: #22334a;
+  border-radius: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-open {
+  transform: translateX(0);
+}
+.sidebar-closed {
+  transform: translateX(-100%);
+}
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 999;
+  transition: opacity 0.3s;
+}
+.sidebar-toggle-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1100;
+  background: #22334a;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* User Profile Section */
@@ -483,6 +525,15 @@ export default {
   flex-shrink: 0;
 }
 
+/* Animate sidebar icons on hover */
+.sidebar-icon {
+  transition: transform 0.2s, color 0.2s;
+}
+.sidebar-icon:hover {
+  transform: scale(1.1);
+  color: #5db0ff;
+}
+
 .nav-text {
   font-size: 14px;
   font-weight: 500;
@@ -490,22 +541,30 @@ export default {
 
 /* Main Content Area */
 .main-content {
-  margin-left: 256px;
   flex: 1;
   position: relative;
   overflow-y: auto;
+  transition: margin-left 0.3s cubic-bezier(.4,0,.2,1);
+  scrollbar-width: none; /* Hide scrollbar (Firefox) */
+  -ms-overflow-style: none; /* Hide scrollbar (IE/Edge) */
+}
+.main-content::-webkit-scrollbar {
+  display: none; /* Hide scrollbar (Chrome/Safari) */
 }
 
 .content-wrapper {
-  padding: 24px;
+  padding: 40px 32px 32px 32px;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* Background Pattern */
+/* Background Pattern (always fills viewport, behind everything) */
 .background-pattern {
   position: fixed;
   top: 0;
-  left: 256px;
+  left: 0;
   right: 0;
   bottom: 0;
   background-color: #1a1a2e;
@@ -543,42 +602,54 @@ export default {
 /* Card Header with Stats */
 .card-header {
   background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
-  padding: 30px;
+  padding: 16px 30px 30px 30px; /* Reduced top padding for upper alignment */
   color: white;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  align-items: flex-start; /* Ensure content is aligned to the top left */
 }
 
 .header-content {
   display: flex;
   align-items: center;
   gap: 20px;
+  justify-content: flex-start; /* Ensure horizontal alignment to the left */
 }
 
 .logo-container {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .logo {
   width: 70px;
   height: 70px;
   object-fit: contain;
+  margin-right: 0;
 }
 
 .header-text {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .title {
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 8px;
+  margin-top: 0;
 }
 
 .subtitle {
   font-size: 0.95rem;
   opacity: 0.8;
+  margin-top: 0;
 }
 
 /* Stats Overview */
@@ -878,13 +949,11 @@ export default {
   .sidebar {
     width: 240px;
   }
-  
   .main-content {
     margin-left: 240px;
   }
-  
   .background-pattern {
-    left: 240px;
+    left: 0;
   }
 }
 
@@ -893,19 +962,15 @@ export default {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
   }
-  
   .main-content {
     margin-left: 0;
   }
-  
   .background-pattern {
     left: 0;
   }
-  
   .content-wrapper {
     padding: 16px;
   }
-  
   .action-bar {
     flex-direction: column;
   }
@@ -926,5 +991,34 @@ export default {
   .stats-overview .stat-item {
     width: 100%;
   }
+}
+
+/* User avatar expansion */
+.user-info {
+  position: relative;
+}
+.user-expanded-info {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background: #1a2a3a;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 10;
+  margin-left: 10px;
+}
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: opacity 0.2s, transform 0.2s;
+}
+.fade-slide-enter-from, .fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.fade-slide-enter-to, .fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>
