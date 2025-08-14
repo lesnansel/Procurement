@@ -10,12 +10,14 @@
       <!-- Admin Card -->
       <div class="admin-card">
         <div class="card-header">
-          <div class="logo-container">
-            <img src="/placeholder.svg?height=70&width=70" alt="Procurement System Logo" class="logo" />
-          </div>
-          <h1 class="title">User Management</h1>
-          <p class="subtitle">Manage system users and their permissions</p>
-        </div>
+  <div class="logo-container">
+    <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+  </div>
+  <div class="text-container">
+    <h1 class="title">User Management</h1>
+    <p class="subtitle">Manage system users and their permissions</p>
+  </div>
+</div>
 
         <div class="card-content">
           <!-- Search and Filter -->
@@ -568,8 +570,11 @@ export default {
 .card-header {
   background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
   padding: 30px;
-  text-align: center;
   color: white;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-align: left;
 }
 
 .logo-container {

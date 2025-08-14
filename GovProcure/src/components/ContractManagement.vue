@@ -15,9 +15,9 @@
             <div class="logo-container">
               <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
             </div>
-            <div class="header-text">
+            <div class="header-text align-left">
               <h1 class="title">Contract Management</h1>
-              <p class="subtitle">Manage and track all procurement contracts</p>
+              <p class="subtitle">Manage, track, and update procurement contracts</p>
             </div>
           </div>
           
@@ -136,7 +136,7 @@
 
       <!-- Add/Edit Contract Modal -->
       <div v-if="isModalOpen" class="modal-overlay" @click.self="closeModal">
-        <div class="modal">
+        <div class="modal contract-modal-wide">
           <div class="modal-header">
             <h3 class="modal-title">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
@@ -146,99 +146,99 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
             </button>
           </div>
-          
-          <form @submit.prevent="submitContract" class="modal-body">
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Supplier</label>
-                <input 
-                  v-model="contractData.supplier" 
-                  type="text" 
-                  class="input-field" 
-                  placeholder="Enter supplier name" 
-                  required 
-                />
+          <form @submit.prevent="submitContract" class="modal-form-flex">
+            <div class="modal-body contract-modal-scroll">
+              <div class="form-row form-row-2col">
+                <div class="form-group">
+                  <label class="form-label">Supplier</label>
+                  <input 
+                    v-model="contractData.supplier" 
+                    type="text" 
+                    class="input-field" 
+                    placeholder="Enter supplier name" 
+                    required 
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">PO Number</label>
+                  <input 
+                    v-model="contractData.poNumber" 
+                    type="text" 
+                    class="input-field" 
+                    placeholder="Enter PO number" 
+                    required 
+                  />
+                </div>
+              </div>
+              
+              <div class="form-row form-row-2col">
+                <div class="form-group">
+                  <label class="form-label">Status</label>
+                  <select v-model="contractData.status" class="input-field" required>
+                    <option value="Pending">Pending</option>
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Contract Value</label>
+                  <input 
+                    v-model="contractData.value" 
+                    type="number" 
+                    step="0.01" 
+                    class="input-field" 
+                    placeholder="Enter contract value" 
+                  />
+                </div>
+              </div>
+              
+              <div class="form-row form-row-2col">
+                <div class="form-group">
+                  <label class="form-label">Start Date</label>
+                  <input 
+                    v-model="contractData.startDate" 
+                    type="date" 
+                    class="input-field" 
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">End Date</label>
+                  <input 
+                    v-model="contractData.endDate" 
+                    type="date" 
+                    class="input-field" 
+                  />
+                </div>
               </div>
               
               <div class="form-group">
-                <label class="form-label">PO Number</label>
-                <input 
-                  v-model="contractData.poNumber" 
-                  type="text" 
-                  class="input-field" 
-                  placeholder="Enter PO number" 
-                  required 
-                />
-              </div>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Status</label>
-                <select v-model="contractData.status" class="input-field" required>
-                  <option value="Pending">Pending</option>
-                  <option value="Active">Active</option>
-                  <option value="Completed">Completed</option>
-                </select>
+                <label class="form-label">Description</label>
+                <textarea 
+                  v-model="contractData.description" 
+                  class="input-field textarea" 
+                  placeholder="Enter contract description"
+                ></textarea>
               </div>
               
               <div class="form-group">
-                <label class="form-label">Contract Value</label>
-                <input 
-                  v-model="contractData.value" 
-                  type="number" 
-                  step="0.01" 
-                  class="input-field" 
-                  placeholder="Enter contract value" 
-                />
+                <label class="form-label">Contract Document (Optional)</label>
+                <div class="file-upload">
+                  <input 
+                    type="file" 
+                    id="file-upload" 
+                    class="file-input" 
+                    @change="handleFileUpload" 
+                  />
+                  <label for="file-upload" class="file-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
+                    {{ fileName || 'Choose file' }}
+                  </label>
+                </div>
               </div>
             </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Start Date</label>
-                <input 
-                  v-model="contractData.startDate" 
-                  type="date" 
-                  class="input-field" 
-                />
-              </div>
-              
-              <div class="form-group">
-                <label class="form-label">End Date</label>
-                <input 
-                  v-model="contractData.endDate" 
-                  type="date" 
-                  class="input-field" 
-                />
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Description</label>
-              <textarea 
-                v-model="contractData.description" 
-                class="input-field textarea" 
-                placeholder="Enter contract description"
-              ></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Contract Document (Optional)</label>
-              <div class="file-upload">
-                <input 
-                  type="file" 
-                  id="file-upload" 
-                  class="file-input" 
-                  @change="handleFileUpload" 
-                />
-                <label for="file-upload" class="file-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
-                  {{ fileName || 'Choose file' }}
-                </label>
-              </div>
-            </div>
-            
             <div class="modal-actions">
               <button type="button" @click="closeModal" class="btn-secondary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
@@ -255,64 +255,74 @@
 
       <!-- Modal Overlay and Box -->
       <div v-if="activeModal" class="modal-overlay">
-        <div class="modal-centered">
+        <div class="modal-centered contract-edit-modal">
           <button class="modal-close" @click="closeModal">&times;</button>
 
           <!-- View Modal -->
           <div v-if="activeModal === 'view'">
-            <h3>View Contract</h3>
-            <p><strong>Supplier:</strong> {{ contractData.supplier }}</p>
-            <p><strong>PO Number:</strong> {{ contractData.poNumber }}</p>
-            <p><strong>Status:</strong> {{ contractData.status }}</p>
-            <p><strong>Value:</strong> {{ formatCurrency(contractData.value) }}</p>
-            <p><strong>Start Date:</strong> {{ formatDate(contractData.startDate) }}</p>
-            <p><strong>End Date:</strong> {{ formatDate(contractData.endDate) }}</p>
-            <p><strong>Description:</strong> {{ contractData.description }}</p>
+            <h3 class="modal-title">View Contract</h3>
+            <div class="modal-details">
+              <div class="detail-row"><span class="detail-label">Supplier:</span> <span class="detail-value">{{ contractData.supplier }}</span></div>
+              <div class="detail-row"><span class="detail-label">PO Number:</span> <span class="detail-value">{{ contractData.poNumber }}</span></div>
+              <div class="detail-row"><span class="detail-label">Status:</span> <span class="detail-value">{{ contractData.status }}</span></div>
+              <div class="detail-row"><span class="detail-label">Value:</span> <span class="detail-value">{{ formatCurrency(contractData.value) }}</span></div>
+              <div class="detail-row"><span class="detail-label">Start Date:</span> <span class="detail-value">{{ formatDate(contractData.startDate) }}</span></div>
+              <div class="detail-row"><span class="detail-label">End Date:</span> <span class="detail-value">{{ formatDate(contractData.endDate) }}</span></div>
+              <div class="detail-row"><span class="detail-label">Description:</span> <span class="detail-value">{{ contractData.description }}</span></div>
+            </div>
           </div>
 
           <!-- Edit Modal -->
           <div v-else-if="activeModal === 'edit'">
-            <h3>Edit Contract</h3>
-            <div class="form-group">
-              <label>Supplier</label>
-              <input type="text" v-model="contractData.supplier" class="input-field" />
-            </div>
-            <div class="form-group">
-              <label>PO Number</label>
-              <input type="text" v-model="contractData.poNumber" class="input-field" />
-            </div>
-            <div class="form-group">
-              <label>Status</label>
-              <select v-model="contractData.status" class="input-field">
-                <option value="Pending">Pending</option>
-                <option value="Active">Active</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Value</label>
-              <input type="number" v-model="contractData.value" class="input-field" />
-            </div>
-            <div class="form-group">
-              <label>Start Date</label>
-              <input type="date" v-model="contractData.startDate" class="input-field" />
-            </div>
-            <div class="form-group">
-              <label>End Date</label>
-              <input type="date" v-model="contractData.endDate" class="input-field" />
-            </div>
-            <div class="form-group">
-              <label>Description</label>
-              <textarea v-model="contractData.description" class="input-field textarea"></textarea>
-            </div>
-            <button @click="saveChanges" class="btn-primary mt-2">Save</button>
+            <h3 class="modal-title">Edit Contract</h3>
+            <form @submit.prevent="saveChanges" class="modal-body">
+              <div class="form-group">
+                <label class="form-label">Supplier</label>
+                <input type="text" v-model="contractData.supplier" class="input-field" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">PO Number</label>
+                <input type="text" v-model="contractData.poNumber" class="input-field" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <select v-model="contractData.status" class="input-field" required>
+                  <option value="Pending">Pending</option>
+                  <option value="Active">Active</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Value</label>
+                <input type="number" v-model="contractData.value" class="input-field" min="0" step="0.01" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Start Date</label>
+                <input type="date" v-model="contractData.startDate" class="input-field" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">End Date</label>
+                <input type="date" v-model="contractData.endDate" class="input-field" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea v-model="contractData.description" class="input-field textarea" rows="3"></textarea>
+              </div>
+              <div class="modal-actions">
+                <button type="button" class="btn-secondary" @click="closeModal">Cancel</button>
+                <button type="submit" class="btn-primary">Save</button>
+              </div>
+            </form>
           </div>
 
           <!-- Delete Modal -->
           <div v-else-if="activeModal === 'delete'">
-            <h3>Confirm Delete</h3>
-            <p>Delete {{ contractData.supplier }}?</p>
-            <button @click="confirmDeleteModal">Delete</button>
+            <h3 class="modal-title">Confirm Delete</h3>
+            <p class="confirm-message">Are you sure you want to delete <b>{{ contractData.supplier }}</b>?</p>
+            <div class="modal-actions">
+              <button class="btn-secondary" @click="closeModal">Cancel</button>
+              <button class="btn-delete" @click="confirmDeleteModal">Delete</button>
+            </div>
           </div>
         </div>
       </div>
@@ -693,6 +703,14 @@ export default {
 
 .header-text {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.header-text.align-left {
+  align-items: flex-start;
 }
 
 .title {
@@ -1177,5 +1195,211 @@ export default {
 
 .main-content.collapsed {
   margin-left: 0;
+}
+
+.contract-edit-modal {
+  background: #fff;
+  padding: 32px 28px 24px 28px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  position: relative;
+  animation: fadeIn 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.contract-edit-modal .modal-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f2942;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.contract-edit-modal .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contract-edit-modal .form-group {
+  margin-bottom: 12px;
+}
+
+.contract-edit-modal .form-label {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.contract-edit-modal .input-field,
+.contract-edit-modal .textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  margin-bottom: 0;
+}
+
+.contract-edit-modal .input-field:focus,
+.contract-edit-modal .textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.contract-edit-modal .textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.contract-edit-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.contract-edit-modal .btn-primary {
+  background-color: #2563eb;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.contract-edit-modal .btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.contract-edit-modal .btn-secondary {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 18px;
+  transition: all 0.2s;
+}
+
+.contract-edit-modal .btn-secondary:hover {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+.contract-edit-modal .btn-delete {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 18px;
+  transition: all 0.2s;
+}
+
+.contract-edit-modal .btn-delete:hover {
+  background-color: #dc2626;
+}
+
+.contract-edit-modal .modal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.contract-edit-modal .detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 6px;
+}
+
+.contract-edit-modal .detail-label {
+  width: 120px;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.contract-edit-modal .detail-value {
+  flex: 1;
+  color: #0f172a;
+  font-size: 0.98rem;
+}
+
+.contract-edit-modal .confirm-message {
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-align: center;
+  margin: 18px 0 10px 0;
+}
+
+/* New styles for wide contract modal */
+.contract-modal-wide {
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #fff;
+  padding: 24px 28px 18px 28px;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 700px;
+  min-width: 350px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  animation: fadeIn 0.2s;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .contract-modal-wide {
+    max-width: 98vw;
+    padding: 14px 4px;
+    max-height: 85vh;
+  }
+}
+
+.modal-form-flex {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.contract-modal-scroll,
+.modal-body {
+  overflow-y: auto;
+  max-height: 70vh;
+  padding-right: 4px;
+  /* Prevents modal from exceeding viewport */
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  background: #fff;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding-top: 12px;
 }
 </style>

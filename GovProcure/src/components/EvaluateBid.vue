@@ -14,12 +14,11 @@
             <div class="logo-container">
               <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
             </div>
-            <div class="header-text">
+            <div class="header-text align-left">
               <h1 class="title">Bid Evaluation</h1>
               <p class="subtitle">Score, approve, or reject vendor bid submissions</p>
             </div>
           </div>
-          
           <!-- Stats Overview -->
           <div class="stats-overview">
             <div class="stat-item">
@@ -544,6 +543,14 @@ export default {
 
 .header-text {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.header-text.align-left {
+  align-items: flex-start;
 }
 
 .title {

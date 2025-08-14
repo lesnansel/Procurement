@@ -1,14 +1,21 @@
 <template>
-  <!-- Purchase Details Modal (move to root for true centering) -->
+  <div class="approved-purchases-layout">
+    <!-- Sidebar and main content here as usual -->
+    <Sidebar />
+    <div class="main-content">
+      <!-- Your page content -->
+    </div>
+  </div>
+
+  <!-- Modal placed OUTSIDE main-content so it’s not affected by margins -->
   <div v-if="selectedPurchase" class="modal-overlay" @click="closeModal">
     <div class="modal" @click.stop>
       <div class="modal-header">
-        <h2 class="modal-title">Purchase Details</h2>
-        <button @click="closeModal" class="close-button" aria-label="Close modal">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
+        <h2>Purchase Details</h2>
+        <button @click="closeModal" class="close-button" aria-label="Close modal">×</button>
       </div>
       <div class="modal-body">
+        <!-- modal content -->
         <div class="detail-group">
           <h3 class="detail-title">Request Information</h3>
           <div class="detail-row">
@@ -28,7 +35,6 @@
             <span class="detail-value">{{ formatDate(selectedPurchase.dateApproved || selectedPurchase.updatedAt) }}</span>
           </div>
         </div>
-        
         <div class="detail-group">
           <h3 class="detail-title">Item Details</h3>
           <div class="detail-row">
@@ -1440,31 +1446,25 @@ export default {
 /* Modal */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
-  padding: 0;
-  pointer-events: auto;
-  animation: fadeIn 0.2s ease-out;
+  z-index: 1000;
 }
 
 .modal {
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 600px;
+  max-width: 500px;
+  width: 90%;
+  margin: 0 auto;
   max-height: 90vh;
   overflow: auto;
   display: flex;
   flex-direction: column;
-  margin: 0 auto;
   animation: slideUp 0.3s ease-out;
 }
 
@@ -1490,9 +1490,7 @@ export default {
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 1.5rem;
 }
 
 .close-button:hover {

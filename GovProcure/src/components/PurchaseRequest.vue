@@ -111,152 +111,6 @@
           </div>
 
           <div class="card-content">
-            <!-- Submit Purchase Request Form -->
-            <form @submit.prevent="submitRequest" class="form">
-              <div class="form-section">
-                <h2 class="section-title">Request Details</h2>
-                
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label" for="itemName">Item Name</label>
-                    <input 
-                      id="itemName"
-                      v-model="newRequest.itemName" 
-                      type="text" 
-                      class="input-field" 
-                      placeholder="Enter item name" 
-                      required 
-                    />
-                    <span v-if="validationErrors.itemName" class="error-message">{{ validationErrors.itemName }}</span>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="quantity">Quantity</label>
-                    <input 
-                      id="quantity"
-                      v-model.number="newRequest.quantity" 
-                      type="number" 
-                      min="1"
-                      class="input-field" 
-                      placeholder="Enter quantity" 
-                      required 
-                    />
-                    <span v-if="validationErrors.quantity" class="error-message">{{ validationErrors.quantity }}</span>
-                  </div>
-                </div>
-                
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label" for="category">Category</label>
-                    <select 
-                      id="category"
-                      v-model="newRequest.category" 
-                      class="input-field" 
-                      required
-                    >
-                      <option value="" disabled>Select a category</option>
-                      <option v-for="category in categories" :key="category" :value="category">
-                        {{ category }}
-                      </option>
-                    </select>
-                    <span v-if="validationErrors.category" class="error-message">{{ validationErrors.category }}</span>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="priority">Priority</label>
-                    <select 
-                      id="priority"
-                      v-model="newRequest.priority" 
-                      class="input-field" 
-                      required
-                    >
-                      <option value="" disabled>Select priority</option>
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="urgent">Urgent</option>
-                    </select>
-                    <span v-if="validationErrors.priority" class="error-message">{{ validationErrors.priority }}</span>
-                  </div>
-                </div>
-                
-                <div class="form-group">
-                  <label class="form-label" for="description">Description</label>
-                  <textarea 
-                    id="description"
-                    v-model="newRequest.description" 
-                    class="input-field textarea" 
-                    placeholder="Enter detailed description of the item(s)" 
-                    required
-                  ></textarea>
-                  <span v-if="validationErrors.description" class="error-message">{{ validationErrors.description }}</span>
-                </div>
-                
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label" for="estimatedCost">Estimated Cost (₱)</label>
-                    <input 
-                      id="estimatedCost"
-                      v-model.number="newRequest.estimatedCost" 
-                      type="number" 
-                      min="0" 
-                      step="0.01"
-                      class="input-field" 
-                      placeholder="Enter estimated cost" 
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="requiredDate">Required By</label>
-                    <input 
-                      id="requiredDate"
-                      v-model="newRequest.requiredDate" 
-                      type="date" 
-                      class="input-field" 
-                      :min="minDate"
-                      required
-                    />
-                    <span v-if="validationErrors.requiredDate" class="error-message">{{ validationErrors.requiredDate }}</span>
-                  </div>
-                </div>
-                
-                <div class="form-group">
-                  <label class="form-label" for="justification">Justification</label>
-                  <textarea 
-                    id="justification"
-                    v-model="newRequest.justification" 
-                    class="input-field textarea" 
-                    placeholder="Explain why this purchase is necessary" 
-                    required
-                  ></textarea>
-                  <span v-if="validationErrors.justification" class="error-message">{{ validationErrors.justification }}</span>
-                </div>
-
-                <!-- File Upload Section -->
-                <div class="form-group">
-                  <label class="form-label" for="prDocument">PR Document (PDF)</label>
-                  <input 
-                    id="prDocument"
-                    type="file"
-                    accept="application/pdf"
-                    class="input-field"
-                    @change="e => file = e.target.files[0]"
-                    required
-                  />
-                  <span v-if="fileError" class="error-message">{{ fileError }}</span>
-                </div>
-              </div>
-              
-              <div class="form-actions">
-                <button type="button" class="btn-secondary" @click="resetForm">Reset</button>
-                <button 
-                  type="submit" 
-                  class="btn-primary" 
-                  :disabled="isSubmitting"
-                >
-                  <span v-if="isSubmitting" class="spinner"></span>
-                  {{ isSubmitting ? 'Submitting...' : 'Submit Request' }}
-                </button>
-              </div>
-            </form>
-            
             <!-- Success/Error Notification -->
             <div v-if="notification.show" :class="['notification', notification.type]">
               <div class="notification-content">
@@ -272,6 +126,165 @@
                 </button>
               </div>
             </div>
+
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+              <button :class="['tab-btn', activeTab === 'submit' ? 'active' : '']" @click="activeTab = 'submit'">Submit Request</button>
+              <button :class="['tab-btn', activeTab === 'my' ? 'active' : '']" @click="activeTab = 'my'">My Requests</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div v-if="activeTab === 'submit'">
+              <!-- Submit Purchase Request Form -->
+              <form @submit.prevent="submitRequest" class="form">
+                <div class="form-section">
+                  <h2 class="section-title">Request Details</h2>
+                  
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label" for="itemName">Item Name</label>
+                      <input 
+                        id="itemName"
+                        v-model="newRequest.itemName" 
+                        type="text" 
+                        class="input-field" 
+                        placeholder="Enter item name" 
+                        required 
+                      />
+                      <span v-if="validationErrors.itemName" class="error-message">{{ validationErrors.itemName }}</span>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="quantity">Quantity</label>
+                      <input 
+                        id="quantity"
+                        v-model.number="newRequest.quantity" 
+                        type="number" 
+                        min="1"
+                        class="input-field" 
+                        placeholder="Enter quantity" 
+                        required 
+                      />
+                      <span v-if="validationErrors.quantity" class="error-message">{{ validationErrors.quantity }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label" for="category">Category</label>
+                      <select 
+                        id="category"
+                        v-model="newRequest.category" 
+                        class="input-field" 
+                        required
+                      >
+                        <option value="" disabled>Select a category</option>
+                        <option v-for="category in categories" :key="category" :value="category">
+                          {{ category }}
+                        </option>
+                      </select>
+                      <span v-if="validationErrors.category" class="error-message">{{ validationErrors.category }}</span>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="priority">Priority</label>
+                      <select 
+                        id="priority"
+                        v-model="newRequest.priority" 
+                        class="input-field" 
+                        required
+                      >
+                        <option value="" disabled>Select priority</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                      <span v-if="validationErrors.priority" class="error-message">{{ validationErrors.priority }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="form-label" for="description">Description</label>
+                    <textarea 
+                      id="description"
+                      v-model="newRequest.description" 
+                      class="input-field textarea" 
+                      placeholder="Enter detailed description of the item(s)" 
+                      required
+                    ></textarea>
+                    <span v-if="validationErrors.description" class="error-message">{{ validationErrors.description }}</span>
+                  </div>
+                  
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label" for="estimatedCost">Estimated Cost (₱)</label>
+                      <input 
+                        id="estimatedCost"
+                        v-model.number="newRequest.estimatedCost" 
+                        type="number" 
+                        min="0" 
+                        step="0.01"
+                        class="input-field" 
+                        placeholder="Enter estimated cost" 
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="requiredDate">Required By</label>
+                      <input 
+                        id="requiredDate"
+                        v-model="newRequest.requiredDate" 
+                        type="date" 
+                        class="input-field" 
+                        :min="minDate"
+                        required
+                      />
+                      <span v-if="validationErrors.requiredDate" class="error-message">{{ validationErrors.requiredDate }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="form-label" for="justification">Justification</label>
+                    <textarea 
+                      id="justification"
+                      v-model="newRequest.justification" 
+                      class="input-field textarea" 
+                      placeholder="Explain why this purchase is necessary" 
+                      required
+                    ></textarea>
+                    <span v-if="validationErrors.justification" class="error-message">{{ validationErrors.justification }}</span>
+                  </div>
+
+                  <!-- File Upload Section -->
+                  <div class="form-group">
+                    <label class="form-label" for="prDocument">PR Document (PDF)</label>
+                    <input 
+                      id="prDocument"
+                      type="file"
+                      accept="application/pdf"
+                      class="input-field"
+                      @change="e => file = e.target.files[0]"
+                      required
+                    />
+                    <span v-if="fileError" class="error-message">{{ fileError }}</span>
+                  </div>
+                </div>
+                
+                <div class="form-actions">
+                  <button type="button" class="btn-secondary" @click="resetForm">Reset</button>
+                  <button 
+                    type="submit" 
+                    class="btn-primary" 
+                    :disabled="isSubmitting"
+                  >
+                    <span v-if="isSubmitting" class="spinner"></span>
+                    {{ isSubmitting ? 'Submitting...' : 'Submit Request' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+            <div v-else>
+              <!-- User's Purchase Requests List -->
+              <UserPurchaseRequests />
+            </div>
           </div>
         </div>
       </div>
@@ -284,10 +297,11 @@ import { ref, computed, reactive } from "vue";
 import { db, auth, storage } from "@/firebase";
 import { collection, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import UserPurchaseRequests from "./UserPurchaseRequests.vue";
 
 export default {
   name: "PurchaseRequest",
-  
+  components: { UserPurchaseRequests },
   setup() {
     // Form data
     const newRequest = reactive({
@@ -335,6 +349,9 @@ export default {
     // Sidebar state
     const sidebarOpen = ref(true);
     const toggleSidebar = () => { sidebarOpen.value = !sidebarOpen.value; };
+    
+    // Active tab state
+    const activeTab = ref('submit');
     
     // Validate form
     const validateForm = () => {
@@ -523,7 +540,8 @@ export default {
       fileError,
       onFileChange,
       sidebarOpen,
-      toggleSidebar
+      toggleSidebar,
+      activeTab,
     };
   }
 };
@@ -1060,6 +1078,31 @@ export default {
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0 16px 0;
+  justify-content: flex-start;
+}
+
+.tab-btn {
+  background: #f1f5f9;
+  color: #0f2942;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  padding: 12px 28px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab-btn.active {
+  background: #0f2942;
+  color: #fff;
 }
 
 /* Responsive Design */

@@ -9,12 +9,14 @@
 
       <!-- Admin Card -->
       <div class="admin-card">
-        <div class="card-header">
-          <div class="logo-container">
+        <div class="card-header card-header-flex">
+          <div class="logo-title-flex">
             <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+            <div class="header-texts">
+              <h1 class="title">Invitation to Bid</h1>
+              <p class="subtitle">Create and manage invitations to bid for procurement projects.</p>
+            </div>
           </div>
-          <h1 class="title">Invitation to Bid</h1>
-          <p class="subtitle">Create and manage invitations to bid for procurement projects.</p>
         </div>
 
         <div class="card-content">
@@ -100,6 +102,40 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
+                  <label class="form-label">Timer Duration</label>
+                  <div style="display: flex; gap: 8px;">
+                    <input
+                      v-model.number="newInvitation.timerDays"
+                      type="number"
+                      min="0"
+                      class="input-field"
+                      placeholder="Days"
+                      style="max-width: 80px;"
+                    />
+                    <input
+                      v-model.number="newInvitation.timerHours"
+                      type="number"
+                      min="0"
+                      max="23"
+                      class="input-field"
+                      placeholder="Hours"
+                      style="max-width: 80px;"
+                    />
+                    <input
+                      v-model.number="newInvitation.timerMinutes"
+                      type="number"
+                      min="0"
+                      max="59"
+                      class="input-field"
+                      placeholder="Minutes"
+                      style="max-width: 100px;"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
                   <label class="form-label">Status</label>
                   <select v-model="newInvitation.status" class="input-field" required>
                     <option value="draft">Draft</option>
@@ -134,88 +170,322 @@
           </div>
 
           <!-- Invitations List -->
-          <div class="section-header">
-            <h3 class="section-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-              Current Invitations
-            </h3>
-            <div class="status-count">
-              <span>Total: {{ filteredInvitations.length }}</span>
-            </div>
+          <!-- Tab Toggle -->
+          <div style="margin-bottom: 24px; display: flex; gap: 12px;">
+            <button
+              class="btn-primary"
+              :class="{ active: !showArchived }"
+              @click="showArchived = false"
+            >Active Invitations</button>
+            <button
+              class="btn-secondary"
+              :class="{ active: showArchived }"
+              @click="showArchived = true"
+            >Archived Invitations</button>
           </div>
-          
-          <div v-if="filteredInvitations.length" class="table-container">
-            <table class="invitations-table">
-              <thead>
-                <tr>
-                  <th>Project Name</th>
-                  <th>Deadline</th>
-                  <th>Description</th>
-                  <th class="actions-header">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="invitation in filteredInvitations" :key="invitation.id" class="table-row">
-                  <td>{{ invitation.projectName }}</td>
-                  <td>
-                    <span class="deadline-badge" :class="isDeadlineSoon(invitation.deadline) ? 'deadline-soon' : ''">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                      {{ formatDate(invitation.deadline) }}
-                    </span>
-                  </td>
-                  <td class="description-cell">{{ invitation.description }}</td>
-                  <td>
-                    <div class="actions-container">
-                      <div class="action-buttons">
+
+          <div v-if="!showArchived">
+            <div class="section-header">
+              <h3 class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                </svg>
+                Current Invitations
+              </h3>
+              <div class="status-count">
+                <span>Total: {{ filteredInvitations.length }}</span>
+              </div>
+            </div>
+
+            <div v-if="filteredInvitations.length" class="table-container">
+              <table class="invitations-table">
+                <thead>
+                  <tr>
+                    <th>Project Name</th>
+                    <th>Deadline</th>
+                    <th>Timer</th>
+                    <th>Description</th>
+                    <th class="actions-header">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="invitation in filteredInvitations" :key="invitation.id" class="table-row">
+                    <td>{{ invitation.projectName }}</td>
+                    <td>
+                      <span class="deadline-badge" :class="isDeadlineSoon(invitation.deadline) ? 'deadline-soon' : ''">
+                        {{ formatDate(invitation.deadline) }}
+                      </span>
+                    </td>
+                    <td>
+                        {{ invitation.expiresAt ? getTimeLeft(invitation.expiresAt) : 'No timer' }}
+                    </td>
+                    <td class="description-cell">{{ invitation.description }}</td>
+                    <td>
+                      <div class="actions-container">
                         <button @click="openModal('edit', invitation)" class="action-btn edit" title="Edit Invitation">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                          ✏️
                         </button>
                         <button @click="openModal('delete', invitation)" class="action-btn delete" title="Delete Invitation">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                          🗑️
                         </button>
                         <button @click="openModal('view', invitation)" class="action-btn view" title="View Details">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                          👁️
                         </button>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div v-else class="empty-state">
+              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
+                <path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2v-7"></path>
+                <path d="M8 6h3a1 1 0 0 1 1 1v9"></path>
+                <path d="M8 22h4a2 2 0 0 0 2-2v-7"></path>
+                <path d="M2 19h5"></path>
+                <path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path>
+                <path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path>
+              </svg>
+              <p class="empty-text">No invitations available.</p>
+              <p class="empty-subtext">Create your first invitation to get started.</p>
+            </div>
           </div>
-          <div v-else-if="!invitations.length" class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2v-7"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
-            <p class="empty-text">No invitations available.</p>
-            <p class="empty-subtext">Create your first invitation to get started.</p>
+
+          <!-- Archived Invitations Table -->
+          <div v-else>
+            <div class="section-header">
+              <h3 class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+                  <path d="M21 3v5h-5"></path>
+                </svg>
+                Archived Invitations
+              </h3>
+              <div class="status-count">
+                <span>Total: {{ archivedInvitations.length }}</span>
+              </div>
+            </div>
+            <div v-if="archivedInvitations.length" class="table-container">
+              <table class="invitations-table">
+                <thead>
+                  <tr>
+                    <th>Project Name</th>
+                    <th>Deadline</th>
+                    <th>Archived On</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="invitation in archivedInvitations" :key="invitation.id">
+                    <td>{{ invitation.projectName }}</td>
+                    <td>{{ formatDate(invitation.deadline) }}</td>
+                    <td>{{ formatDate(invitation.expiresAt) }}</td>
+                    <td>
+                      <button @click="openRestoreModal(invitation)" class="btn-primary">
+                        Restore & Set Timer
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-else class="empty-state">
+              <p class="empty-text">No archived invitations found.</p>
+            </div>
           </div>
-          <div v-else class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
-            <p class="empty-text">No matching invitations found.</p>
-            <p class="empty-subtext">Try adjusting your search criteria.</p>
+
+          <!-- Restore Modal -->
+          <div v-if="modal.restore" class="modal-backdrop">
+            <div class="modal-content">
+              <h2>Restore & Set Timer</h2>
+              <p>
+                Set a new timer for <strong>{{ selectedInvitation.projectName }}</strong>.<br>
+                It will be restored to active invitations.
+              </p>
+              <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                <input
+                  type="number"
+                  min="0"
+                  v-model.number="restoreTimerDays"
+                  placeholder="Days"
+                  class="input-field"
+                  style="max-width: 80px;"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  max="23"
+                  v-model.number="restoreTimerHours"
+                  placeholder="Hours"
+                  class="input-field"
+                  style="max-width: 80px;"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  v-model.number="restoreTimerMinutes"
+                  placeholder="Minutes"
+                  class="input-field"
+                  style="max-width: 100px;"
+                />
+              </div>
+              <div class="modal-actions">
+                <button class="btn-primary" @click="restoreInvitationWithTimer">Restore</button>
+                <button class="btn-secondary" @click="closeModals">Cancel</button>
+              </div>
+            </div>
           </div>
 
           <!-- View Invitation Modal -->
           <div v-if="modal.view" class="modal-backdrop">
-            <div class="modal-content">
-              <h2>📄 View Invitation</h2>
-              <p><strong>Project:</strong> {{ selectedInvitation.projectName }}</p>
-              <p><strong>Deadline:</strong> {{ selectedInvitation.deadline }}</p>
-              <p><strong>Description:</strong> {{ selectedInvitation.description }}</p>
-              <button @click="closeModals">Close</button>
+            <div class="modal-content view-modal">
+              <h2 class="section-title">📄 View Invitation</h2>
+              <ul class="invitation-details">
+                <li><strong>ITB Number:</strong> {{ selectedInvitation.itbNumber }}</li>
+                <li><strong>Procuring Entity:</strong> {{ selectedInvitation.procuringEntity }}</li>
+                <li><strong>Project Title:</strong> {{ selectedInvitation.projectName }}</li>
+                <li><strong>ABC:</strong> ₱{{ selectedInvitation.abc }}</li>
+                <li><strong>Contract Duration:</strong> {{ selectedInvitation.contractDuration }}</li>
+                <li><strong>Delivery Location:</strong> {{ selectedInvitation.deliveryLocation }}</li>
+                <li><strong>Funding Source:</strong> {{ selectedInvitation.fundingSource }}</li>
+                <li><strong>Document Fee:</strong> ₱{{ selectedInvitation.documentFee }}</li>
+                <li><strong>PR/Reference ID:</strong> {{ selectedInvitation.prId }}</li>
+                <li><strong>Pre-bid Conference Date:</strong> {{ formatDate(selectedInvitation.preBidDate) }}</li>
+                <li><strong>Bid Submission Deadline:</strong> {{ formatDate(selectedInvitation.deadline) }}</li>
+                <li><strong>Bid Opening Date:</strong> {{ formatDate(selectedInvitation.bidOpeningDate) }}</li>
+                <li><strong>Status:</strong> {{ selectedInvitation.status }}</li>
+                <li><strong>Description:</strong> {{ selectedInvitation.description }}</li>
+              </ul>
+              <button @click="closeModals" class="btn-secondary mt-4">Close</button>
             </div>
           </div>
 
           <!-- Edit Invitation Modal -->
           <div v-if="modal.edit" class="modal-backdrop">
-            <div class="modal-content">
-              <h2>✏️ Edit Invitation</h2>
-              <input v-model="selectedInvitation.projectName" placeholder="Project Name" />
-              <input v-model="selectedInvitation.deadline" type="date" />
-              <textarea v-model="selectedInvitation.description" placeholder="Description"></textarea>
-              <button @click="updateInvitationModal">Save</button>
-              <button @click="closeModals">Cancel</button>
+            <div class="modal-content form-container">
+              <h2 class="section-title">✏️ Edit Invitation</h2>
+              <form @submit.prevent="updateInvitationModal" class="form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">ITB Number / Reference Code</label>
+                    <input v-model="selectedInvitation.itbNumber" type="text" class="input-field" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Procuring Entity</label>
+                    <input v-model="selectedInvitation.procuringEntity" type="text" class="input-field" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Project Title</label>
+                    <input v-model="selectedInvitation.projectName" type="text" class="input-field" required />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">ABC</label>
+                    <input v-model="selectedInvitation.abc" type="number" min="0" class="input-field" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Contract Duration</label>
+                    <input v-model="selectedInvitation.contractDuration" type="text" class="input-field" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Delivery Location</label>
+                    <input v-model="selectedInvitation.deliveryLocation" type="text" class="input-field" required />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Funding Source</label>
+                    <input v-model="selectedInvitation.fundingSource" type="text" class="input-field" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Document Fee (₱)</label>
+                    <input v-model="selectedInvitation.documentFee" type="number" min="0" class="input-field" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">PR/Reference ID</label>
+                    <input v-model="selectedInvitation.prId" type="text" class="input-field" />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Pre-bid Conference Date</label>
+                    <input v-model="selectedInvitation.preBidDate" type="date" class="input-field" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Bid Submission Deadline</label>
+                    <input v-model="selectedInvitation.deadline" type="date" class="input-field" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Bid Opening Schedule</label>
+                    <input v-model="selectedInvitation.bidOpeningDate" type="date" class="input-field" />
+                  </div>
+                </div>
+
+                <!-- ✅ NEW TIMER FIELD -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Timer Duration</label>
+                    <div style="display: flex; gap: 8px;">
+                      <input
+                        v-model.number="selectedInvitation.timerDays"
+                        type="number"
+                        min="0"
+                        class="input-field"
+                        placeholder="Days"
+                        style="max-width: 80px;"
+                      />
+                      <input
+                        v-model.number="selectedInvitation.timerHours"
+                        type="number"
+                        min="0"
+                        max="23"
+                        class="input-field"
+                        placeholder="Hours"
+                        style="max-width: 80px;"
+                      />
+                      <input
+                        v-model.number="selectedInvitation.timerMinutes"
+                        type="number"
+                        min="0"
+                        max="59"
+                        class="input-field"
+                        placeholder="Minutes"
+                        style="max-width: 100px;"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select v-model="selectedInvitation.status" class="input-field" required>
+                      <option value="draft">Draft</option>
+                      <option value="published">Published</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                  </div>
+                  <div class="form-group full-width">
+                    <label class="form-label">Description</label>
+                    <textarea v-model="selectedInvitation.description" class="input-field textarea" required></textarea>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" @click="closeModals" class="btn-secondary">Cancel</button>
+                  <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+              </form>
             </div>
           </div>
+
 
           <!-- Delete Confirmation Modal -->
           <div v-if="modal.delete" class="modal-backdrop">
@@ -236,13 +506,22 @@
 import AdminNavigationBar from './AdminNavigationBar.vue';
 import { ref, onMounted, computed } from "vue";
 import { db, storage } from "@/firebase";
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc
+} from "firebase/firestore";
+import {
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL
+} from "firebase/storage";
 
 export default {
-  components: {
-    AdminNavigationBar,
-  },
+  components: { AdminNavigationBar },
   setup() {
     const invitations = ref([]);
     const newInvitation = ref({
@@ -262,23 +541,30 @@ export default {
       description: "",
       itbPdfUrl: "",
       supportingDocsUrls: [],
+      timerDays: 0,
+      timerHours: 0,
+      timerMinutes: 0,
+      expiresAt: "", // derived from timerDuration
     });
+
     const itbPdfFile = ref(null);
     const supportingDocsFiles = ref([]);
-    const isEditing = ref(false);
-    const isViewing = ref(false);
-    const isDeleting = ref(false);
-    const editInvitationData = ref({});
-    const viewInvitationData = ref({});
-    const deleteId = ref(null);
-    const searchQuery = ref("");
     const showCreateForm = ref(false);
+    const searchQuery = ref("");
 
-    // Make sure these are defined in setup
+    // Tab toggle
+    const showArchived = ref(false);
+
+    // Restore modal state
+    const restoreTimerDays = ref(0);
+    const restoreTimerHours = ref(0);
+    const restoreTimerMinutes = ref(0);
+
     const modal = ref({
       view: false,
       edit: false,
       delete: false,
+      restore: false
     });
     const selectedInvitation = ref({});
 
@@ -289,26 +575,125 @@ export default {
       modal.value.delete = false;
       modal.value[type] = true;
     };
+
     const closeModals = () => {
       modal.value.view = false;
       modal.value.edit = false;
       modal.value.delete = false;
+      modal.value.restore = false;
+    };
+
+    const createInvitation = async () => {
+      try {
+        let itbPdfUrl = "";
+        let supportingDocsUrls = [];
+
+        if (itbPdfFile.value) {
+          const pdfRef = storageRef(storage, `itb_pdfs/${Date.now()}_${itbPdfFile.value.name}`);
+          await uploadBytes(pdfRef, itbPdfFile.value);
+          itbPdfUrl = await getDownloadURL(pdfRef);
+        }
+
+        if (supportingDocsFiles.value.length) {
+          for (const file of supportingDocsFiles.value) {
+            const docRef = storageRef(storage, `itb_supporting_docs/${Date.now()}_${file.name}`);
+            await uploadBytes(docRef, file);
+            const url = await getDownloadURL(docRef);
+            supportingDocsUrls.push(url);
+          }
+        }
+
+        // Calculate expiresAt from days, hours, minutes
+        const totalMs =
+          ((newInvitation.value.timerDays || 0) * 24 * 60 * 60 * 1000) +
+          ((newInvitation.value.timerHours || 0) * 60 * 60 * 1000) +
+          ((newInvitation.value.timerMinutes || 0) * 60 * 1000);
+        let expiresAt = null;
+        if (totalMs > 0) {
+          expiresAt = new Date(Date.now() + totalMs).toISOString();
+        }
+
+        await addDoc(collection(db, "invitations"), {
+          ...newInvitation.value,
+          itbPdfUrl,
+          supportingDocsUrls,
+          expiresAt,
+          timerDays: newInvitation.value.timerDays,
+          timerHours: newInvitation.value.timerHours,
+          timerMinutes: newInvitation.value.timerMinutes,
+        });
+
+        showNotification("Invitation created successfully!");
+        resetForm();
+        showCreateForm.value = false;
+        fetchInvitations();
+      } catch (error) {
+        showNotification("Failed to create invitation", "error");
+      }
+    };
+
+    // Fetch invitations (active and archived)
+    const archivedInvitations = computed(() =>
+      invitations.value.filter(inv => inv.archived === true)
+    );
+    const filteredInvitations = computed(() => {
+      const q = searchQuery.value.toLowerCase();
+      return invitations.value.filter(inv =>
+        inv.archived !== true &&
+        (inv.projectName.toLowerCase().includes(q) || inv.description.toLowerCase().includes(q))
+      );
+    });
+
+    const fetchInvitations = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "invitations"));
+        const now = new Date();
+        const updates = [];
+
+        invitations.value = snapshot.docs.map(docSnap => {
+          const data = { id: docSnap.id, ...docSnap.data() };
+
+          // Auto-archive expired
+          if (data.expiresAt && new Date(data.expiresAt) < now && !data.archived) {
+            const ref = doc(db, "invitations", data.id);
+            updates.push(updateDoc(ref, { archived: true }));
+            data.archived = true;
+          }
+
+          return data;
+        });
+
+        await Promise.all(updates);
+      } catch (error) {
+        showNotification("Failed to fetch invitations", "error");
+      }
     };
 
     const updateInvitationModal = async () => {
       if (!selectedInvitation.value.id) return;
+
       try {
+        const updateData = { ...selectedInvitation.value };
+
+        // ⏱ Recompute expiresAt from timerDuration (if changed)
+        if (updateData.timerDuration && !isNaN(updateData.timerDuration)) {
+          const future = new Date();
+          future.setDate(future.getDate() + Number(updateData.timerDuration));
+          updateData.expiresAt = future.toISOString();
+        } else {
+          updateData.expiresAt = null;
+        }
+
+        delete updateData.id;
+
         const invitationRef = doc(db, "invitations", selectedInvitation.value.id);
-        await updateDoc(invitationRef, {
-          projectName: selectedInvitation.value.projectName,
-          deadline: selectedInvitation.value.deadline,
-          description: selectedInvitation.value.description,
-        });
+        await updateDoc(invitationRef, updateData);
+
         showNotification("Invitation updated successfully!");
         closeModals();
         fetchInvitations();
       } catch (error) {
-        showNotification("Failed to update invitation.", "error");
+        showNotification("Failed to update invitation", "error");
       }
     };
 
@@ -320,69 +705,43 @@ export default {
         closeModals();
         fetchInvitations();
       } catch (error) {
-        showNotification("Failed to delete invitation.", "error");
+        showNotification("Failed to delete invitation", "error");
       }
     };
 
-    const fetchInvitations = async () => {
+    // Restore modal logic
+    const openRestoreModal = (invitation) => {
+      selectedInvitation.value = { ...invitation };
+      restoreTimerDays.value = 0;
+      restoreTimerHours.value = 0;
+      restoreTimerMinutes.value = 0;
+      modal.value.restore = true;
+    };
+
+    const restoreInvitationWithTimer = async () => {
+      if (!selectedInvitation.value.id) return;
       try {
-        const querySnapshot = await getDocs(collection(db, "invitations"));
-        invitations.value = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      } catch (error) {
-        console.error("Error fetching invitations:", error);
-        showNotification("Failed to fetch invitations. Please try again.", "error");
-      }
-    };
-
-    const filteredInvitations = computed(() => {
-      if (!searchQuery.value) return invitations.value;
-      
-      const query = searchQuery.value.toLowerCase();
-      return invitations.value.filter(invitation => 
-        invitation.projectName.toLowerCase().includes(query) ||
-        invitation.description.toLowerCase().includes(query)
-      );
-    });
-
-    const onFileChange = (event, type) => {
-      if (type === "itbPdf") {
-        itbPdfFile.value = event.target.files[0] || null;
-      } else if (type === "supportingDocs") {
-        supportingDocsFiles.value = Array.from(event.target.files);
-      }
-    };
-
-    const createInvitation = async () => {
-      try {
-        // Upload files if present
-        let itbPdfUrl = "";
-        let supportingDocsUrls = [];
-        if (itbPdfFile.value) {
-          const pdfRef = storageRef(storage, `itb_pdfs/${Date.now()}_${itbPdfFile.value.name}`);
-          await uploadBytes(pdfRef, itbPdfFile.value);
-          itbPdfUrl = await getDownloadURL(pdfRef);
+        const totalMs =
+          ((restoreTimerDays.value || 0) * 24 * 60 * 60 * 1000) +
+          ((restoreTimerHours.value || 0) * 60 * 60 * 1000) +
+          ((restoreTimerMinutes.value || 0) * 60 * 1000);
+        let expiresAt = null;
+        if (totalMs > 0) {
+          expiresAt = new Date(Date.now() + totalMs).toISOString();
         }
-        if (supportingDocsFiles.value.length) {
-          for (const file of supportingDocsFiles.value) {
-            const docRef = storageRef(storage, `itb_supporting_docs/${Date.now()}_${file.name}`);
-            await uploadBytes(docRef, file);
-            const url = await getDownloadURL(docRef);
-            supportingDocsUrls.push(url);
-          }
-        }
-        // Save to Firestore
-        await addDoc(collection(db, "invitations"), {
-          ...newInvitation.value,
-          itbPdfUrl,
-          supportingDocsUrls,
+        const invitationRef = doc(db, "invitations", selectedInvitation.value.id);
+        await updateDoc(invitationRef, {
+          archived: false,
+          expiresAt,
+          timerDays: restoreTimerDays.value,
+          timerHours: restoreTimerHours.value,
+          timerMinutes: restoreTimerMinutes.value,
         });
-        showNotification("Invitation created successfully!");
-        resetForm();
-        showCreateForm.value = false;
+        showNotification("Invitation restored!");
+        closeModals();
         fetchInvitations();
       } catch (error) {
-        console.error("Error creating invitation:", error);
-        showNotification("Failed to create invitation. Please try again.", "error");
+        showNotification("Failed to restore invitation", "error");
       }
     };
 
@@ -404,108 +763,26 @@ export default {
         description: "",
         itbPdfUrl: "",
         supportingDocsUrls: [],
+        timerDays: 0,
+        timerHours: 0,
+        timerMinutes: 0,
+        expiresAt: "",
       };
       itbPdfFile.value = null;
       supportingDocsFiles.value = [];
     };
 
-    const getInvitationIndex = (id) => {
-      return invitations.value.findIndex(inv => inv.id === id);
-    };
-
-    // Enhanced action handlers for the new UI
-    const handleEdit = (invitation) => {
-      editInvitationData.value = { ...invitation };
-      isEditing.value = true;
-      isViewing.value = false;
-    };
-
-    const handleDelete = (id) => {
-      deleteId.value = id;
-      isDeleting.value = true;
-      
-      // Close other modals
-      isViewing.value = false;
-      isEditing.value = false;
-    };
-
-    const handleView = (invitation) => {
-      viewInvitationData.value = { ...invitation };
-      isViewing.value = true;
-    };
-
-    const handleEditFromView = () => {
-      editInvitationData.value = { ...viewInvitationData.value };
-      isEditing.value = true;
-      isViewing.value = false;
-    };
-
-    const handleDeleteFromView = () => {
-      deleteId.value = viewInvitationData.value.id;
-      isDeleting.value = true;
-      isViewing.value = false;
-    };
-
-    const closeEditModal = () => {
-      isEditing.value = false;
-    };
-
-    const closeViewModal = () => {
-      isViewing.value = false;
-    };
-
-    const closeDeleteModal = () => {
-      isDeleting.value = false;
-      deleteId.value = null;
-    };
-
-    const updateInvitation = async () => {
-      try {
-        const invitationRef = doc(db, "invitations", editInvitationData.value.id);
-        await updateDoc(invitationRef, {
-          projectName: editInvitationData.value.projectName,
-          deadline: editInvitationData.value.deadline,
-          description: editInvitationData.value.description,
-        });
-        showNotification("Invitation updated successfully!");
-        isEditing.value = false;
-        
-        // Update view modal if it's the same invitation
-        if (isViewing.value && viewInvitationData.value.id === editInvitationData.value.id) {
-          viewInvitationData.value = { ...editInvitationData.value };
-        }
-        
-        fetchInvitations();
-      } catch (error) {
-        console.error("Error updating invitation:", error);
-        showNotification("Failed to update invitation. Please try again.", "error");
+    const onFileChange = (e, type) => {
+      if (type === "itbPdf") {
+        itbPdfFile.value = e.target.files[0] || null;
+      } else if (type === "supportingDocs") {
+        supportingDocsFiles.value = Array.from(e.target.files);
       }
     };
 
-    const confirmDeleteInvitation = async () => {
-      if (!deleteId.value) return;
-      
-      try {
-        await deleteDoc(doc(db, "invitations", deleteId.value));
-        showNotification("Invitation deleted successfully!");
-        isDeleting.value = false;
-        deleteId.value = null;
-        
-        // Close view modal if it's the same invitation
-        if (isViewing.value && viewInvitationData.value.id === deleteId.value) {
-          isViewing.value = false;
-        }
-        
-        fetchInvitations();
-      } catch (error) {
-        console.error("Error deleting invitation:", error);
-        showNotification("Failed to delete invitation. Please try again.", "error");
-      }
-    };
-
-    const formatDate = (date) => {
-      if (!date) return "";
-      return new Date(date).toLocaleDateString("en-US", {
+    const formatDate = (dateStr) => {
+      if (!dateStr) return "";
+      return new Date(dateStr).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -515,78 +792,65 @@ export default {
     const isDeadlineSoon = (dateStr) => {
       if (!dateStr) return false;
       const deadline = new Date(dateStr);
-      const today = new Date();
-      const diffTime = deadline - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const now = new Date();
+      const diffDays = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
       return diffDays <= 7 && diffDays >= 0;
     };
 
-    const getDaysRemaining = (dateStr) => {
-      if (!dateStr) return 0;
-      const deadline = new Date(dateStr);
-      const today = new Date();
-      const diffTime = deadline - today;
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const showNotification = (msg, type = "success") => {
+      const el = document.createElement("div");
+      el.className = `notification ${type}`;
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.classList.add("show"), 10);
+      setTimeout(() => {
+        el.classList.remove("show");
+        setTimeout(() => document.body.removeChild(el), 300);
+      }, 3000);
     };
 
-    const showNotification = (message, type = "success") => {
-      // Simple notification implementation
-      const notification = document.createElement("div");
-      notification.className = `notification ${type}`;
-      notification.textContent = message;
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.classList.add("show");
-      }, 10);
-      
-      setTimeout(() => {
-        notification.classList.remove("show");
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 300);
-      }, 3000);
+    // Add getTimeLeft function
+    const getTimeLeft = (expiresAt) => {
+      if (!expiresAt) return "No timer";
+      const now = new Date();
+      const end = new Date(expiresAt);
+      const diff = end - now;
+      if (diff <= 0) return "Expired";
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      return `${days}d ${hours}h ${minutes}m`;
     };
 
     onMounted(fetchInvitations);
 
     return {
       invitations,
-      filteredInvitations,
       newInvitation,
       itbPdfFile,
       supportingDocsFiles,
-      isEditing,
-      isViewing,
-      isDeleting,
-      editInvitationData,
-      viewInvitationData,
-      deleteId,
-      searchQuery,
       showCreateForm,
       createInvitation,
-      onFileChange,
-      handleEdit,
-      handleDelete,
-      handleView,
-      handleEditFromView,
-      handleDeleteFromView,
-      updateInvitation,
-      confirmDeleteInvitation,
-      closeEditModal,
-      closeViewModal,
-      closeDeleteModal,
       resetForm,
+      onFileChange,
       formatDate,
       isDeadlineSoon,
-      getDaysRemaining,
-      getInvitationIndex,
+      getTimeLeft,
+      searchQuery,
+      filteredInvitations,
       modal,
       selectedInvitation,
       openModal,
       closeModals,
       updateInvitationModal,
       deleteInvitationModal,
+      showArchived,
+      archivedInvitations,
+      openRestoreModal,
+      restoreTimerDays,
+      restoreTimerHours,
+      restoreTimerMinutes,
+      restoreInvitationWithTimer,
     };
   },
 };
@@ -638,15 +902,19 @@ export default {
   position: relative;
 }
 
-.card-header {
+
+.card-header.card-header-flex {
+  display: flex;
+  align-items: center;
   background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
   padding: 30px;
-  text-align: center;
   color: white;
 }
 
-.logo-container {
-  margin-bottom: 20px;
+.logo-title-flex {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
 .logo {
@@ -655,15 +923,23 @@ export default {
   object-fit: contain;
 }
 
+.header-texts {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .title {
   font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  color: #fff;
 }
 
 .subtitle {
   font-size: 0.95rem;
   opacity: 0.8;
+  color: #e0e7ef;
 }
 
 .card-content {
@@ -718,12 +994,13 @@ export default {
 }
 
 .section-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #0f2942;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
+  color: #0d3c61;
 }
 
 .status-count {
@@ -750,15 +1027,13 @@ export default {
 
 .form-row {
   display: flex;
-  gap: 20px;
   flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .form-group {
-  flex: 1;
-  min-width: 250px;
+  flex: 1 1 100%;
 }
-
 .form-label {
   font-size: 14px;
   font-weight: 600;
@@ -854,10 +1129,12 @@ export default {
 /* Actions Container */
 .actions-container {
   display: flex;
+  gap: 8px;
   justify-content: center;
+  align-items: center;
 }
 
-.action-buttons {
+.action-buttons { 
   display: flex;
   gap: 8px;
   background-color: #0f2942;
@@ -866,34 +1143,22 @@ export default {
 }
 
 .action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 16px;
   border: none;
-  background-color: transparent;
-  color: white;
   cursor: pointer;
-  transition: all 0.2s;
+  background-color: #f3f3f3;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
 }
 
 .action-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #e0e0e0;
 }
 
-.action-btn.edit {
-  color: #60a5fa;
-}
-
-.action-btn.delete {
-  color: #f87171;
-}
-
-.action-btn.view {
-  color: #a5b4fc;
-}
+.action-btn.edit { color: #007bff; }
+.action-btn.delete { color: #dc3545; }
+.action-btn.view { color: #28a745; }
 
 /* Deadline Badge */
 .deadline-badge {
@@ -1042,6 +1307,39 @@ export default {
   gap: 8px;
 }
 
+.view-modal {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 2rem 3rem;
+  border-radius: 12px;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 600px;
+  text-align: left;
+}
+
+.invitation-details {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.invitation-details li {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #2c3e50;
+}
+
+.invitation-details li strong {
+  display: inline-block;
+  width: 180px;
+  color: #0d3c61;
+  font-weight: 600;
+}
+
 .close-button {
   background: none;
   border: none;
@@ -1158,6 +1456,10 @@ export default {
   .action-bar {
     flex-direction: column;
   }
+
+  .form-group {
+    flex: 1 1 calc(33.333% - 1rem); /* three per row */
+  }
   
   .search-container {
     width: 100%;
@@ -1228,27 +1530,25 @@ export default {
 /* Modal Backdrop and Content (for new modals) */
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.6);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 50;
-}
-.modal-content {
-  background: white;
+  align-items: center;
+  overflow-y: auto;
   padding: 2rem;
-  border-radius: 12px;
-  max-width: 500px;
-  width: 90%;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  /* Ensure content is not clipped */
-  overflow: visible;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .modal-content input,
@@ -1294,14 +1594,4 @@ export default {
   margin-bottom: 0.5rem;
 }
 
-/* Modularized admin-card and input styles for reuse */
-.admin-card {
-  /* ...existing code... */
-}
-.input-field {
-  /* ...existing code... */
-}
-.form-label {
-  /* ...existing code... */
-}
 </style>

@@ -12,7 +12,7 @@
           <div class="logo-container">
             <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
           </div>
-          <div class="header-text">
+          <div class="header-text align-left">
             <h1 class="title">Add Contract</h1>
             <p class="subtitle">Record a new contract for a procurement process</p>
           </div>
@@ -173,7 +173,6 @@ export default {
   padding: 20px;
   position: relative;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
 
 /* Background Pattern */
 .background-pattern {
@@ -246,29 +245,50 @@ export default {
   margin-bottom: 20px;
 }
 
-.form-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #334155;
+.card-header {
+  background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
+  padding: 30px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.logo-container {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+.logo {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+.header-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+.header-text.align-left {
+  align-items: flex-start;
+}
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
   margin-bottom: 8px;
-  display: block;
+  letter-spacing: -0.5px;
 }
-
-.input-field {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s;
-  background-color: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+.subtitle {
+  font-size: 0.95rem;
+  opacity: 0.8;
+  max-width: 500px;
+  margin: 0;
 }
-
-.input-field:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .textarea {

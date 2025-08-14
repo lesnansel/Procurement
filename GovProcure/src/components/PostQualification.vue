@@ -15,7 +15,7 @@
             <div class="logo-container">
               <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
             </div>
-            <div class="header-text">
+            <div class="header-text align-left">
               <h1 class="title">Post Qualification</h1>
               <p class="subtitle">Evaluate and manage post-qualification processes</p>
             </div>
@@ -107,11 +107,11 @@
               </div>
               
               <div class="qualification-actions">
-                <button @click="viewDetails(qualification)" class="card-action-btn view">
+                <button @click="navigateToQualificationDetails(qualification.id)" class="card-action-btn view">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   Details
                 </button>
-                <button @click="editQualification(qualification)" class="card-action-btn edit">
+                <button @click="navigateToEditQualification(qualification.id)" class="card-action-btn edit">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                   Edit
                 </button>
@@ -147,53 +147,53 @@
       </div>
 
       <!-- Edit Modal -->
-      <div v-if="isEditModalOpen" class="modal-overlay" @click.self="closeEditModal">
+      <div v-if="isModalOpen" class="modal-overlay" @click.self="closeModal">
         <div class="modal modal-md">
           <div class="modal-header">
-            <h3 class="modal-title">Edit Post-Qualification</h3>
-            <button class="close-button" @click="closeEditModal">&times;</button>
+            <h3 class="modal-title">{{ editMode ? 'Edit' : 'Add' }} Post-Qualification</h3>
+            <button class="close-button" @click="closeModal">&times;</button>
           </div>
-          <form @submit.prevent="submitEditPostQualification" class="modal-body">
+          <form @submit.prevent="submitPostQualification" class="modal-body">
             <div class="form-group">
               <label class="form-label">Supplier Name</label>
-              <input v-model="editQualificationData.supplierName" class="input-field" required />
+              <input v-model="postQualification.supplierName" class="input-field" required />
             </div>
             <div class="form-group">
               <label class="form-label">Score</label>
-              <input v-model.number="editQualificationData.evaluationScore" type="number" min="0" max="100" class="input-field" required />
+              <input v-model.number="postQualification.evaluationScore" type="number" min="0" max="100" class="input-field" required />
             </div>
             <div class="form-group">
               <label class="form-label">Remarks</label>
-              <textarea v-model="editQualificationData.remarks" class="input-field textarea" rows="4"></textarea>
+              <textarea v-model="postQualification.remarks" class="input-field textarea" rows="4"></textarea>
             </div>
             <div class="form-group">
               <label class="form-label">Date</label>
-              <input v-model="editQualificationData.evaluationDate" type="date" class="input-field" required />
+              <input v-model="postQualification.evaluationDate" type="date" class="input-field" required />
             </div>
             <div class="form-group">
               <label class="form-label">Evaluator</label>
-              <input v-model="editQualificationData.evaluator" class="input-field" required />
+              <input v-model="postQualification.evaluator" class="input-field" required />
             </div>
             <div class="modal-actions">
-              <button type="button" class="btn-secondary" @click="closeEditModal">Cancel</button>
-              <button type="submit" class="btn-primary">Update</button>
+              <button type="button" class="btn-secondary" @click="closeModal">Cancel</button>
+              <button type="submit" class="btn-primary">{{ editMode ? 'Update' : 'Submit' }}</button>
             </div>
           </form>
         </div>
       </div>
 
       <!-- Delete Confirmation Modal -->
-      <div v-if="isDeleteModalOpen" class="modal-overlay" @click.self="closeDeleteModal">
+      <div v-if="isConfirmingDelete" class="modal-overlay" @click.self="cancelDelete">
         <div class="modal modal-sm">
           <div class="modal-header">
-            <h3 class="modal-title">Confirm Delete</h3>
-            <button class="close-button" @click="closeDeleteModal">&times;</button>
+            <h3 class="modal-title">Delete Confirmation</h3>
+            <button class="close-button" @click="cancelDelete">&times;</button>
           </div>
           <div class="modal-body">
-            <p class="confirm-message">Are you sure you want to delete this post-qualification record?</p>
+            <p>Are you sure you want to delete this qualification?</p>
           </div>
           <div class="modal-actions">
-            <button class="btn-secondary" @click="closeDeleteModal">Cancel</button>
+            <button class="btn-secondary" @click="cancelDelete">Cancel</button>
             <button class="btn-delete" @click="deleteQualification">Delete</button>
           </div>
         </div>
@@ -359,7 +359,7 @@ export default {
       try {
         if (editMode.value) {
           // Update existing record
-          const docRef = doc(db, "postQualifications", postQualification.value.id);
+          const docRef = doc(db, "qualifications", postQualification.value.id);
           await updateDoc(docRef, {
             ...postQualification.value,
             updatedAt: serverTimestamp()
@@ -367,7 +367,7 @@ export default {
           showNotification("Post-qualification updated successfully!");
         } else {
           // Add new record
-          await addDoc(collection(db, "postQualifications"), {
+          await addDoc(collection(db, "qualifications"), {
             ...postQualification.value,
             createdAt: serverTimestamp()
           });
@@ -382,9 +382,8 @@ export default {
     };
 
     const confirmDelete = (qualification) => {
-      console.log("Delete clicked:", qualification); // Debugging log
-      activeQualification.value = qualification; // Set the qualification to be deleted
-      isConfirmingDelete.value = true; // Open the delete confirmation modal
+      activeQualification.value = qualification;
+      isConfirmingDelete.value = true;
     };
 
     const cancelDelete = () => {
@@ -393,13 +392,13 @@ export default {
 
     const deleteQualification = async () => {
       try {
-        console.log("Deleting qualification:", activeQualification.value); // Debugging log
-        const docRef = doc(db, "qualifications", activeQualification.value.id); // Target the correct collection
-        await deleteDoc(docRef); // Delete the document
+        const docRef = doc(db, "qualifications", activeQualification.value.id);
+        await deleteDoc(docRef);
         showNotification("Post-qualification deleted successfully!", "success");
-        isConfirmingDelete.value = false; // Close the confirmation modal
+        isConfirmingDelete.value = false;
+        // Remove from local list immediately for UI feedback
+        postQualifications.value = postQualifications.value.filter(q => q.id !== activeQualification.value.id);
       } catch (error) {
-        console.error("Error deleting post-qualification:", error);
         showNotification("Failed to delete record. Please try again.", "error");
       }
     };
@@ -514,6 +513,15 @@ export default {
       router.push({ name: 'AddQualification' });
     };
 
+    const navigateToEditQualification = (id) => {
+      router.push({ name: 'EditQualification', params: { id } });
+    };
+
+    // Replace the old viewDetails with navigation
+    const navigateToQualificationDetails = (id) => {
+      router.push({ name: 'QualificationDetails', params: { id } });
+    };
+
     onMounted(fetchPostQualifications);
 
     return {
@@ -551,7 +559,9 @@ export default {
       handleFileUpload,
       formatDate,
       getScoreClass,
-      navigateToAddQualification
+      navigateToAddQualification,
+      navigateToEditQualification,
+      navigateToQualificationDetails
     };
   },
 };
@@ -631,6 +641,14 @@ export default {
 
 .header-text {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.header-text.align-left {
+  align-items: flex-start;
 }
 
 .title {

@@ -32,12 +32,24 @@
             <div class="detail-section">
               <h3 class="detail-section-title">Bid Information</h3>
               <div class="detail-row">
+                <span class="detail-label">Bid Title:</span>
+                <span class="detail-value">{{ bid.bidTitle || 'Untitled Bid' }}</span>
+              </div>
+              <div class="detail-row">
                 <span class="detail-label">Bidder Name:</span>
                 <span class="detail-value">{{ bid.bidderName || 'Anonymous Vendor' }}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Bid Amount:</span>
                 <span class="detail-value">{{ formatCurrency(bid.bidPrice) }} {{ bid.currency }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Validity Period:</span>
+                <span class="detail-value">{{ bid.validityPeriod || 'N/A' }} days</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Delivery Time:</span>
+                <span class="detail-value">{{ bid.deliveryTime || 'N/A' }} days</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Submission Date:</span>
@@ -49,8 +61,19 @@
                   {{ bid.status || 'Pending' }}
                 </span>
               </div>
-              <!-- Bid Document Viewer/Download -->
-              <div class="detail-row" v-if="bid.documentUrl">
+              <!-- Attachments (multiple files) -->
+              <div class="detail-row" v-if="bid.attachments && bid.attachments.length">
+                <span class="detail-label">Attachments:</span>
+                <span class="detail-value">
+                  <ul>
+                    <li v-for="file in bid.attachments" :key="file.name">
+                      📄 <a :href="file.url" target="_blank">{{ file.name }}</a>
+                    </li>
+                  </ul>
+                </span>
+              </div>
+              <!-- Single Bid Document fallback -->
+              <div class="detail-row" v-else-if="bid.documentUrl">
                 <span class="detail-label">Bid Document:</span>
                 <span class="detail-value"><a :href="bid.documentUrl" target="_blank">View Submitted Bid Document</a></span>
               </div>
@@ -115,14 +138,39 @@
               </div>
             </div>
 
+            <!-- Bid Description -->
             <div class="detail-section" v-if="bid.description">
-              <h3 class="detail-section-title">Description</h3>
+              <h3 class="detail-section-title">Bid Description</h3>
               <p class="detail-value">{{ bid.description }}</p>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="detail-section" v-if="bid.termsAndConditions">
+              <h3 class="detail-section-title">Terms and Conditions</h3>
+              <p class="detail-value">{{ bid.termsAndConditions }}</p>
             </div>
 
             <div class="detail-section" v-if="bid.notes">
               <h3 class="detail-section-title">Notes</h3>
               <p class="detail-value">{{ bid.notes }}</p>
+            </div>
+
+            <!-- Bid Attachments Download Section -->
+            <div v-if="bid.attachments && bid.attachments.length" class="detail-section">
+              <h3 class="detail-section-title">📎 Bid Attachments</h3>
+              <ul>
+                <li v-for="file in bid.attachments" :key="file.fileName" class="mb-2">
+                  <a
+                    :href="file.fileUrl"
+                    target="_blank"
+                    class="text-blue-600 underline hover:text-blue-800"
+                    download
+                  >
+                    ⬇️ {{ file.fileName }}
+                  </a>
+                  <span class="text-gray-500 text-sm ml-2">({{ formatFileSize(file.fileSize) }})</span>
+                </li>
+              </ul>
             </div>
           </div>
 
@@ -286,6 +334,13 @@ export default {
       });
     };
 
+    const formatFileSize = (bytes) => {
+      if (!bytes) return "0 Bytes";
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+      return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + " " + sizes[i];
+    };
+
     onMounted(fetchBidDetails);
 
     return {
@@ -297,6 +352,7 @@ export default {
       goBack,
       formatCurrency,
       formatDate,
+      formatFileSize,
       showApproveModal,
       showRejectModal,
       showRequestInfoModal,

@@ -9,9 +9,9 @@
     <div class="login-card">
       <div class="card-header">
         <div class="logo-container">
-          <img src="" alt="Procurement System Logo" class="logo" />
+          <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
         </div>
-        <h1 class="title">AI-Powered Procurement System</h1>
+        <h1 class="title">GovProcure - Procurement System</h1>
         <p class="subtitle">Sign in to access your dashboard</p>
       </div>
 

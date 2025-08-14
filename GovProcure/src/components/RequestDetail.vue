@@ -8,11 +8,15 @@
     <!-- Admin Card -->
     <div class="admin-card">
       <div class="card-header">
-        <div class="logo-container">
-          <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+        <div class="header-content">
+          <div class="logo-container">
+            <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+          </div>
+          <div class="header-text align-left">
+            <h1 class="title">Request Details</h1>
+            <p class="subtitle">View detailed information about the selected purchase request</p>
+          </div>
         </div>
-        <h1 class="title">Request Details</h1>
-        <p class="subtitle">View detailed information about the selected purchase request</p>
       </div>
 
       <div class="card-content">
@@ -32,8 +36,17 @@
 
         <!-- Request Details -->
         <div v-else class="details-container">
-          <div class="status-banner" :class="statusClass">
-            <span class="status-text">{{ requestDetails.status }}</span>
+          <div class="status-banner-row">
+            <div class="status-banner" :class="statusClass">
+              <span class="status-text">{{ requestDetails.status }}</span>
+            </div>
+            <select
+              v-model="statusDropdownValue"
+              @change="onStatusDropdownChange"
+              class="status-dropdown"
+            >
+              <option v-for="step in procurementSteps" :key="step" :value="step">{{ step }}</option>
+            </select>
           </div>
           
           <div class="details-grid">
@@ -129,7 +142,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase";
@@ -144,6 +157,73 @@ export default {
     const loading = ref(true);
     const errorMessage = ref("");
     const requestDetails = ref({});
+    const procurementSteps = [
+      "DATE RECEIVED (PR)",
+      "BAC CONTROL NO.",
+      "END USER",
+      "PARTICULARS",
+      "ABC (Approved Budget for Contract)",
+      "SUPPLIER",
+      "AMOUNT",
+      "STATUS",
+      "AS OF",
+      "Elapsed Time",
+      "PREPARED RFQ",
+      "ISSUED RFQ",
+      "CANVASS FORWARDED TO END USER",
+      "ABSTRACT OF CANVASS",
+      "BAC RESOLUTION",
+      "NOA PREPARED",
+      "NOA REVIEWED & SIGNED",
+      "FORWARDED TO END USER (NOA)",
+      "PO/CONTRACT PREPARED",
+      "CONTRACT REVIEWED",
+      "CONTRACT SIGNED",
+      "PO FORWARDED TO OPA",
+      "CONTRACT APPROVED",
+      "RET TO BAC",
+      "FORWARDED TO END USER",
+      "NOTICE TO PROCEED",
+      "PREPARATION",
+      "REVIEW",
+      "FORWARDED TO EA",
+      "NTP APPROVED",
+      "FORWARDED TO END USER (NTP)",
+      "PO/CONTRACT & NTP POSTED",
+      "REMARKS"
+    ];
+
+    const statusDropdownValue = ref("");
+
+    // Set dropdown value when details are loaded
+    onMounted(() => {
+      fetchRequestDetails();
+      // Wait for fetchRequestDetails to finish, then set dropdown value
+      setTimeout(() => {
+        statusDropdownValue.value = requestDetails.value.status || procurementSteps[0];
+      }, 500);
+    });
+
+    // Keep dropdown in sync with status
+    watch(requestDetails, (newVal) => {
+      statusDropdownValue.value = newVal.status || procurementSteps[0];
+    });
+
+    const onStatusDropdownChange = async () => {
+      const newStatus = statusDropdownValue.value;
+      if (!newStatus || newStatus === requestDetails.value.status) return;
+      try {
+        loading.value = true;
+        const docRef = doc(db, "purchaseRequests", requestId);
+        await updateDoc(docRef, { status: newStatus });
+        requestDetails.value.status = newStatus;
+        loading.value = false;
+        alert(`Status updated to ${newStatus}.`);
+      } catch (error) {
+        alert("Failed to update status. Please try again.");
+        loading.value = false;
+      }
+    };
 
     const statusClass = computed(() => {
       if (!requestDetails.value.status) return '';
@@ -216,8 +296,6 @@ export default {
       }
     };
 
-    onMounted(fetchRequestDetails);
-
     return {
       loading,
       errorMessage,
@@ -227,6 +305,9 @@ export default {
       formatDate,
       approveRequest,
       rejectRequest,
+      procurementSteps,
+      statusDropdownValue,
+      onStatusDropdownChange,
     };
   },
 };
@@ -279,13 +360,57 @@ export default {
   to { opacity: 1; transform: translateY(0); }
 }
 
+
 .card-header {
   background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
   padding: 35px 30px;
-  text-align: center;
   color: white;
   position: relative;
   overflow: hidden;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo-container {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.logo {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.header-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.header-text.align-left {
+  align-items: flex-start;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  max-width: 500px;
+  margin: 0;
 }
 
 .card-header::before {
@@ -321,7 +446,7 @@ export default {
   font-size: 1rem;
   opacity: 0.9;
   max-width: 500px;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .card-content {
@@ -378,14 +503,21 @@ export default {
   gap: 24px;
 }
 
+.status-banner-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
 .status-banner {
-  padding: 12px 20px;
-  border-radius: 8px;
+  min-width: 110px;
+  padding: 6px 18px;
+  border-radius: 6px;
   font-weight: 600;
   text-align: center;
-  margin-bottom: 10px;
+  font-size: 1rem;
   background-color: #f1f5f9;
   color: #64748b;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
 .status-approved {

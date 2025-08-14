@@ -12,7 +12,7 @@
           <div class="logo-container">
             <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
           </div>
-          <div class="header-text">
+          <div class="header-text align-left">
             <h1 class="title">Bid Evaluation</h1>
             <p class="subtitle">Evaluate the selected bid and provide feedback</p>
           </div>
@@ -28,20 +28,36 @@
 
         <!-- Bid Details -->
         <div v-else>
+          <!-- Bid Information Section (add/replace this block) -->
           <div class="detail-section">
             <h3 class="detail-section-title">Bid Information</h3>
+            <div class="detail-row">
+              <span class="detail-label">Bid Title:</span>
+              <span class="detail-value">{{ bid.bidTitle || 'Untitled Bid' }}</span>
+            </div>
             <div class="detail-row">
               <span class="detail-label">Bidder Name:</span>
               <span class="detail-value">{{ bid.bidderName || 'Anonymous Vendor' }}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Bid Amount:</span>
-              <span class="detail-value">{{ formatCurrency(bid.bidPrice) }} {{ bid.currency }}</span>
+              <span class="detail-value">{{ formatCurrency(bid.bidPrice) }} {{ bid.currency || '' }}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Submission Date:</span>
               <span class="detail-value">{{ formatDate(bid.submissionDate) }}</span>
             </div>
+          </div>
+
+          <!-- Attachments Download Section -->
+          <div v-if="bid.attachments && bid.attachments.length" class="detail-section">
+            <h3 class="detail-section-title">Attachments</h3>
+            <ul>
+              <li v-for="file in bid.attachments" :key="file.fileName">
+                📄 <a :href="file.fileUrl" target="_blank" download>{{ file.fileName }}</a>
+                <span v-if="file.fileSize" class="text-gray-500 text-sm ml-2">({{ formatFileSize(file.fileSize) }})</span>
+              </li>
+            </ul>
           </div>
 
           <div class="detail-section" v-if="bid.description">
@@ -60,16 +76,6 @@
               <label><input type="checkbox" v-model="docs.technicalForm" /> Technical Proposal/Form</label>
               <label><input type="checkbox" v-model="docs.financialForm" /> Financial Proposal/Form</label>
             </div>
-          </div>
-
-          <!-- Bid Attachments -->
-          <div class="detail-section" v-if="bid.attachments && bid.attachments.length">
-            <h3 class="detail-section-title">Bid Attachments</h3>
-            <ul>
-              <li v-for="(file, idx) in bid.attachments" :key="idx">
-                <a :href="file.url" target="_blank" rel="noopener">{{ file.name || ('Attachment ' + (idx+1)) }}</a>
-              </li>
-            </ul>
           </div>
 
           <!-- Scoring Section -->
@@ -267,6 +273,13 @@ export default {
       });
     };
 
+    const formatFileSize = (bytes) => {
+      if (!bytes) return "0 Bytes";
+      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      return (bytes / Math.pow(1024, i)).toFixed(2) + " " + sizes[i];
+    };
+
     onMounted(fetchBidDetails);
 
     return {
@@ -285,6 +298,7 @@ export default {
       goBack,
       formatCurrency,
       formatDate,
+      formatFileSize,
     };
   },
 };
@@ -340,7 +354,52 @@ export default {
   background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
   padding: 30px;
   color: white;
-  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo-container {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.logo {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.header-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.header-text.align-left {
+  align-items: flex-start;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  opacity: 0.8;
+  max-width: 500px;
+  margin: 0;
 }
 
 .logo-container {

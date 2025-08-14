@@ -261,7 +261,8 @@ import {
   getDoc, 
   updateDoc, 
   arrayUnion, 
-  Timestamp 
+  Timestamp,
+  setDoc // <-- add this import
 } from 'firebase/firestore';
 import { 
   ref as storageRef, 
@@ -271,7 +272,6 @@ import {
 
 export default {
   name: 'SubmitBid',
-  
   setup() {
     const router = useRouter();
     const route = useRoute();
@@ -482,9 +482,7 @@ export default {
         }
         return;
       }
-      
       isSubmitting.value = true;
-      
       try {
         const uploadedFiles = [];
         
@@ -527,7 +525,26 @@ export default {
           bidAttachments: arrayUnion(bidAttachment),
           lastBidDate: new Date().toISOString()
         });
-        
+
+        // --- ADD: Save bid to global bids collection ---
+        const bidId = `${purchaseId.value}_${Date.now()}`;
+        const bidRef = doc(db, 'bids', bidId);
+        await setDoc(bidRef, {
+          id: bidId,
+          purchaseRequestId: purchaseId.value,
+          bidTitle: bidForm.title,
+          bidPrice: parseFloat(bidForm.amount),
+          validityPeriod: parseInt(bidForm.validityDays),
+          deliveryTime: parseInt(bidForm.deliveryDays),
+          description: bidForm.description,
+          termsAndConditions: bidForm.terms,
+          attachments: uploadedFiles,
+          submissionDate: new Date(),
+          status: 'Pending',
+          submittedBy: 'Current User' // Replace with actual user name or ID
+        });
+        // --- END ADD ---
+
         bidSubmitted.value = true;
       } catch (err) {
         console.error('Error submitting bid:', err);

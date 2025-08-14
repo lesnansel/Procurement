@@ -75,7 +75,7 @@
       <div class="dashboard-card">
         <!-- Header with gradient overlay and stats -->
         <div class="card-header">
-          <div class="header-content">
+          <div class="header-content" style="position: relative;">
             <div class="logo-container">
               <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
             </div>
@@ -83,6 +83,11 @@
               <h1 class="title">User Dashboard</h1>
               <p class="subtitle">Manage your account and procurement activities</p>
             </div>
+            <!-- Notification Bell Icon -->
+            <button class="notif-bell-btn" @click="showNotificationsModal = true" aria-label="Notifications">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="notif-bell-icon"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span v-if="unreadCount > 0" class="notif-dot"></span>
+            </button>
           </div>
           
           <!-- Stats Overview -->
@@ -243,6 +248,52 @@
       </div>
     </div>
 
+    <!-- Notifications Modal -->
+   <div
+  v-if="showNotificationsModal"
+  class="modal-overlay"
+  @click="showNotificationsModal = false"
+>
+  <div class="modal-content" @click.stop>
+    <div class="modal-header">
+      <h3>Notifications</h3>
+      <button class="close-btn" @click="showNotificationsModal = false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Scrollable Body -->
+    <div class="modal-body scrollable-body">
+      <div v-if="notifications.length === 0">
+        <p>No notifications yet.</p>
+      </div>
+      <div v-else>
+        <ul class="notif-list">
+          <li
+            v-for="notif in notifications"
+            :key="notif.id"
+            class="notif-item"
+            :class="{ unread: !notif.read }"
+          >
+            <div class="notif-content">
+              <span class="notif-message">{{ notif.message }}</span>
+              <span class="notif-time">{{ formatDate(notif.timestamp) }}</span>
+            </div>
+            <div v-if="!notif.read" class="notif-actions">
+              <button @click="notif.read = true" class="mark-read-btn">
+                Mark as Read
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
     <!-- Logout Confirmation Modal -->
     <div v-if="showLogoutModal" class="modal-overlay" @click="showLogoutModal = false">
       <div class="modal-content" @click.stop>
@@ -271,12 +322,15 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc, onSnapshot, Timestamp, collection, query, orderBy, limit, getDocs, addDoc } from "firebase/firestore";
+import {
+  doc, getDoc, updateDoc, onSnapshot, Timestamp,
+  collection, query, orderBy, limit, getDocs, addDoc
+} from "firebase/firestore";
 import { db } from "../firebase";
 
 export default {
   setup() {
-    // State
+    // Core state
     const username = ref("User");
     const role = ref("");
     const profileImage = ref("");
@@ -287,16 +341,21 @@ export default {
     const profileCompletion = ref(0);
     const pendingRequests = ref(0);
     const showLogoutModal = ref(false);
+    const showNotificationsModal = ref(false);
     const sidebarOpen = ref(false);
     const defaultAvatar = "https://ui-avatars.com/api/?background=0F2942&color=fff";
     const recentActivities = ref([]);
+
+    // Notifications
+    const notifications = ref([]);
+    const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
 
     const router = useRouter();
     const route = useRoute();
     const auth = getAuth();
     const currentRoute = computed(() => route.path);
 
-    // Routes configuration
+    // Routes and permissions
     const routes = [
       { path: '/', name: 'Home', icon: 'home' },
       { path: '/register', name: 'Register', icon: 'user-plus' },
@@ -313,251 +372,177 @@ export default {
       { path: '/approved-purchases', name: 'PR Lists', icon: 'check-circle', meta: { requiresAuth: true } },
     ];
 
-    // Group routes by section
-    const navigationSections = computed(() => {
-      return [
-        {
-          title: 'General',
-          routes: routes.filter(r => 
-            r.path === '/' || 
-            r.path === '/dashboard' || 
-            r.path === '/profile-display'
-          )
-        },
-        {
-          title: 'Procurement',
-          routes: routes.filter(r => 
-            r.path === '/purchase-requests' || 
-            r.path === '/track-payments' ||
-            r.path === '/approved-purchases'
-          )
-        },
-        {
-          title: 'User Management',
-          routes: routes.filter(r => 
-            r.path === '/edit-profile' || 
-            r.path === '/reset-password'
-          )
-        },
-        {
-          title: 'Admin Controls',
-          routes: routes.filter(r => 
-            r.path === '/admin-dashboard' || 
-            r.path === '/admin-management' ||
-            r.path === '/system-logs'
-          )
-        }
-      ];
-    });
+    const navigationSections = computed(() => [
+      {
+        title: 'General',
+        routes: routes.filter(r => ['/', '/dashboard', '/profile-display'].includes(r.path))
+      },
+      {
+        title: 'Procurement',
+        routes: routes.filter(r => ['/purchase-requests', '/track-payments', '/approved-purchases'].includes(r.path))
+      },
+      {
+        title: 'User Management',
+        routes: routes.filter(r => ['/edit-profile', '/reset-password'].includes(r.path))
+      },
+      {
+        title: 'Admin Controls',
+        routes: routes.filter(r => ['/admin-dashboard', '/admin-management', '/system-logs'].includes(r.path))
+      }
+    ]);
 
-    // Helper function to filter routes based on user role
-    const getFilteredRoutes = (routes) => {
-      return routes.filter(route => shouldShowRoute(route));
+    // Helpers
+    const shouldShowRoute = (route) => {
+      if (['/login', '/register'].includes(route.path)) return false;
+      if (route.meta?.requiresAuth && route.meta.role && route.meta.role !== role.value) return false;
+      return true;
     };
 
-    // Helper function to safely convert Firestore timestamp to Date
+    const getIconForRoute = (route) => {
+      const iconMap = {
+        '/': 'home', '/dashboard': 'layout', '/profile-display': 'user', '/edit-profile': 'edit',
+        '/reset-password': 'key', '/admin-dashboard': 'shield', '/admin-management': 'users',
+        '/purchase-requests': 'file-text', '/track-payments': 'dollar-sign',
+        '/approved-purchases': 'check-circle', '/system-logs': 'list', '/settings': 'settings'
+      };
+      return iconMap[route.path];
+    };
+
     const getDateFromTimestamp = (timestamp) => {
-      if (timestamp instanceof Timestamp) {
-        return timestamp.toDate();
-      }
-      if (timestamp && timestamp.seconds) {
-        return new Timestamp(timestamp.seconds, timestamp.nanoseconds).toDate();
-      }
+      if (timestamp instanceof Timestamp) return timestamp.toDate();
+      if (timestamp && timestamp.seconds) return new Date(timestamp.seconds * 1000);
+      if (typeof timestamp === 'string' || typeof timestamp === 'number') return new Date(timestamp);
+      if (timestamp instanceof Date) return timestamp;
       return new Date();
     };
 
-    // Calculate profile completion
-    const calculateProfileCompletion = (userData) => {
-      const requiredFields = ['username', 'email', 'completeName', 'age', 'birthday', 'cellphone', 'gender', 'address'];
-      const completedFields = requiredFields.filter(field => userData[field]);
-      
-      return Math.round((completedFields.length / requiredFields.length) * 100);
+    const formatDate = (timestamp) => {
+      const dateObj = getDateFromTimestamp(timestamp);
+      return isNaN(dateObj) ? '—' : dateObj.toLocaleString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true
+      });
     };
 
-    // Update user data
+    const calculateProfileCompletion = (userData) => {
+      const requiredFields = ['username', 'email', 'completeName', 'age', 'birthday', 'cellphone', 'gender', 'address'];
+      return Math.round((requiredFields.filter(field => userData[field]).length / requiredFields.length) * 100);
+    };
+
     const updateUserData = async (userDoc) => {
       if (!userDoc) return;
-      
       const userData = userDoc.data();
       username.value = userData.username || auth.currentUser?.displayName || "User";
       role.value = userData.role || "user";
       profileImage.value = userData.profileImageUrl;
       lastLogin.value = getDateFromTimestamp(userData.lastLogin);
       loginCount.value = userData.loginCount || 0;
-      
-      // Calculate days active
-      const createdAt = getDateFromTimestamp(userData.createdAt);
-      const diffTime = Math.abs(new Date() - createdAt);
-      daysActive.value = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      // Calculate profile completion
+      daysActive.value = Math.ceil((Date.now() - getDateFromTimestamp(userData.createdAt)) / (1000 * 60 * 60 * 24));
       profileCompletion.value = calculateProfileCompletion(userData);
-      
-      // Fetch pending requests
       fetchPendingRequests(userDoc.id);
-      
-      // Fetch recent activities
       fetchRecentActivities(userDoc.id);
+      fetchPRNotifications(userDoc.id);
     };
 
-    // Fetch pending requests
     const fetchPendingRequests = async (userId) => {
       try {
-        const requestsRef = collection(db, "purchaseRequests");
-        const q = query(
-          requestsRef, 
-          orderBy("createdAt", "desc")
-        );
-        
-        const querySnapshot = await getDocs(q);
-        const requests = querySnapshot.docs
+        const q = query(collection(db, "purchaseRequests"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        const requests = snapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
           .filter(req => req.userId === userId && req.status === "pending");
-        
         pendingRequests.value = requests.length;
-      } catch (error) {
-        console.error("Error fetching pending requests:", error);
+      } catch (err) {
+        console.error("Error fetching pending requests:", err);
         pendingRequests.value = 0;
       }
     };
 
-    // Fetch recent activities
     const fetchRecentActivities = async (userId) => {
       try {
-        const activitiesRef = collection(db, "userActivities");
-        const q = query(
-          activitiesRef,
-          orderBy("timestamp", "desc"),
-          limit(5)
-        );
-        
-        const querySnapshot = await getDocs(q);
-        recentActivities.value = querySnapshot.docs
+        const q = query(collection(db, "userActivities"), orderBy("timestamp", "desc"), limit(5));
+        const snapshot = await getDocs(q);
+        recentActivities.value = snapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(activity => activity.userId === userId);
-      } catch (error) {
-        console.error("Error fetching recent activities:", error);
-        recentActivities.value = [];
+          .filter(act => act.userId === userId);
+      } catch (err) {
+        console.error("Error fetching activities:", err);
       }
     };
 
-    // Set up real-time listener for user data
-    const setupUserListener = (userId) => {
-      const userRef = doc(db, "users", userId);
-      return onSnapshot(userRef, (doc) => {
-        if (doc.exists()) {
-          updateUserData(doc);
+    const fetchPRNotifications = async (userId) => {
+      const q = query(collection(db, "purchaseRequests"), orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+      const currentPRs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(req => req.userId === userId);
+
+      const lastSeenStatus = JSON.parse(localStorage.getItem('prStatuses') || '{}');
+      const storedNotifs = JSON.parse(localStorage.getItem('notifications') || '[]');
+      notifications.value = storedNotifs;
+
+      const newNotifs = [];
+
+      for (const req of currentPRs) {
+        const prevStatus = lastSeenStatus[req.id];
+        if (prevStatus && prevStatus !== req.status) {
+          newNotifs.push({
+            id: `${req.id}_${Date.now()}`,
+            message: `PR "${req.description || 'No description'}" status changed: ${prevStatus} → ${req.status}`,
+            timestamp: req.updatedAt || new Date(),
+            read: false
+          });
+          
         }
-      }, (error) => {
-        console.error("Error listening to user data:", error);
-      });
-    };
-
-    // Check if route should be shown based on user role
-    const shouldShowRoute = (route) => {
-      if (route.path === '/login' || route.path === '/register') {
-        return false;
+        lastSeenStatus[req.id] = req.status;
       }
-      
-      if (route.meta?.requiresAuth) {
-        if (route.meta.role && route.meta.role !== role.value) {
-          return false;
-        }
-      }
-      
-      return true;
+
+      notifications.value.push(...newNotifs);
+      localStorage.setItem('prStatuses', JSON.stringify(lastSeenStatus));
     };
 
-    // Get icon for each route
-    const getIconForRoute = (route) => {
-      const iconMap = {
-        '/': 'home',
-        '/dashboard': 'layout',
-        '/profile-display': 'user',
-        '/edit-profile': 'edit',
-        '/reset-password': 'key',
-        '/admin-dashboard': 'shield',
-        '/admin-management': 'users',
-        '/purchase-requests': 'file-text',
-        '/track-payments': 'dollar-sign',
-        '/approved-purchases': 'check-circle',
-        '/system-logs': 'list',
-        '/settings': 'settings'
-      };
-      
-      return iconMap[route.path];
-    };
-
-    // Check if this is a new login session
-    const isNewSession = () => {
-      const lastSessionTime = sessionStorage.getItem('lastSessionTime');
-      const currentTime = Date.now();
-      
-      if (!lastSessionTime) {
-        sessionStorage.setItem('lastSessionTime', currentTime.toString());
-        return true;
-      }
-      
-      return false;
-    };
-
-    // Toggle sidebar
-    const toggleSidebar = () => {
-      sidebarOpen.value = !sidebarOpen.value;
-      
-      if (sidebarOpen.value) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
-    };
-
-    // Image error handler
-    const handleImageError = (e) => {
-      e.target.src = defaultAvatar;
-    };
-
-    // Robust date formatter for activity log
-    const formatDate = (timestamp) => {
-      let dateObj = null;
-      if (!timestamp) return '—';
-      // Firestore Timestamp object
-      if (timestamp instanceof Timestamp) {
-        dateObj = timestamp.toDate();
-      } else if (timestamp.seconds) {
-        dateObj = new Date(timestamp.seconds * 1000);
-      } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
-        dateObj = new Date(timestamp);
-      } else if (timestamp instanceof Date) {
-        dateObj = timestamp;
-      }
-      if (!dateObj || isNaN(dateObj.getTime())) return '—';
-      // Format as e.g. Jun 29, 2025, 2:30 PM
-      return dateObj.toLocaleString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric',
-        hour: 'numeric', minute: '2-digit', hour12: true
-      });
-    };
+    watch(notifications, (newVal) => {
+      localStorage.setItem('notifications', JSON.stringify(newVal));
+    }, { deep: true });
 
     const confirmLogout = () => {
       showLogoutModal.value = true;
     };
 
     const logout = async () => {
-      try {
-        sessionStorage.removeItem('lastSessionTime');
-        await signOut(auth);
-        router.push('/login');
-      } catch (error) {
-        console.error("Error logging out:", error);
-      }
+      sessionStorage.removeItem('lastSessionTime');
+      await signOut(auth);
+      router.push('/login');
+    };
+
+    const toggleSidebar = () => {
+      sidebarOpen.value = !sidebarOpen.value;
+      document.body.style.overflow = sidebarOpen.value ? 'hidden' : '';
+    };
+
+    const handleImageError = (e) => {
+      e.target.src = defaultAvatar;
     };
 
     const navigateTo = (route) => {
       router.push(`/${route}`);
     };
 
-    // Watch for route changes to close sidebar on mobile
+    const isNewSession = () => {
+      const last = sessionStorage.getItem('lastSessionTime');
+      if (!last) {
+        sessionStorage.setItem('lastSessionTime', Date.now().toString());
+        return true;
+      }
+      return false;
+    };
+
+    const setupUserListener = (userId) => {
+      const userRef = doc(db, "users", userId);
+      return onSnapshot(userRef, (doc) => {
+        if (doc.exists()) updateUserData(doc);
+      });
+    };
+
     watch(currentRoute, () => {
       if (window.innerWidth < 768) {
         sidebarOpen.value = false;
@@ -565,58 +550,32 @@ export default {
       }
     });
 
-    // Initialize component
-    let unsubscribeUser = null;
-    let unsubscribeAuth = null; // Declare unsubscribeAuth here
+    let unsubUser = null;
+    let unsubAuth = null;
 
     onMounted(() => {
-      unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      unsubAuth = onAuthStateChanged(auth, async (user) => {
         if (user) {
-          try {
-            if (unsubscribeUser) {
-              unsubscribeUser();
-            }
-            
-            unsubscribeUser = setupUserListener(user.uid);
-            
-            if (isNewSession()) {
-              const userRef = doc(db, "users", user.uid);
-              const userSnap = await getDoc(userRef);
-              if (userSnap.exists()) {
-                const userData = userSnap.data();
-                await updateDoc(userRef, {
-                  lastLogin: Timestamp.now(),
-                  loginCount: (userData.loginCount || 0) + 1
-                });
-                
-                // Log this activity
-                try {
-                  const activityRef = collection(db, "userActivities");
-                  await addDoc(activityRef, {
-                    userId: user.uid,
-                    type: "login",
-                    description: "User logged in",
-                    timestamp: Timestamp.now()
-                  });
-                } catch (error) {
-                  console.error("Error logging activity:", error);
-                }
-              }
-            }
+          if (unsubUser) unsubUser();
+          unsubUser = setupUserListener(user.uid);
 
-            // Fetch user role and log admin status
+          if (isNewSession()) {
             const userRef = doc(db, "users", user.uid);
-            const userDoc = await getDoc(userRef);
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              if (userData.role === "admin") {
-                console.log("Admin logged in");
-              } else {
-                console.log("Non-admin user logged in");
-              }
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+              const data = snap.data();
+              await updateDoc(userRef, {
+                lastLogin: Timestamp.now(),
+                loginCount: (data.loginCount || 0) + 1
+              });
+
+              await addDoc(collection(db, "userActivities"), {
+                userId: user.uid,
+                type: "login",
+                description: "User logged in",
+                timestamp: Timestamp.now()
+              });
             }
-          } catch (error) {
-            console.error("Error setting up dashboard:", error);
           }
         } else {
           router.push('/login');
@@ -624,24 +583,16 @@ export default {
         loading.value = false;
       });
 
-      // Check saved sidebar state
-      const savedSidebarState = localStorage.getItem('sidebarOpen');
-      sidebarOpen.value = savedSidebarState === 'true';
+      sidebarOpen.value = localStorage.getItem('sidebarOpen') === 'true';
     });
 
-    // Cleanup on component unmount
     onBeforeUnmount(() => {
-      if (unsubscribeAuth) {
-        unsubscribeAuth();
-      }
-      if (unsubscribeUser) {
-        unsubscribeUser();
-      }
+      if (unsubUser) unsubUser();
+      if (unsubAuth) unsubAuth();
     });
 
-    // Save sidebar state when changed
-    watch(sidebarOpen, (newValue) => {
-      localStorage.setItem('sidebarOpen', newValue);
+    watch(sidebarOpen, val => {
+      localStorage.setItem('sidebarOpen', val);
     });
 
     return {
@@ -655,12 +606,15 @@ export default {
       profileCompletion,
       pendingRequests,
       showLogoutModal,
+      showNotificationsModal,
+      notifications,
+      unreadCount,
       sidebarOpen,
       defaultAvatar,
       recentActivities,
       currentRoute,
       navigationSections,
-      getFilteredRoutes,
+      getFilteredRoutes: (routes) => routes.filter(shouldShowRoute),
       getIconForRoute,
       toggleSidebar,
       handleImageError,
@@ -671,10 +625,67 @@ export default {
       shouldShowRoute
     };
   }
+  
 };
 </script>
 
 <style scoped>
+/* Notification Bell Red Dot */
+.notif-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  z-index: 3;
+}
+
+/* Notification List Styles */
+.notif-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.notif-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+}
+.notif-item.unread .notif-message {
+  background-color: #f5f7ff;
+  font-weight: 600;
+  color: #ef4444;
+}
+.notif-message {
+  font-size: 1rem;
+}
+.notif-time {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+/* Notification Bell Styles */
+.notif-bell-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 2;
+}
+.notif-bell-icon {
+  color: #fff;
+  transition: color 0.2s;
+}
+.notif-bell-btn:hover .notif-bell-icon {
+  color: #2563eb;
+}
 /* Layout */
 .dashboard-layout {
   display: flex;
@@ -1358,6 +1369,15 @@ export default {
   max-width: 400px;
   animation: slideUp 0.3s ease;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh; /* Prevents going beyond screen height */
+}
+
+.scrollable-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 1rem;
 }
 
 .modal-header {

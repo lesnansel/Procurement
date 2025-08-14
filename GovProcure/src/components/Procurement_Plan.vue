@@ -9,14 +9,16 @@
 
       <!-- Admin Card -->
       <div class="admin-card">
-        <div class="card-header">
-          <div class="logo-container">
+        <div class="card-header card-header-flex">
+          <div class="logo-title-flex">
             <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+            <div class="header-texts">
+              <h1 class="title">Procurement Plan</h1>
+              <p class="subtitle">Manage and review purchase requests efficiently.</p>
+            </div>
           </div>
-          <h1 class="title">Procurement Plan</h1>
-          <p class="subtitle">Manage and review purchase requests efficiently.</p>
         </div>
-
+ 
         <div class="card-content">
           <!-- Search and Filter Bar -->
           <div class="action-bar">
@@ -92,6 +94,7 @@
                 </button>
               </div>
               <div class="modal-body">
+                <!-- ProcurementStatusBar removed: implement new status logic here if needed -->
                 <div class="detail-row">
                   <div class="detail-label">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
@@ -185,12 +188,13 @@
 import AdminNavigationBar from './AdminNavigationBar.vue';
 import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { useRouter } from 'vue-router';
 
 export default {
   components: {
     AdminNavigationBar,
+    // ProcurementStatusBar removed
   },
   name: "ProcurementPlan",
   setup() {
@@ -201,6 +205,9 @@ export default {
     const statusFilter = ref("all");
     const isViewing = ref(false);
     const viewRequestData = ref({});
+
+    // Track previous statuses for notification
+    const previousStatuses = ref({});
 
     // View request details
     const viewRequest = (userId) => {
@@ -215,6 +222,45 @@ export default {
 
     const navigateToDetails = (id) => {
       router.push({ name: 'RequestDetail', params: { id } });
+    };
+
+    // Notification utility (already present in your code)
+    const showNotification = (message, type = "success") => {
+      const notification = document.createElement("div");
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.classList.add("show");
+      }, 10);
+      setTimeout(() => {
+        notification.classList.remove("show");
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+    };
+
+    // Real-time listener for status changes
+    const setupRealtimeListener = () => {
+      const unsubscribe = onSnapshot(collection(db, "purchaseRequests"), (snapshot) => {
+        const newRequests = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Check for status changes
+        newRequests.forEach(req => {
+          const prevStatus = previousStatuses.value[req.id];
+          if (prevStatus && req.status !== prevStatus) {
+            showNotification(`Status for "${req.itemName}" updated to ${req.status}`, "success");
+          }
+          previousStatuses.value[req.id] = req.status;
+        });
+
+        requests.value = newRequests;
+      });
+      return unsubscribe;
     };
 
     // Fetch purchase requests from Firestore
@@ -276,7 +322,10 @@ export default {
     };
 
     // Fetch data on component mount
-    onMounted(fetchRequests);
+    onMounted(() => {
+      fetchRequests();
+      setupRealtimeListener();
+    });
 
     return {
       requests,
@@ -337,15 +386,19 @@ export default {
   position: relative;
 }
 
-.card-header {
+
+.card-header.card-header-flex {
+  display: flex;
+  align-items: center;
   background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
   padding: 30px;
-  text-align: center;
   color: white;
 }
 
-.logo-container {
-  margin-bottom: 20px;
+.logo-title-flex {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
 .logo {
@@ -354,15 +407,23 @@ export default {
   object-fit: contain;
 }
 
+.header-texts {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .title {
   font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  color: #fff;
 }
 
 .subtitle {
   font-size: 0.95rem;
   opacity: 0.8;
+  color: #e0e7ef;
 }
 
 .card-content {

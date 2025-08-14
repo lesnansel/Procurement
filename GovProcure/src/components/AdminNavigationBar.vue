@@ -2,15 +2,17 @@
   <div>
     <!-- Toggle button that's always visible -->
     <button 
-      class="sidebar-toggle-btn" 
+      class="sidebar-toggle-btn"
       @click="toggleSidebar"
       aria-label="Toggle sidebar"
+      :class="{ 'sidebar-toggle-collapsed': !sidebarVisible }"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
+      <!-- Animated Hamburger/X Icon -->
+      <span class="toggle-icon" :class="{ open: !sidebarVisible }">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
     </button>
 
     <!-- Sidebar -->
@@ -109,10 +111,21 @@
       </nav>
 
       <div class="sidebar-footer">
-        <button class="sidebar-logout-btn" @click="handleLogout">
+  <button class="sidebar-logout-btn" @click="showLogoutModal = true">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           <span>Logout</span>
         </button>
+    <!-- Logout Confirmation Modal -->
+    <div v-if="showLogoutModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Confirm Logout</h2>
+        <p>Are you sure you want to logout?</p>
+        <div class="modal-actions">
+          <button class="modal-btn confirm" @click="confirmLogout">Yes, Logout</button>
+          <button class="modal-btn cancel" @click="showLogoutModal = false">Cancel</button>
+        </div>
+      </div>
+    </div>
       </div>
     </div>
 
@@ -127,14 +140,18 @@ export default {
     return {
       defaultAvatar: "https://via.placeholder.com/150",
       sidebarVisible: true,
+      showLogoutModal: false,
     };
   },
   methods: {
+    confirmLogout() {
+      this.showLogoutModal = false;
+      this.handleLogout();
+    },
     handleLogout() {
       // Clear user session or token
       localStorage.removeItem('userToken');
       localStorage.removeItem('userRole');
-
       // Redirect to login page
       this.$router.push('/login');
     },
@@ -142,7 +159,6 @@ export default {
       this.sidebarVisible = !this.sidebarVisible;
       this.$emit('sidebar-toggle', this.sidebarVisible);
       localStorage.setItem('sidebarVisible', this.sidebarVisible);
-
       // Adjust main content layout
       const mainContent = document.querySelector(".main-content");
       if (mainContent) {
@@ -172,6 +188,69 @@ export default {
 </script>
 
 <style scoped>
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.modal-content {
+  background: #fff;
+  padding: 32px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+.modal-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 12px;
+}
+.modal-content p {
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin-bottom: 18px;
+}
+.modal-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+.modal-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-btn.confirm {
+  background: #e53e3e;
+  color: #fff;
+}
+.modal-btn.confirm:hover {
+  background: #c53030;
+}
+.modal-btn.cancel {
+  background: #edf2f7;
+  color: #2d3748;
+}
+.modal-btn.cancel:hover {
+  background: #e2e8f0;
+}
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -196,29 +275,86 @@ export default {
 
 .sidebar-toggle-btn {
   position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 101;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #9acd32; /* Yellow-green color */
-  color: white;
+  top: 20px;
+  left: 10px;
+  z-index: 200;
+  background: transparent;
   border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background-color: rgba(30, 58, 92, 0.85);
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  transition: left 0.3s ease, background-color 0.2s;
+  outline: none;
 }
 
 .sidebar-toggle-btn:hover {
-  background-color: #7fbf2e; /* Slightly darker yellow-green on hover */
+  background-color: rgba(30, 58, 92, 1);
+  transform: scale(1.05);
 }
 
-.sidebar-toggle-btn.sidebar-hidden {
-  left: 15px;
+.sidebar-toggle-btn:hover::after {
+  content: "Toggle Sidebar";
+  position: absolute;
+  left: 110%;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #333;
+  padding: 5px 8px;
+  color: white;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 12px;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.toggle-icon {
+  display: inline-block;
+  width: 24px;
+  height: 20px;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.toggle-icon span {
+  display: block;
+  position: absolute;
+  height: 3px;
+  width: 100%;
+  background: #fff;
+  border-radius: 2px;
+  opacity: 1;
+  left: 0;
+  transition: all 0.3s;
+}
+
+.toggle-icon span:nth-child(1) {
+  top: 0;
+}
+
+.toggle-icon span:nth-child(2) {
+  top: 8.5px;
+}
+
+.toggle-icon span:nth-child(3) {
+  top: 17px;
+}
+
+.toggle-icon.open span:nth-child(1) {
+  top: 8.5px;
+  transform: rotate(45deg);
+}
+
+.toggle-icon.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.toggle-icon.open span:nth-child(3) {
+  top: 8.5px;
+  transform: rotate(-45deg);
 }
 
 .sidebar-header {
@@ -359,10 +495,6 @@ export default {
 
 .sidebar-logout-btn:hover {
   background-color: rgba(255, 255, 255, 0.15);
-}
-
-.sidebar-logout-btn svg {
-  min-width: 20px;
 }
 
 /* Custom scrollbar for the sidebar */

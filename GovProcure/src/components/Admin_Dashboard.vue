@@ -1,103 +1,9 @@
 <template>
-  <div class="admin-layout">
+  <div class="app-container">
     <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-logo">
-          <img src="@/assets/proculogo.png" alt="GovProcure Logo" class="sidebar-logo-img" />
-          <span class="sidebar-logo-text">GovProcure</span>
-        </div>
-      </div>
-      
-      <div class="sidebar-user">
-        <div class="sidebar-user-avatar">
-          <img :src="defaultAvatar" alt="Admin User" />
-        </div>
-        <div class="sidebar-user-info">
-          <span class="sidebar-user-name">Admin User</span>
-          <span class="sidebar-user-role">System Administrator</span>
-        </div>
-      </div>
-      
-      <nav class="sidebar-nav">
-        <ul class="sidebar-menu">
-          <li class="sidebar-menu-item">
-            <router-link to="/dashboard" class="sidebar-menu-link" active-class="active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-              <span>Dashboard</span>
-            </router-link>
-          </li>
-          <li class="sidebar-menu-item">
-            <router-link to="/admin-management" class="sidebar-menu-link" active-class="active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M20 8v6"></path><path d="M23 11h-6"></path></svg>
-              <span>Admin Management</span>
-            </router-link>
-          </li>
-          <li class="sidebar-menu-item">
-            <router-link to="/procurement-plan" class="sidebar-menu-link" active-class="active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              <span>Purchase Requests</span>
-            </router-link>
-          </li>
-          <li class="sidebar-menu-item">
-            <router-link to="/invitation-to-bid" class="sidebar-menu-link" active-class="active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              <span>Invitation to Bid</span>
-            </router-link>
-          </li>
-          <li class="sidebar-menu-item">
-            <router-link to="/admin-bid-review" class="sidebar-menu-link" active-class="active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-              <span>Bid Review</span>
-            </router-link>
-          </li>
-          <li class="sidebar-menu-item">
-            <router-link to="/evaluate-bids" class="sidebar-menu-link" active-class="active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-              <span>Evaluate Bids</span>
-            </router-link>
-          </li>
-          <li class="sidebar-menu-item">
-            <router-link to="/post-qualification" class="sidebar-menu-link" active-class="active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-              <span>Post Qualification</span>
-            </router-link>
-          </li>
-          <li class="sidebar-menu-item">
-            <router-link to="/contract-management" class="sidebar-menu-link" active-class="active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.08V8l-6-6H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h6"></path><path d="M14 3v5h5M18 21v-6M15 18h6"></path></svg>
-              <span>Contract Management</span>
-            </router-link>
-          </li>
-          <li class="sidebar-menu-item">
-            <router-link to="/payment-processing" class="sidebar-menu-link" active-class="active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-              <span>Payment Processing</span>
-            </router-link>
-          </li>
-          <li class="sidebar-menu-item">
-            <router-link to="/records" class="sidebar-menu-link" active-class="active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9"></line>
-                <line x1="9" y1="21" x2="9" y2="9"></line>
-              </svg>
-              <span>Records</span>
-            </router-link>
-          </li>
-        </ul>
-      </nav>
-      
-      <div class="sidebar-footer">
-        <button class="sidebar-logout-btn" @click="handleLogout">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-          <span>Logout</span>
-        </button>
-      </div>
-    </div>
-
+    <AdminNavigationBar v-model:sidebarOpen="sidebarOpen" />
     <!-- Main Content Area -->
-    <div class="main-content">
+    <div class="main-content" :class="{ 'expanded': !sidebarOpen }" style="flex: 1; transition: margin-left 0.3s;">
       <!-- Background Pattern -->
       <div class="background-pattern">
         <div class="pattern-overlay"></div>
@@ -105,12 +11,14 @@
 
       <!-- Admin Card -->
       <div class="admin-card">
-        <div class="card-header">
-          <div class="logo-container">
+        <div class="card-header card-header-flex">
+          <div class="logo-title-flex">
             <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+            <div class="header-texts">
+              <h1 class="title">Admin Dashboard</h1>
+              <p class="subtitle">System Overview and Management</p>
+            </div>
           </div>
-          <h1 class="title">Admin Dashboard</h1>
-          <p class="subtitle">System Overview and Management</p>
         </div>
 
         <div class="card-content">
@@ -119,8 +27,7 @@
             <div class="spinner"></div>
             <p>Loading admin dashboard...</p>
           </div>
-
-          <template v-else>
+          <div v-else>
             <!-- Quick Actions Bar -->
             <div class="quick-actions-bar">
               <button @click="refreshStats" class="action-btn" :disabled="refreshing">
@@ -128,13 +35,31 @@
                 Refresh
               </button>
               <router-link to="/dashboard" class="action-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
                 User Dashboard
               </router-link>
             </div>
 
             <!-- Stats Overview -->
             <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon users" style="background-color:rgba(59,130,246,0.1);color:#3b82f6;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="4"/><path d="M3 8V6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v2"/></svg>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value">{{ invitationStats.total }}</span>
+                  <span class="stat-label">Total Invitations</span>
+                  <div style="font-size:0.9rem;">
+                    <span style="color:#16a34a;">Active: {{ invitationStats.active }}</span> |
+                    <span style="color:#eab308;">Archived: {{ invitationStats.archived }}</span> |
+                    <span style="color:#e53e3e;">Expired: {{ invitationStats.expired }}</span>
+                  </div>
+                  <div style="margin-top:8px;font-size:0.9rem;">
+                    <span style="color:#3b82f6;">This Week: {{ invitationStats.thisWeek }}</span> |
+                    <span style="color:#a855f7;">This Month: {{ invitationStats.thisMonth }}</span>
+                  </div>
+                </div>
+              </div>
               <div class="stat-card">
                 <div class="stat-icon users">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
@@ -164,7 +89,7 @@
               </div>
 
               <div class="stat-card">
-                <div class="stat-icon new">
+                <div class="stat-icon new" style="background-color:rgba(168,85,247,0.1);color:#a855f7;">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
                 </div>
                 <div class="stat-info">
@@ -174,14 +99,25 @@
               </div>
 
               <div class="stat-card">
-                <div class="stat-icon system">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                <div class="stat-icon system" style="background-color:rgba(59,130,246,0.1);color:#3b82f6;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
                 </div>
                 <div class="stat-info">
                   <span class="stat-value">{{ stats.systemHealth }}%</span>
                   <span class="stat-label">System Health</span>
+                  <div class="health-indicator" :class="getHealthStatus(stats.systemHealth)"></div>
                 </div>
-                <div class="health-indicator" :class="getHealthStatus(stats.systemHealth)"></div>
+              </div>
+
+              <!-- New stat card for Overdue Invitations -->
+              <div class="stat-card">
+                <div class="stat-icon new" style="background-color:rgba(239,68,68,0.1);color:#ef4444;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value">{{ overdueCount }}</span>
+                  <span class="stat-label">Overdue Invitations</span>
+                </div>
               </div>
             </div>
 
@@ -220,7 +156,7 @@
               <div class="management-card">
                 <div class="card-header">
                   <h2>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"></polyline></svg>
                     Recent System Logs
                   </h2>
                   <router-link to="/system-logs" class="view-all">
@@ -259,7 +195,7 @@
                 Clear Cache
               </button>
               <button class="quick-action-btn" @click="generateReport">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 Generate Report
               </button>
               <button class="quick-action-btn warning" @click="showMaintenanceModal">
@@ -272,7 +208,7 @@
                 Admin Management
               </button>
             </div>
-          </template>
+          </div> <!-- End of v-else -->
         </div>
       </div>
     </div>
@@ -331,24 +267,75 @@
 </template>
 
 <script setup>
+import AdminNavigationBar from './AdminNavigationBar.vue';
+
+const sidebarOpen = ref(true);
+
+const invitationStats = ref({
+  total: 0,
+  active: 0,
+  archived: 0,
+  expired: 0,
+  thisWeek: 0,
+  thisMonth: 0,
+});
+
+const overdueCount = ref(0);
+
+const fetchInvitationAnalytics = async () => {
+  try {
+    const invitationsRef = collection(db, 'invitations');
+    const snapshot = await getDocs(invitationsRef);
+    let total = 0, active = 0, archived = 0, expired = 0, thisWeek = 0, thisMonth = 0;
+    let overdue = 0;
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0,0,0,0);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      total++;
+      if (data.status === 'Active') active++;
+      if (data.status === 'Archived') archived++;
+      if (data.expiryDate && new Date(data.expiryDate) < now) expired++;
+      // Overdue logic
+      if (data.deadline) {
+        let deadlineDate = data.deadline;
+        if (deadlineDate.seconds) {
+          deadlineDate = new Date(deadlineDate.seconds * 1000);
+        } else if (typeof deadlineDate === 'string') {
+          deadlineDate = new Date(deadlineDate);
+        }
+        if (deadlineDate < now) {
+          overdue++;
+        }
+      }
+      let createdAt = data.createdAt;
+      if (createdAt && createdAt.seconds) {
+        createdAt = new Date(createdAt.seconds * 1000);
+      } else if (typeof createdAt === 'string') {
+        createdAt = new Date(createdAt);
+      }
+      if (createdAt) {
+        if (createdAt >= startOfWeek) thisWeek++;
+        if (createdAt >= startOfMonth) thisMonth++;
+      }
+    });
+    invitationStats.value = { total, active, archived, expired, thisWeek, thisMonth };
+    overdueCount.value = overdue;
+  } catch (error) {
+    console.error('Error fetching invitations:', error);
+  }
+};
+
 import { ref, onMounted } from 'vue';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useRouter } from 'vue-router';
-import { getAuth, signOut } from 'firebase/auth';
 
 // Router for navigation
 const router = useRouter();
-const auth = getAuth();
-
-const handleLogout = async () => {
-  try {
-    await signOut(auth);
-    router.push('/login'); // Redirect to login page after logout
-  } catch (error) {
-    console.error('Error during logout:', error);
-  }
-};
 
 // State
 const loading = ref(true);
@@ -367,6 +354,12 @@ const stats = ref({
   systemHealth: 98,
 });
 
+const budgetStats = ref({
+  totalBudget: 0,
+  totalSpent: 0,
+  usagePercent: 0,
+});
+
 // Recent Users
 const recentUsers = ref([]);
 
@@ -377,6 +370,8 @@ const recentLogs = ref([]);
 onMounted(async () => {
   try {
     await loadDashboardData();
+    await fetchInvitationAnalytics();
+    await fetchBudgetStats();
   } finally {
     loading.value = false;
   }
@@ -443,6 +438,28 @@ const loadDashboardData = async () => {
 
   } catch (error) {
     console.error('Error loading dashboard data:', error);
+  }
+};
+
+const fetchBudgetStats = async () => {
+  try {
+    const contractsRef = collection(db, 'contracts');
+    const snapshot = await getDocs(contractsRef);
+    let totalBudget = 0;
+    let totalSpent = 0;
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.budget) {
+        totalBudget += Number(data.budget);
+      }
+      if (data.spent) {
+        totalSpent += Number(data.spent);
+      }
+    });
+    const usagePercent = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+    budgetStats.value = { totalBudget, totalSpent, usagePercent };
+  } catch (error) {
+    console.error('Error fetching budget stats:', error);
   }
 };
 
@@ -523,6 +540,91 @@ const navigateTo = (route) => {
 </script>
 
 <style scoped>
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+.main-content {
+  flex: 1;
+  transition: margin-left 0.3s;
+}
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+.main-content {
+  flex: 1;
+  transition: margin-left 0.3s;
+  margin-left: 250px; /* default sidebar width */
+}
+.main-content.expanded {
+  margin-left: 0;
+}
+.modal-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 12px;
+}
+.modal-content p {
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin-bottom: 18px;
+}
+.modal-btn {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.modal-content {
+  background: #fff;
+  padding: 32px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  text-align: center;
+  min-width: 300px;
+}
+.modal-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+.modal-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-btn.confirm {
+  background: #e53e3e;
+  color: #fff;
+}
+.modal-btn.confirm:hover {
+  background: #c53030;
+}
+.modal-btn.cancel {
+  background: #edf2f7;
+  color: #2d3748;
+}
+.modal-btn.cancel:hover {
+  background: #e2e8f0;
+}
 /* Admin Layout */
 .admin-layout {
   display: flex;
@@ -723,8 +825,26 @@ const navigateTo = (route) => {
   color: white;
 }
 
-.logo-container {
-  margin-bottom: 20px;
+.card-header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
+  padding: 30px;
+  color: white;
+  text-align: left;
+}
+
+.logo-title-flex {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.header-texts {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .logo {

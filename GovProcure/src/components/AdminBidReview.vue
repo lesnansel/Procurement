@@ -9,18 +9,15 @@
 
       <!-- Admin Card -->
       <div class="admin-card">
-        <!-- Header with gradient overlay and stats -->
-        <div class="card-header">
-          <div class="header-content">
-            <div class="logo-container">
-              <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
-            </div>
-            <div class="header-text">
+        <!-- Header with logo/title flex and stats -->
+        <div class="card-header card-header-flex">
+          <div class="logo-title-flex">
+            <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
+            <div class="header-texts">
               <h1 class="title">Admin Bid Review</h1>
               <p class="subtitle">Review and process vendor bid submissions</p>
             </div>
           </div>
-          
           <!-- Stats Overview -->
           <div class="stats-overview">
             <div class="stat-item">
@@ -96,7 +93,18 @@
               <div v-for="bid in filteredBids" :key="bid.id" class="bid-card" :class="`bid-card-${bid.status.toLowerCase()}`">
                 <div class="bid-card-header">
                   <div class="bid-header-content">
-                    <div class="bid-title">{{ bid.itemName || 'Unnamed Request' }}</div>
+                    <div class="bid-title">
+                      {{ bid.itemName || bid.fileName || 'Unnamed Request' }}
+                      <span
+                        :class="{
+                          'text-green-600': bid.source === 'firestore',
+                          'text-red-500': bid.source === 'storage-only'
+                        }"
+                        style="font-size:0.8em;margin-left:8px;"
+                      >
+                        {{ bid.source === 'firestore' ? 'Registered' : 'Unregistered' }}
+                      </span>
+                    </div>
                     <span class="status-badge" :class="`status-${bid.status.toLowerCase()}`">
                       {{ bid.status }}
                     </span>
@@ -114,12 +122,19 @@
                   </div>
                   <div class="bid-date">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    <span>{{ formatDate(bid.submissionDate) }}</span>
+                    <span>{{ formatDate(bid.submissionDate || bid.submittedAt) }}</span>
                   </div>
-                  <div class="bid-description">{{ truncateDescription(bid.description) || 'No description provided' }}</div>
+                  <div class="bid-description">
+                    <template v-if="bid.fileUrl">
+                      <a :href="bid.fileUrl" target="_blank" class="text-blue-600 underline">Download File</a>
+                    </template>
+                    <template v-else>
+                      {{ truncateDescription(bid.description) || 'No description provided' }}
+                    </template>
+                  </div>
                 </div>
 
-                <div class="bid-card-actions">
+                <div v-if="bid.source === 'firestore'" class="bid-card-actions">
                   <button @click="navigateToBidDetail(bid.id)" class="card-action-btn view" title="View Details">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     Details
@@ -131,6 +146,15 @@
                   <button @click="rejectBid(bid.id)" class="card-action-btn reject" title="Reject Bid" :enable="bid.status === 'Rejected'">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
                     Reject
+                  </button>
+                </div>
+                <div v-else class="bid-card-actions">
+                  <a v-if="bid.fileUrl" :href="bid.fileUrl" target="_blank" class="card-action-btn view" style="grid-column: 1 / -1;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    Download File
+                  </a>
+                  <button @click="registerBid(bid)" class="card-action-btn more-info text-blue-600" style="grid-column: 1 / -1;">
+                    📝 Register This Bid
                   </button>
                 </div>
               </div>
@@ -283,7 +307,9 @@
 import AdminNavigationBar from './AdminNavigationBar.vue';
 import { ref, onMounted, computed } from "vue";
 import { db } from "@/firebase";
-import { collection, doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { collection, doc, updateDoc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
+import { storage } from "@/firebase";
+import { ref as storageRef, listAll, getDownloadURL } from "firebase/storage";
 import { useRouter } from "vue-router";
 
 export default {
@@ -314,27 +340,62 @@ export default {
       bids.value.filter(bid => bid.status === "Rejected").length
     );
 
+    // Fetch bids from Firestore and also scan Storage for unregistered bids
     const fetchBids = async () => {
       try {
         loading.value = true;
-        
-        // Set up real-time listener for bids collection
-        const unsubscribe = onSnapshot(collection(db, "bids"), (snapshot) => {
-          bids.value = snapshot.docs.map((doc) => {
+
+        // --- Firestore listener ---
+        const unsubscribe = onSnapshot(collection(db, "bids"), async (snapshot) => {
+          const firestoreBids = snapshot.docs.map((doc) => {
             const data = doc.data();
-            return { 
-              id: doc.id, 
+            return {
+              id: doc.id,
               ...data,
-              status: data.status || "Pending" // Default status
+              status: data.status || "Pending",
+              source: "firestore"
             };
           });
+
+          // --- Storage fallback ---
+          const storageBids = [];
+          const folderRef = storageRef(storage, "bids");
+
+          try {
+            const folders = await listAll(folderRef);
+
+            for (const userFolderRef of folders.prefixes) {
+              const files = await listAll(userFolderRef);
+
+              for (const fileRef of files.items) {
+                const fileUrl = await getDownloadURL(fileRef);
+                const alreadyInFirestore = firestoreBids.some(bid =>
+                  bid.fileUrl === fileUrl || bid.id === userFolderRef.name
+                );
+
+                if (!alreadyInFirestore) {
+                  storageBids.push({
+                    id: userFolderRef.name + "_" + fileRef.name,
+                    fileName: fileRef.name,
+                    fileUrl,
+                    status: "Unregistered",
+                    submittedAt: null,
+                    source: "storage-only"
+                  });
+                }
+              }
+            }
+          } catch (err) {
+            console.warn("⚠️ Could not fetch storage-only bids:", err);
+          }
+
+          bids.value = [...firestoreBids, ...storageBids];
           loading.value = false;
         });
 
-        // Return unsubscribe function for cleanup
         return unsubscribe;
       } catch (error) {
-        console.error("Error fetching bids:", error);
+        console.error("❌ Error fetching bids:", error);
         showNotification("Failed to fetch bids. Please try again.", "error");
         loading.value = false;
       }
@@ -519,6 +580,27 @@ export default {
       router.push({ name: "BidDetail", params: { id: bidId } });
     };
 
+    // Register a storage-only bid into Firestore
+    const registerBid = async (bid) => {
+      const bidId = bid.id;
+      try {
+        await setDoc(doc(db, "bids", bidId), {
+          fileName: bid.fileName,
+          fileUrl: bid.fileUrl,
+          status: "Pending",
+          submittedBy: "admin",
+          submittedAt: serverTimestamp(),
+          description: "Imported from storage",
+          itemName: "Unnamed Request",
+          bidderName: "Anonymous Vendor"
+        });
+        showNotification("Bid registered successfully!", "success");
+      } catch (err) {
+        console.error("❌ Failed to register bid:", err);
+        showNotification("Failed to register bid.", "error");
+      }
+    };
+
     onMounted(fetchBids);
 
     return {
@@ -545,7 +627,8 @@ export default {
       rejectBid,
       requestMoreInfo,
       submitInfoRequest,
-      navigateToBidDetail
+      navigateToBidDetail,
+      registerBid
     };
   },
 };
@@ -598,23 +681,22 @@ export default {
 }
 
 /* Card Header with Stats */
-.card-header {
+
+.card-header.card-header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background: linear-gradient(135deg, #0f2942 0%, #102a42 100%);
   padding: 30px;
   color: white;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  gap: 30px;
+  flex-wrap: wrap;
 }
 
-.header-content {
+.logo-title-flex {
   display: flex;
   align-items: center;
-  gap: 20px;
-}
-
-.logo-container {
-  flex-shrink: 0;
+  gap: 18px;
 }
 
 .logo {
@@ -623,19 +705,23 @@ export default {
   object-fit: contain;
 }
 
-.header-text {
-  flex: 1;
+.header-texts {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .title {
   font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  color: #fff;
 }
 
 .subtitle {
   font-size: 0.95rem;
   opacity: 0.8;
+  color: #e0e7ef;
 }
 
 /* Stats Overview */

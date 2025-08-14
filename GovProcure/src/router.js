@@ -35,6 +35,8 @@ import AddQualification from '@/components/AddQualification.vue';
 import AddContract from '@/components/AddContract.vue';
 import AddPayment from '@/components/AddPayment.vue';
 import Records from '@/components/Records.vue';
+import EditQualification from '@/components/EditQualification.vue';
+import QualificationDetails from '@/components/QualificationDetails.vue';
 
 const routes = [
   { path: '/', name: 'LandingPage', component: LandingPage },
@@ -67,7 +69,9 @@ const routes = [
   { path: '/add-qualification', name: 'AddQualification', component: AddQualification, meta: { requiresAuth: true } },
   { path: '/add-contract', name: 'AddContract', component: AddContract, meta: { requiresAuth: true } },
   { path: '/add-payment', name: 'AddPayment', component: AddPayment, meta: { requiresAuth: true } },
-  { path: '/records', name: 'Records', component: Records }
+  { path: '/records', name: 'Records', component: Records },
+  { path: '/edit-qualification/:id', name: 'EditQualification', component: EditQualification, meta: { requiresAuth: true } },
+  { path: '/qualification-details/:id', name: 'QualificationDetails', component: QualificationDetails, meta: { requiresAuth: true } }
 ];
 
 const router = createRouter({

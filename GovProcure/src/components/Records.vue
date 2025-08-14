@@ -8,6 +8,20 @@
           <input type="file" @change="importExcel" accept=".xlsx, .xls" />
           <span>Import Excel</span>
         </label>
+        <button class="action-button open" style="margin-bottom:0;" @click="openFirebaseFileModal">Open File</button>
+        <!-- Modal for selecting file from Firebase Storage -->
+        <div v-if="showFirebaseFileModal" class="modal-overlay">
+          <div class="modal-content">
+            <h2>Select a file from Firebase Storage</h2>
+            <div v-if="firebaseFileList.length === 0" style="margin-bottom: 1em;">Loading files...</div>
+            <ul v-else class="file-list">
+              <li v-for="file in firebaseFileList" :key="file.name" class="file-list-item">
+                <button @click="loadSelectedFirebaseFile(file)" class="file-select-btn">{{ file.name }}</button>
+              </li>
+            </ul>
+            <button class="modal-close-btn" @click="showFirebaseFileModal = false">Cancel</button>
+          </div>
+        </div>
         <button class="action-button export" @click="exportExcel">Export Excel</button>
         <button class="action-button add" @click="addNewRow">Add New Row</button>
         <button class="action-button save" @click="saveToFirestore">Save</button>
@@ -62,11 +76,12 @@
                 </div>
               </td>
               <td>
-                <span v-if="row._overdueSteps && row._overdueSteps.length" class="overdue">
-                  Overdue: {{ row._overdueSteps.join('; ') }}
-                </span>
-                <span v-else class="on-time">On Time</span>
-              </td>
+  <span v-if="row._overdueSteps && row._overdueSteps.length" class="overdue">
+    Overdue: {{ row._overdueSteps.join('; ') }}
+  </span>
+  <span v-else class="on-time">On Time</span>
+  <!-- Status bar removed; only STATUS field is used for process step -->
+</td>
             </tr>
           </tbody>
         </table>
@@ -84,17 +99,21 @@
 import * as XLSX from "xlsx";
 import { ref, uploadBytes } from "firebase/storage";
 import { storage } from "@/firebase";
+import { listAll, getDownloadURL } from "firebase/storage";
 import dayjs from "dayjs";
 import duration from 'dayjs/plugin/duration';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(duration);
 dayjs.extend(customParseFormat);
 import AdminNavigationBar from "./AdminNavigationBar.vue";
+// import ProcurementStatusBar from "./ProcurementStatusBar.vue";
+
 
 export default {
   name: "RecordsManagement",
   components: {
     AdminNavigationBar,
+    // ProcurementStatusBar removed
   },
   data() {
     return {
@@ -104,6 +123,8 @@ export default {
       zoomLevel: 1,
       steps: [], // not used for dynamic, but kept for compatibility
       cellTimestamps: [], // NEW: stores edit timestamps for each cell
+      showFirebaseFileModal: false,
+      firebaseFileList: [],
     };
   },
   computed: {
@@ -132,6 +153,51 @@ export default {
     },
   },
   methods: {
+    async openFirebaseFileModal() {
+      this.showFirebaseFileModal = true;
+      this.firebaseFileList = [];
+      try {
+        const listRef = ref(storage, 'excel-files');
+        const res = await listAll(listRef);
+        this.firebaseFileList = res.items.map(item => ({
+          name: item.name,
+          fullPath: item.fullPath
+        }));
+      } catch (e) {
+        console.error('Error fetching file list:', e);
+        alert('Failed to fetch file list from Firebase Storage.');
+        this.showFirebaseFileModal = false;
+      }
+    },
+    async loadSelectedFirebaseFile(file) {
+      try {
+        const fileRef = ref(storage, file.fullPath);
+        const url = await getDownloadURL(fileRef);
+        const response = await fetch(url);
+        const json = await response.json();
+        if (Array.isArray(json) && json.length > 0 && typeof json[0] === 'object' && !Array.isArray(json[0])) {
+          this.headers = Object.keys(json[0]);
+          this.data = json.map(row => this.headers.map(h => row[h]));
+        } else if (Array.isArray(json)) {
+          this.data = json;
+          this.headers = json[0]?.map((_, i) => `Column ${i + 1}`) || [];
+        } else if (json.headers && json.data) {
+          this.headers = json.headers;
+          this.data = json.data;
+        } else {
+          console.warn('Unrecognized format', json);
+          alert('Unrecognized file format.');
+          return;
+        }
+        this.ensureDataConsistency();
+        this.detectDelays();
+        this.detectOverdueSteps();
+        this.showFirebaseFileModal = false;
+      } catch (e) {
+        console.error('Error loading file:', e);
+        alert('Failed to load file from Firebase Storage.');
+      }
+    },
     importExcel(event) {
       const file = event.target.files[0];
       const reader = new FileReader();
@@ -162,6 +228,9 @@ export default {
       };
       reader.readAsBinaryString(file);
     },
+
+
+    // generateStatusHistory removed; now only STATUS field is used for process step
     isDateColumn(index) {
       const dateKeywords = ["date", "deadline", "due"];
       return dateKeywords.some((keyword) =>
@@ -402,6 +471,37 @@ export default {
         this.zoomLevel = Math.max(this.zoomLevel - 0.1, 0.2);
       }
     },
+    onSelectJsonFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const json = JSON.parse(e.target.result);
+          if (Array.isArray(json) && json.length > 0 && typeof json[0] === 'object' && !Array.isArray(json[0])) {
+            this.headers = Object.keys(json[0]);
+            this.data = json.map(row => this.headers.map(h => row[h]));
+          } else if (Array.isArray(json)) {
+            this.data = json;
+            this.headers = json[0]?.map((_, i) => `Column ${i + 1}`) || [];
+          } else if (json.headers && json.data) {
+            this.headers = json.headers;
+            this.data = json.data;
+          } else {
+            console.warn('Unrecognized format', json);
+            alert('Unrecognized file format.');
+            return;
+          }
+          this.ensureDataConsistency();
+          this.detectDelays();
+          this.detectOverdueSteps();
+        } catch (e) {
+          console.error('Error reading file:', e);
+          alert('Failed to load records from file.');
+        }
+      };
+      reader.readAsText(file);
+    },
   },
   mounted() {
     this.ensureDataConsistency();
@@ -411,6 +511,7 @@ export default {
     if (mainContent) {
       mainContent.classList.toggle("collapsed", !sidebarVisible);
     }
+    // No auto-fetch on mount
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.handleZoomKeys);
@@ -426,6 +527,68 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: #fff;
+  padding: 2em 2em 1.5em 2em;
+  border-radius: 8px;
+  min-width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  text-align: center;
+}
+.file-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1em 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.file-list-item {
+  margin-bottom: 0.5em;
+}
+.file-select-btn {
+  background: #607d8b;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5em 1.2em;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background 0.2s;
+}
+.file-select-btn:hover {
+  background: #455a64;
+}
+.modal-close-btn {
+  background: #e57373;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5em 1.2em;
+  cursor: pointer;
+  font-size: 1em;
+  margin-top: 1em;
+  transition: background 0.2s;
+}
+.modal-close-btn:hover {
+  background: #c62828;
+}
+</style>
 
 <style scoped>
 .records-container {
@@ -505,6 +668,13 @@ input[type="file"] {
 
 .export {
   background-color: #2196F3;
+}
+
+.open {
+  background-color: #607d8b;
+}
+.open:hover {
+  background-color: #455a64;
 }
 
 .export:hover {

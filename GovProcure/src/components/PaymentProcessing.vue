@@ -15,7 +15,7 @@
             <div class="logo-container">
               <img src="@/assets/proculogo.png" alt="Procurement System Logo" class="logo" />
             </div>
-            <div class="header-text">
+            <div class="header-text align-left">
               <h1 class="title">Payment Processing</h1>
               <p class="subtitle">Manage and track all procurement payments</p>
             </div>
@@ -740,6 +740,14 @@ export default {
 
 .header-text {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.header-text.align-left {
+  align-items: flex-start;
 }
 
 .title {
