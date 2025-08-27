@@ -129,7 +129,7 @@ export function useTawk() {
 
     document.querySelectorAll('[id^="tawk-"], [class*="tawk-"]').forEach(el => el.remove());
 
-    delete window.Tawk_API;
+    //delete window.Tawk_API;
     delete window.Tawk_LoadStart;
     tawkInitialized = false;
 

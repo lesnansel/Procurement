@@ -74,7 +74,7 @@
             </table>
           </div>
           <div v-else-if="!requests.length" class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2h-4a2 2 0 0 0-2 2v-7"></path><path d="M8 6h3a1 1 0 0 1 1 1v9"></path><path d="M8 22h4a2 2 0 0 0 2-2v-7"></path><path d="M2 19h5"></path><path d="M18 5V3c0-.6-.4-1-1-1h-4a1 1 0 0 0-1 1v2"></path><path d="M10 5V3c0-.6-.4-1-1-1H5a1 1 0 0 0-1 1v2"></path></svg>
             <p class="empty-text">No purchase requests available.</p>
             <p class="empty-subtext">New requests will appear here once submitted.</p>
           </div>
@@ -190,26 +190,91 @@ import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebase";
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { useRouter } from 'vue-router';
+import { getAuth } from "firebase/auth";
 
 export default {
   components: {
     AdminNavigationBar,
-    // ProcurementStatusBar removed
   },
   name: "ProcurementPlan",
   setup() {
     const router = useRouter();
-    // State variables
+    const auth = getAuth();
+
     const requests = ref([]);
     const searchQuery = ref("");
     const statusFilter = ref("all");
     const isViewing = ref(false);
     const viewRequestData = ref({});
-
-    // Track previous statuses for notification
     const previousStatuses = ref({});
 
-    // View request details
+    const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
+
+    const toastContainer = ref(null);
+
+    const createToastContainer = () => {
+      if (!toastContainer.value) {
+        const container = document.createElement("div");
+        container.style.position = "fixed";
+        container.style.top = "20px";
+        container.style.right = "20px";
+        container.style.zIndex = "9999";
+        container.style.display = "flex";
+        container.style.flexDirection = "column";
+        container.style.gap = "10px";
+        document.body.appendChild(container);
+        toastContainer.value = container;
+      }
+    };
+
+    const showNotification = (message, type = "success") => {
+      createToastContainer();
+
+      const toast = document.createElement("div");
+      toast.textContent = message;
+      toast.style.minWidth = "250px";
+      toast.style.padding = "12px 20px";
+      toast.style.borderRadius = "8px";
+      toast.style.color = "#fff";
+      toast.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)";
+      toast.style.opacity = "0";
+      toast.style.transform = "translateX(100%)";
+      toast.style.transition = "all 0.4s ease";
+
+      if (type === "success") toast.style.backgroundColor = "#4CAF50";
+      else if (type === "error") toast.style.backgroundColor = "#F44336";
+      else toast.style.backgroundColor = "#333";
+
+      toastContainer.value.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = "1";
+        toast.style.transform = "translateX(0)";
+      }, 10);
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(100%)";
+        setTimeout(() => {
+          toastContainer.value.removeChild(toast);
+        }, 400);
+      }, 3000);
+    };
+
+    const sendStatusEmailNotification = async (email, prId, newStatus) => {
+      try {
+        await fetch('http://localhost:5000/send-pr-status-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, prNumber: prId, newStatus })
+        });
+        showNotification(`Status email sent to ${email}!`);
+      } catch (error) {
+        console.error("Email notification failed:", error);
+        showNotification('Failed to send status email', 'error');
+      }
+    };
+
     const viewRequest = (userId) => {
       const request = requests.value.find((req) => req.userId === userId);
       if (request) {
@@ -224,24 +289,6 @@ export default {
       router.push({ name: 'RequestDetail', params: { id } });
     };
 
-    // Notification utility (already present in your code)
-    const showNotification = (message, type = "success") => {
-      const notification = document.createElement("div");
-      notification.className = `notification ${type}`;
-      notification.textContent = message;
-      document.body.appendChild(notification);
-      setTimeout(() => {
-        notification.classList.add("show");
-      }, 10);
-      setTimeout(() => {
-        notification.classList.remove("show");
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 300);
-      }, 3000);
-    };
-
-    // Real-time listener for status changes
     const setupRealtimeListener = () => {
       const unsubscribe = onSnapshot(collection(db, "purchaseRequests"), (snapshot) => {
         const newRequests = snapshot.docs.map((doc) => ({
@@ -249,21 +296,26 @@ export default {
           ...doc.data(),
         }));
 
-        // Check for status changes
         newRequests.forEach(req => {
           const prevStatus = previousStatuses.value[req.id];
-          if (prevStatus && req.status !== prevStatus) {
+
+          // Correct field name: userId
+          if (req.userId === currentUserId && prevStatus && req.status !== prevStatus) {
             showNotification(`Status for "${req.itemName}" updated to ${req.status}`, "success");
+            if (req.userEmail) {
+              sendStatusEmailNotification(req.userEmail, req.id, req.status);
+            }
           }
+
           previousStatuses.value[req.id] = req.status;
         });
 
         requests.value = newRequests;
       });
+
       return unsubscribe;
     };
 
-    // Fetch purchase requests from Firestore
     const fetchRequests = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "purchaseRequests"));
@@ -271,20 +323,14 @@ export default {
           id: doc.id,
           ...doc.data(),
         }));
-
-        if (requests.value.length === 0) {
-          console.warn("No purchase requests found in Firestore.");
-        }
       } catch (error) {
         console.error("Error fetching requests from Firestore:", error);
       }
     };
 
-    // Computed property for filtered requests
     const filteredRequests = computed(() => {
       let filtered = [...requests.value];
 
-      // Apply search query
       if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase();
         filtered = filtered.filter(
@@ -294,7 +340,6 @@ export default {
         );
       }
 
-      // Apply status filter
       if (statusFilter.value !== "all") {
         filtered = filtered.filter(
           (request) => request.status.toLowerCase() === statusFilter.value
@@ -304,13 +349,11 @@ export default {
       return filtered;
     });
 
-    // Close the modal
     const closeModal = () => {
       isViewing.value = false;
       viewRequestData.value = {};
     };
 
-    // Format date utility
     const formatDate = (timestamp) => {
       if (!timestamp) return "N/A";
       const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -321,7 +364,6 @@ export default {
       });
     };
 
-    // Fetch data on component mount
     onMounted(() => {
       fetchRequests();
       setupRealtimeListener();
@@ -336,7 +378,7 @@ export default {
       viewRequestData,
       viewRequest,
       closeModal,
-      formatDate, // Include formatDate in the return object
+      formatDate,
       navigateToDetails
     };
   },

@@ -101,38 +101,17 @@
                 </div>
               </div>
               <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Timer Duration</label>
-                  <div style="display: flex; gap: 8px;">
-                    <input
-                      v-model.number="newInvitation.timerDays"
-                      type="number"
-                      min="0"
-                      class="input-field"
-                      placeholder="Days"
-                      style="max-width: 80px;"
-                    />
-                    <input
-                      v-model.number="newInvitation.timerHours"
-                      type="number"
-                      min="0"
-                      max="23"
-                      class="input-field"
-                      placeholder="Hours"
-                      style="max-width: 80px;"
-                    />
-                    <input
-                      v-model.number="newInvitation.timerMinutes"
-                      type="number"
-                      min="0"
-                      max="59"
-                      class="input-field"
-                      placeholder="Minutes"
-                      style="max-width: 100px;"
-                    />
-                  </div>
-                </div>
-              </div>
+  <div class="form-group">
+    <label class="form-label">Timer Duration (days)</label>
+    <input
+      v-model.number="newInvitation.timerDuration"
+      type="number"
+      min="1"
+      class="input-field"
+      placeholder="Enter timer duration in days"
+    />
+  </div>
+</div>
 
               <div class="form-row">
                 <div class="form-group">
@@ -150,6 +129,16 @@
                 <div class="form-group">
                   <label class="form-label">Attach Supporting Documents</label>
                   <input type="file" multiple @change="onFileChange($event, 'supportingDocs')" class="input-field" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Requestor Email</label>
+                  <input v-model="newInvitation.requestorEmail" type="email" class="input-field" placeholder="Enter requestor's email" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Requestor User ID</label>
+                  <input v-model="newInvitation.requestorUserId" type="text" class="input-field" placeholder="Enter requestor's user ID" required />
                 </div>
               </div>
               <div class="form-group">
@@ -301,37 +290,17 @@
             <div class="modal-content">
               <h2>Restore & Set Timer</h2>
               <p>
-                Set a new timer for <strong>{{ selectedInvitation.projectName }}</strong>.<br>
+                Set a new timer (in minutes) for <strong>{{ selectedInvitation.projectName }}</strong>.<br>
                 It will be restored to active invitations.
               </p>
-              <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                <input
-                  type="number"
-                  min="0"
-                  v-model.number="restoreTimerDays"
-                  placeholder="Days"
-                  class="input-field"
-                  style="max-width: 80px;"
-                />
-                <input
-                  type="number"
-                  min="0"
-                  max="23"
-                  v-model.number="restoreTimerHours"
-                  placeholder="Hours"
-                  class="input-field"
-                  style="max-width: 80px;"
-                />
-                <input
-                  type="number"
-                  min="0"
-                  max="59"
-                  v-model.number="restoreTimerMinutes"
-                  placeholder="Minutes"
-                  class="input-field"
-                  style="max-width: 100px;"
-                />
-              </div>
+              <input
+                type="number"
+                min="1"
+                v-model.number="restoreTimerMinutes"
+                placeholder="Timer duration (minutes)"
+                class="input-field"
+                style="margin-bottom: 16px;"
+              />
               <div class="modal-actions">
                 <button class="btn-primary" @click="restoreInvitationWithTimer">Restore</button>
                 <button class="btn-secondary" @click="closeModals">Cancel</button>
@@ -431,35 +400,14 @@
                 <!-- ✅ NEW TIMER FIELD -->
                 <div class="form-row">
                   <div class="form-group">
-                    <label class="form-label">Timer Duration</label>
-                    <div style="display: flex; gap: 8px;">
-                      <input
-                        v-model.number="selectedInvitation.timerDays"
-                        type="number"
-                        min="0"
-                        class="input-field"
-                        placeholder="Days"
-                        style="max-width: 80px;"
-                      />
-                      <input
-                        v-model.number="selectedInvitation.timerHours"
-                        type="number"
-                        min="0"
-                        max="23"
-                        class="input-field"
-                        placeholder="Hours"
-                        style="max-width: 80px;"
-                      />
-                      <input
-                        v-model.number="selectedInvitation.timerMinutes"
-                        type="number"
-                        min="0"
-                        max="59"
-                        class="input-field"
-                        placeholder="Minutes"
-                        style="max-width: 100px;"
-                      />
-                    </div>
+                    <label class="form-label">Timer Duration (days)</label>
+                    <input
+                      v-model.number="selectedInvitation.timerDuration"
+                      type="number"
+                      min="1"
+                      class="input-field"
+                      placeholder="Enter timer duration"
+                    />
                   </div>
                 </div>
 
@@ -472,7 +420,18 @@
                       <option value="closed">Closed</option>
                     </select>
                   </div>
-                  <div class="form-group full-width">
+                  <div class="form-group">
+                    <label class="form-label">Requestor Email</label>
+                    <input v-model="selectedInvitation.requestorEmail" type="email" class="input-field" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Requestor User ID</label>
+                    <input v-model="selectedInvitation.requestorUserId" type="text" class="input-field" required />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
                     <label class="form-label">Description</label>
                     <textarea v-model="selectedInvitation.description" class="input-field textarea" required></textarea>
                   </div>
@@ -512,7 +471,8 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
-  doc
+  doc,
+  getDoc
 } from "firebase/firestore";
 import {
   ref as storageRef,
@@ -537,14 +497,15 @@ export default {
       preBidDate: "",
       deadline: "",
       bidOpeningDate: "",
-      status: "draft",
+      status: "draft", // Invitation status
       description: "",
       itbPdfUrl: "",
       supportingDocsUrls: [],
-      timerDays: 0,
-      timerHours: 0,
-      timerMinutes: 0,
-      expiresAt: "", // derived from timerDuration
+      timerDuration: "",
+      expiresAt: "",
+      requestorEmail: "",
+      requestorUserId: "",
+      prStatus: "pending", // PR status
     });
 
     const itbPdfFile = ref(null);
@@ -552,13 +513,8 @@ export default {
     const showCreateForm = ref(false);
     const searchQuery = ref("");
 
-    // Tab toggle
     const showArchived = ref(false);
-
-    // Restore modal state
-    const restoreTimerDays = ref(0);
-    const restoreTimerHours = ref(0);
-    const restoreTimerMinutes = ref(0);
+    const restoreTimerMinutes = ref(60);
 
     const modal = ref({
       view: false,
@@ -603,14 +559,11 @@ export default {
           }
         }
 
-        // Calculate expiresAt from days, hours, minutes
-        const totalMs =
-          ((newInvitation.value.timerDays || 0) * 24 * 60 * 60 * 1000) +
-          ((newInvitation.value.timerHours || 0) * 60 * 60 * 1000) +
-          ((newInvitation.value.timerMinutes || 0) * 60 * 1000);
         let expiresAt = null;
-        if (totalMs > 0) {
-          expiresAt = new Date(Date.now() + totalMs).toISOString();
+        if (newInvitation.value.timerDuration && !isNaN(newInvitation.value.timerDuration)) {
+          const future = new Date();
+          future.setDate(future.getDate() + Number(newInvitation.value.timerDuration));
+          expiresAt = future.toISOString();
         }
 
         await addDoc(collection(db, "invitations"), {
@@ -618,9 +571,13 @@ export default {
           itbPdfUrl,
           supportingDocsUrls,
           expiresAt,
-          timerDays: newInvitation.value.timerDays,
-          timerHours: newInvitation.value.timerHours,
-          timerMinutes: newInvitation.value.timerMinutes,
+        });
+
+        await sendEmailNotification({
+          to: newInvitation.value.requestorEmail,
+          userId: newInvitation.value.requestorUserId,
+          subject: "New Invitation to Bid Created",
+          message: `Your ITB (${newInvitation.value.projectName}) has been created.`
         });
 
         showNotification("Invitation created successfully!");
@@ -632,7 +589,6 @@ export default {
       }
     };
 
-    // Fetch invitations (active and archived)
     const archivedInvitations = computed(() =>
       invitations.value.filter(inv => inv.archived === true)
     );
@@ -652,14 +608,11 @@ export default {
 
         invitations.value = snapshot.docs.map(docSnap => {
           const data = { id: docSnap.id, ...docSnap.data() };
-
-          // Auto-archive expired
           if (data.expiresAt && new Date(data.expiresAt) < now && !data.archived) {
             const ref = doc(db, "invitations", data.id);
             updates.push(updateDoc(ref, { archived: true }));
             data.archived = true;
           }
-
           return data;
         });
 
@@ -675,7 +628,6 @@ export default {
       try {
         const updateData = { ...selectedInvitation.value };
 
-        // ⏱ Recompute expiresAt from timerDuration (if changed)
         if (updateData.timerDuration && !isNaN(updateData.timerDuration)) {
           const future = new Date();
           future.setDate(future.getDate() + Number(updateData.timerDuration));
@@ -684,10 +636,34 @@ export default {
           updateData.expiresAt = null;
         }
 
+        // Get previous data for change detection
+        const invitationRef = doc(db, "invitations", selectedInvitation.value.id);
+        const prevSnapshot = await getDoc(invitationRef);
+        const prevData = prevSnapshot.exists() ? prevSnapshot.data() : {};
+
+        const prevPrStatus = prevData.prStatus;
+        const newPrStatus = updateData.prStatus;
+
         delete updateData.id;
 
-        const invitationRef = doc(db, "invitations", selectedInvitation.value.id);
         await updateDoc(invitationRef, updateData);
+
+        // General update email
+        await sendEmailNotification({
+          to: selectedInvitation.value.requestorEmail,
+          userId: selectedInvitation.value.requestorUserId,
+          subject: "Invitation to Bid Updated",
+          message: `Your ITB (${selectedInvitation.value.projectName}) has been updated.`
+        });
+
+        // Detect PR status change
+        if (prevPrStatus !== undefined && newPrStatus !== undefined && prevPrStatus !== newPrStatus) {
+          await notifyPRStatus(
+            selectedInvitation.value.requestorEmail,
+            selectedInvitation.value.prId,
+            newPrStatus
+          );
+        }
 
         showNotification("Invitation updated successfully!");
         closeModals();
@@ -709,33 +685,21 @@ export default {
       }
     };
 
-    // Restore modal logic
     const openRestoreModal = (invitation) => {
       selectedInvitation.value = { ...invitation };
-      restoreTimerDays.value = 0;
-      restoreTimerHours.value = 0;
-      restoreTimerMinutes.value = 0;
+      restoreTimerMinutes.value = 60;
       modal.value.restore = true;
     };
 
     const restoreInvitationWithTimer = async () => {
-      if (!selectedInvitation.value.id) return;
+      if (!selectedInvitation.value.id || !restoreTimerMinutes.value) return;
       try {
-        const totalMs =
-          ((restoreTimerDays.value || 0) * 24 * 60 * 60 * 1000) +
-          ((restoreTimerHours.value || 0) * 60 * 60 * 1000) +
-          ((restoreTimerMinutes.value || 0) * 60 * 1000);
-        let expiresAt = null;
-        if (totalMs > 0) {
-          expiresAt = new Date(Date.now() + totalMs).toISOString();
-        }
+        const expiresAt = new Date(Date.now() + restoreTimerMinutes.value * 60 * 1000).toISOString();
         const invitationRef = doc(db, "invitations", selectedInvitation.value.id);
         await updateDoc(invitationRef, {
           archived: false,
           expiresAt,
-          timerDays: restoreTimerDays.value,
-          timerHours: restoreTimerHours.value,
-          timerMinutes: restoreTimerMinutes.value,
+          timerDuration: restoreTimerMinutes.value
         });
         showNotification("Invitation restored!");
         closeModals();
@@ -763,10 +727,11 @@ export default {
         description: "",
         itbPdfUrl: "",
         supportingDocsUrls: [],
-        timerDays: 0,
-        timerHours: 0,
-        timerMinutes: 0,
+        timerDuration: "",
         expiresAt: "",
+        requestorEmail: "",
+        requestorUserId: "",
+        prStatus: "pending",
       };
       itbPdfFile.value = null;
       supportingDocsFiles.value = [];
@@ -809,7 +774,6 @@ export default {
       }, 3000);
     };
 
-    // Add getTimeLeft function
     const getTimeLeft = (expiresAt) => {
       if (!expiresAt) return "No timer";
       const now = new Date();
@@ -820,6 +784,27 @@ export default {
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       return `${days}d ${hours}h ${minutes}m`;
+    };
+
+    const sendEmailNotification = async (payload) => {
+      try {
+        await fetch('http://localhost:3000/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        showNotification('Email notification sent!');
+      } catch (error) {
+        showNotification('Failed to send email', 'error');
+      }
+    };
+
+    const notifyPRStatus = async (email, prNumber, newStatus) => {
+      await fetch('http://localhost:5000/send-pr-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, prNumber, newStatus })
+      });
     };
 
     onMounted(fetchInvitations);
@@ -847,10 +832,10 @@ export default {
       showArchived,
       archivedInvitations,
       openRestoreModal,
-      restoreTimerDays,
-      restoreTimerHours,
       restoreTimerMinutes,
       restoreInvitationWithTimer,
+      sendEmailNotification,
+      notifyPRStatus
     };
   },
 };
